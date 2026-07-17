@@ -20,3 +20,9 @@ npm-debug.log*
 
 # initial minified bundle (no longer needed)
 afrikscout-clone/
+
+.vercel
+.env*
+
+# allow the example env (no secrets)
+!.env.example
