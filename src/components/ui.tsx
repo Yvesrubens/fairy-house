@@ -40,7 +40,7 @@ export function CTASection({
   title,
   text,
   cta = 'Nous contacter',
-  to = '/contact',
+  to = '/reserver',
 }: {
   title: string
   text?: string

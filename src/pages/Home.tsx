@@ -234,7 +234,7 @@ export default function Home() {
                     ))}
                   </ul>
                   <Link
-                    to="/contact"
+                    to="/reserver"
                     className="mt-6 inline-block rounded-full bg-gold px-8 py-3 text-sm font-semibold text-black transition-colors hover:bg-gold-dark"
                   >
                     {p.cta}
@@ -301,7 +301,7 @@ export default function Home() {
             à votre projet
           </p>
           <Link
-            to="/contact"
+            to="/reserver"
             className="mt-10 inline-block rounded-full bg-gold px-10 py-4 text-base font-semibold text-black transition-colors hover:bg-gold-dark"
           >
             Nous contacter
