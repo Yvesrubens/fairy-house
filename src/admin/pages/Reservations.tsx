@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { listReservations, updateReservationStatus } from '../../lib/api'
+import { supabase } from '../../lib/supabase'
 import { formatDate, formatEuro, toCSV } from '../../lib/format'
 import type { Reservation, ReservationStatus } from '../../types/db'
 
@@ -34,9 +35,41 @@ export default function Reservations() {
     [rows, filter],
   )
 
+  const [sending, setSending] = useState<string | null>(null)
+
   async function setStatus(id: string, status: ReservationStatus) {
     await updateReservationStatus(id, status)
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)))
+  }
+
+  async function sendConfirmation(id: string) {
+    setSending(id)
+    try {
+      const { data } = await supabase.auth.getSession()
+      const token = data.session?.access_token
+      const res = await fetch('/api/send-confirmation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reservationId: id }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error || 'Échec de l’envoi')
+      }
+      const nowIso = new Date().toISOString()
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === id ? { ...r, confirmation_sent_at: nowIso } : r,
+        ),
+      )
+    } catch (err) {
+      alert((err as Error).message)
+    } finally {
+      setSending(null)
+    }
   }
 
   function exportCSV() {
@@ -135,7 +168,7 @@ export default function Reservations() {
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     {r.status !== 'confirmed' && (
                       <button
                         onClick={() => setStatus(r.id, 'confirmed')}
@@ -150,6 +183,20 @@ export default function Reservations() {
                         className="text-sm font-medium text-rose-500 hover:text-rose-600"
                       >
                         Annuler
+                      </button>
+                    )}
+                    {r.confirmation_sent_at ? (
+                      <span className="text-xs text-gray-400">
+                        Confirmation envoyée le{' '}
+                        {formatDate(r.confirmation_sent_at)}
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => sendConfirmation(r.id)}
+                        disabled={sending === r.id}
+                        className="text-sm font-medium text-purple-600 hover:text-purple-700 disabled:opacity-50"
+                      >
+                        {sending === r.id ? 'Envoi…' : 'Envoyer la confirmation'}
                       </button>
                     )}
                   </div>

@@ -13,6 +13,7 @@ export interface Reservation {
   amount: number
   status: ReservationStatus
   message: string | null
+  confirmation_sent_at: string | null
   created_at: string
 }
 

@@ -23,6 +23,7 @@ create table if not exists reservations (
   amount numeric not null default 0,
   status text not null default 'pending' check (status in ('pending','confirmed','cancelled')),
   message text,
+  confirmation_sent_at timestamptz,
   created_at timestamptz not null default now()
 );
 

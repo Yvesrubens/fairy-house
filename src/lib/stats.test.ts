@@ -20,6 +20,7 @@ const base: Reservation = {
   amount: 100,
   status: 'confirmed',
   message: null,
+  confirmation_sent_at: null,
   created_at: '2026-06-03T10:00:00Z',
 }
 const now = new Date('2026-06-15T00:00:00Z')
