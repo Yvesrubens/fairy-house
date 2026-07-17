@@ -3,11 +3,11 @@ import { TrendIcon } from '../icons'
 
 export type StatColor = 'blue' | 'green' | 'purple' | 'pink'
 
-const COLORS: Record<StatColor, string> = {
-  blue: 'bg-blue-50 text-blue-600',
-  green: 'bg-green-50 text-green-600',
-  purple: 'bg-purple-50 text-purple-600',
-  pink: 'bg-pink-50 text-pink-600',
+const STYLES: Record<StatColor, { card: string; badge: string }> = {
+  blue: { card: 'from-blue-50', badge: 'bg-blue-500 text-white' },
+  green: { card: 'from-green-50', badge: 'bg-green-500 text-white' },
+  purple: { card: 'from-purple-50', badge: 'bg-purple-500 text-white' },
+  pink: { card: 'from-pink-50', badge: 'bg-pink-500 text-white' },
 }
 
 export default function StatCard({
@@ -25,16 +25,19 @@ export default function StatCard({
   color?: StatColor
   trend?: string
 }) {
+  const s = STYLES[color]
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm">
+    <div
+      className={`rounded-2xl border bg-gradient-to-br ${s.card} to-white p-6 shadow-sm transition-shadow hover:shadow-md`}
+    >
       <div className="flex items-start justify-between">
         <div
-          className={`flex h-11 w-11 items-center justify-center rounded-xl ${COLORS[color]}`}
+          className={`flex h-11 w-11 items-center justify-center rounded-xl shadow-sm ${s.badge}`}
         >
           {icon}
         </div>
-        <span className="flex items-center gap-1 text-sm font-medium text-green-600">
-          <TrendIcon width={14} height={14} />
+        <span className="flex items-center gap-1 rounded-full bg-white/70 px-2 py-1 text-xs font-medium text-green-600">
+          <TrendIcon width={12} height={12} />
           {trend}
         </span>
       </div>
