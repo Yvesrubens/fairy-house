@@ -5,10 +5,10 @@ import { PageHero } from '../components/ui'
 import { createReservation } from '../lib/api'
 
 const TYPES = [
-  'Privatisation complète',
-  'Chambre Litha',
-  'Chambre Mabon',
-  'Chambre Imbolc',
+  'Chambre Litha (2-3 personnes)',
+  'Chambre Mabbon (5 personnes)',
+  'Chambre Imbolc (4 personnes)',
+  'Privatisation simple',
   'Séjour sur mesure',
 ]
 
@@ -17,7 +17,7 @@ export default function Reservation() {
     type: TYPES[0],
     arrival_date: '',
     departure_date: '',
-    guests: '',
+    guests: '1',
     client_name: '',
     client_email: '',
     client_phone: '',
@@ -92,7 +92,7 @@ export default function Reservation() {
                 </p>
               )}
               <label className="block text-sm font-medium text-ink">
-                Type de séjour
+                Type d'hébergement
                 <select
                   value={form.type}
                   onChange={(e) => set('type', e.target.value)}
@@ -128,13 +128,17 @@ export default function Reservation() {
 
               <label className="block text-sm font-medium text-ink">
                 Nombre de personnes
-                <input
-                  type="number"
-                  min={1}
+                <select
                   value={form.guests}
                   onChange={(e) => set('guests', e.target.value)}
                   className="mt-1 w-full rounded-lg border border-cream px-4 py-3 outline-none focus:border-gold"
-                />
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>
+                      {n} {n === 1 ? 'personne' : 'personnes'}
+                    </option>
+                  ))}
+                </select>
               </label>
 
               <div className="grid gap-5 sm:grid-cols-2">
