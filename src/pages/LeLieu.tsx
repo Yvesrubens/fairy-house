@@ -172,6 +172,7 @@ export default function LeLieu() {
         title="Prêt(e) à découvrir Fairy House ?"
         text="Réservez dès maintenant votre séjour dans notre havre de paix"
         cta="Réserver maintenant"
+        to="/reserver"
       />
     </main>
   )
@@ -196,7 +197,7 @@ function PageHeroLocal() {
           à pas vers la réalisation de ses rêves.
         </p>
         <Link
-          to="/contact"
+          to="/reserver"
           className="mt-10 inline-block rounded-full bg-gold px-10 py-4 text-base font-semibold text-black transition-colors hover:bg-gold-dark"
         >
           Réserver maintenant

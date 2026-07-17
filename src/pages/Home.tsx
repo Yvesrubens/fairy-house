@@ -185,7 +185,7 @@ export default function Home() {
                     ))}
                   </ul>
                   <Link
-                    to="/contact"
+                    to="/reserver"
                     className="mt-6 inline-block rounded-full border-2 border-gold px-8 py-3 text-sm font-semibold text-ink transition-colors hover:bg-gold hover:text-black"
                   >
                     Réserver maintenant

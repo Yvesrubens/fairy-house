@@ -1,7 +1,20 @@
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { PageHero, CTASection } from '../components/ui'
+import { listPublishedEvents } from '../lib/api'
+import { formatDate } from '../lib/format'
+import type { EventRow } from '../types/db'
 
 export default function Evenements() {
+  const [events, setEvents] = useState<EventRow[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    listPublishedEvents()
+      .then(setEvents)
+      .catch(() => setEvents([]))
+      .finally(() => setLoading(false))
+  }, [])
+
   return (
     <main>
       <PageHero
@@ -12,18 +25,49 @@ export default function Evenements() {
       />
 
       <section className="bg-cream-light py-24">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <div className="rounded-2xl border border-cream bg-white px-8 py-20">
-            <p className="text-xl font-medium text-ink">
-              D'autres expériences arrivent bientôt
-            </p>
-            <Link
-              to="/evenements"
-              className="mt-8 inline-block rounded-full border-2 border-gold px-8 py-3 text-sm font-semibold text-ink transition-colors hover:bg-gold hover:text-black"
-            >
-              Voir tous les événements
-            </Link>
-          </div>
+        <div className="mx-auto max-w-6xl px-6">
+          {loading ? (
+            <p className="text-center text-gray-500">Chargement…</p>
+          ) : events.length === 0 ? (
+            <div className="mx-auto max-w-4xl rounded-2xl border border-cream bg-white px-8 py-20 text-center">
+              <p className="text-xl font-medium text-ink">
+                D'autres expériences arrivent bientôt
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {events.map((e) => (
+                <article
+                  key={e.id}
+                  className="overflow-hidden rounded-2xl border border-cream bg-white"
+                >
+                  {e.image_url && (
+                    <img
+                      src={e.image_url}
+                      alt={e.title}
+                      className="h-52 w-full object-cover"
+                    />
+                  )}
+                  <div className="p-6">
+                    {e.event_date && (
+                      <p className="text-sm font-semibold uppercase tracking-wider text-gold">
+                        {formatDate(e.event_date)}
+                      </p>
+                    )}
+                    <h3 className="mt-2 text-xl font-bold text-ink">{e.title}</h3>
+                    {e.location && (
+                      <p className="mt-1 text-sm text-gray-500">{e.location}</p>
+                    )}
+                    {e.description && (
+                      <p className="mt-3 leading-relaxed text-gray-600">
+                        {e.description}
+                      </p>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

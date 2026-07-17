@@ -49,7 +49,7 @@ export default function Header() {
             </Link>
           ))}
           <Link
-            to="/contact"
+            to="/reserver"
             className="rounded-full bg-gold px-6 py-3 text-sm font-semibold text-black transition-colors hover:bg-gold-dark"
           >
             Réserver
@@ -85,7 +85,7 @@ export default function Header() {
               </Link>
             ))}
             <Link
-              to="/contact"
+              to="/reserver"
               onClick={() => setOpen(false)}
               className="rounded-full bg-gold px-6 py-3 text-center text-sm font-semibold text-black"
             >

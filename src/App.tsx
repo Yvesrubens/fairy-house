@@ -8,6 +8,8 @@ import Blog from './pages/Blog'
 import Intervenants from './pages/Intervenants'
 import Contact from './pages/Contact'
 import Faq from './pages/Faq'
+import BlogArticle from './pages/BlogArticle'
+import Reservation from './pages/Reservation'
 import Placeholder from './pages/Placeholder'
 import { AuthProvider } from './admin/AuthProvider'
 import RequireAdmin from './admin/RequireAdmin'
@@ -30,7 +32,9 @@ function PublicSite() {
         <Route path="/le-lieu" element={<LeLieu />} />
         <Route path="/evenements" element={<Evenements />} />
         <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogArticle />} />
         <Route path="/intervenants" element={<Intervenants />} />
+        <Route path="/reserver" element={<Reservation />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/faq" element={<Faq />} />
         <Route path="*" element={<Placeholder title="Page introuvable" />} />
