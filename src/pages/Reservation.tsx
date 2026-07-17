@@ -189,6 +189,9 @@ export default function Reservation() {
               >
                 {busy ? 'Envoi…' : 'Envoyer ma demande'}
               </button>
+              <p className="text-center text-sm text-gray-500">
+                * Champs obligatoires • Réponse sous 48h
+              </p>
             </form>
           )}
         </div>
