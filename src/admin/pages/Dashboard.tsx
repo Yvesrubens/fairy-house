@@ -8,6 +8,12 @@ import {
   activeEvents,
 } from '../../lib/stats'
 import { formatEuro, formatDate } from '../../lib/format'
+import {
+  ClipboardIcon,
+  EuroIcon,
+  DashboardIcon,
+  CalendarIcon,
+} from '../icons'
 import type { EventRow, Reservation } from '../../types/db'
 
 // Capacité mensuelle indicative : ~2 chambres louables x 30 nuits.
@@ -47,20 +53,28 @@ export default function Dashboard() {
         <StatCard
           label="Réservations ce mois"
           value={String(reservationsThisMonth(reservations, now))}
+          icon={<ClipboardIcon />}
+          color="blue"
         />
         <StatCard
           label="CA ce mois"
           value={formatEuro(revenueThisMonth(reservations, now))}
+          icon={<EuroIcon />}
+          color="green"
         />
         <StatCard
           label="Taux d'occupation"
           value={`${occupancyRate(reservations, now, CAPACITY_NIGHTS)}%`}
           sub="Ce mois"
+          icon={<DashboardIcon />}
+          color="purple"
         />
         <StatCard
           label="Événements actifs"
           value={String(activeEvents(events, now))}
           sub="Total publiés"
+          icon={<CalendarIcon />}
+          color="pink"
         />
       </div>
 

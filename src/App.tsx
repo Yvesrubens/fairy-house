@@ -18,6 +18,7 @@ import Reservations from './admin/pages/Reservations'
 import Events from './admin/pages/Events'
 import Articles from './admin/pages/Articles'
 import IntervenantsAdmin from './admin/pages/Intervenants'
+import Messages from './admin/pages/Messages'
 import Settings from './admin/pages/Settings'
 
 function PublicSite() {
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="events" element={<Events />} />
           <Route path="articles" element={<Articles />} />
           <Route path="intervenants" element={<IntervenantsAdmin />} />
+          <Route path="messages" element={<Messages />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="/*" element={<PublicSite />} />
