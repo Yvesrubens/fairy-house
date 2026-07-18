@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { listReservations, updateReservationStatus } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
 import { formatDate, formatEuro, toCSV } from '../../lib/format'
+import DevisForm from './DevisForm'
 import type { Reservation, ReservationStatus } from '../../types/db'
 
 const STATUS_LABEL: Record<ReservationStatus, string> = {
@@ -36,6 +37,8 @@ export default function Reservations() {
   )
 
   const [sending, setSending] = useState<string | null>(null)
+  const [devisFor, setDevisFor] = useState<Reservation | null>(null)
+  const [notice, setNotice] = useState('')
 
   async function setStatus(id: string, status: ReservationStatus) {
     await updateReservationStatus(id, status)
@@ -97,6 +100,21 @@ export default function Reservations() {
 
   return (
     <div>
+      {devisFor && (
+        <DevisForm
+          reservation={devisFor}
+          onCancel={() => setDevisFor(null)}
+          onSent={(ref) => {
+            setDevisFor(null)
+            setNotice(`Devis ${ref} envoyé au client.`)
+          }}
+        />
+      )}
+      {notice && (
+        <p className="mb-4 rounded-lg bg-green-50 px-4 py-2 text-sm text-green-700">
+          {notice}
+        </p>
+      )}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Réservations</h1>
         <button
@@ -199,6 +217,12 @@ export default function Reservations() {
                         {sending === r.id ? 'Envoi…' : 'Envoyer la confirmation'}
                       </button>
                     )}
+                    <button
+                      onClick={() => setDevisFor(r)}
+                      className="text-sm font-medium text-gold hover:opacity-80"
+                    >
+                      Créer un devis
+                    </button>
                   </div>
                 </td>
               </tr>

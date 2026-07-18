@@ -135,6 +135,38 @@ create policy in_public on intervenants for select using (published or is_admin(
 drop policy if exists in_write on intervenants;
 create policy in_write on intervenants for all using (is_admin()) with check (is_admin());
 
+-- ------------------------------------------------------------------ Devis
+create table if not exists devis (
+  id uuid primary key default gen_random_uuid(),
+  reference text unique not null,
+  reservation_id uuid references reservations(id) on delete set null,
+  client_name text,
+  client_email text,
+  lines jsonb not null,
+  total_ht numeric not null,
+  vat_rate numeric not null default 20,
+  total_ttc numeric not null,
+  validity_days int not null default 30,
+  sent_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+alter table devis enable row level security;
+drop policy if exists devis_all on devis;
+create policy devis_all on devis for all using (is_admin()) with check (is_admin());
+
+-- Génération de référence : DEV-YYYY-NNNNN par année
+create or replace function next_devis_reference() returns text
+language plpgsql as $$
+declare
+  yr text := to_char(now(), 'YYYY');
+  n int;
+begin
+  select coalesce(max((split_part(reference,'-',3))::int),0)+1 into n
+  from devis where reference like 'DEV-'||yr||'-%';
+  return 'DEV-'||yr||'-'||lpad(n::text,5,'0');
+end; $$;
+
 -- ----------------------------------------------------------------- Storage
 insert into storage.buckets (id, name, public) values ('media','media', true)
   on conflict (id) do nothing;
