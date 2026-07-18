@@ -11,6 +11,7 @@ import Faq from './pages/Faq'
 import BlogArticle from './pages/BlogArticle'
 import Reservation from './pages/Reservation'
 import Placeholder from './pages/Placeholder'
+import { ReservationProvider } from './components/Reservation'
 import { AuthProvider } from './admin/AuthProvider'
 import RequireAdmin from './admin/RequireAdmin'
 import AdminLayout from './admin/AdminLayout'
@@ -25,9 +26,10 @@ import Settings from './admin/pages/Settings'
 
 function PublicSite() {
   return (
-    <div className="min-h-screen bg-white">
-      <Header />
-      <Routes>
+    <ReservationProvider>
+      <div className="min-h-screen bg-white">
+        <Header />
+        <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/le-lieu" element={<LeLieu />} />
         <Route path="/evenements" element={<Evenements />} />
@@ -39,8 +41,9 @@ function PublicSite() {
         <Route path="/faq" element={<Faq />} />
         <Route path="*" element={<Placeholder title="Page introuvable" />} />
       </Routes>
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </ReservationProvider>
   )
 }
 

@@ -1,13 +1,76 @@
 import { useEffect, useMemo, useState } from 'react'
-import { PageHero, CTASection } from '../components/ui'
+import { Link } from 'react-router-dom'
 import { listPublishedIntervenants } from '../lib/api'
 import type { Intervenant } from '../types/db'
+import { ExternalLink, Mail } from '../components/icons'
+
+function PersonCard({ person }: { person: Intervenant }) {
+  const [flipped, setFlipped] = useState(false)
+  return (
+    <div
+      className="cursor-pointer rounded-3xl shadow-xl flip-card"
+      style={{ perspective: '1000px', height: '440px' }}
+      onClick={() => setFlipped((v) => !v)}
+    >
+      <div className={`flip-card-inner rounded-3xl ${flipped ? 'is-flipped' : ''}`}>
+        {/* Recto */}
+        <div className="flip-card-face rounded-3xl">
+          {person.photo_url && (
+            <img
+              src={person.photo_url}
+              alt={person.name}
+              className="w-full h-full object-cover"
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-6">
+            <span className="inline-block bg-fairy-gold/90 text-black text-xs font-bold px-3 py-1 rounded-full mb-3 self-start">
+              {person.domain}
+            </span>
+            <h3 className="text-2xl font-bold text-white mb-2">{person.name}</h3>
+            <p className="text-gray-300 text-sm line-clamp-2 leading-relaxed">
+              {person.bio}
+            </p>
+            <p className="text-fairy-gold text-xs mt-3 font-medium">
+              Cliquer pour en savoir plus →
+            </p>
+          </div>
+        </div>
+        {/* Verso */}
+        <div className="flip-card-face flip-card-back bg-gradient-to-br from-gray-900 to-black flex flex-col p-7 text-white rounded-3xl">
+          <span className="inline-block bg-fairy-gold/20 text-fairy-gold text-xs font-bold px-3 py-1 rounded-full mb-4 self-start">
+            {person.domain}
+          </span>
+          <h3 className="text-xl font-bold mb-4">{person.name}</h3>
+          <p className="text-gray-300 text-sm leading-relaxed flex-1 overflow-y-auto">
+            {person.bio}
+          </p>
+          <div className="mt-5 pt-5 border-t border-white/10 space-y-3">
+            {person.price && (
+              <p className="text-2xl font-bold text-fairy-gold">{person.price}</p>
+            )}
+            {person.website && (
+              <a
+                href={person.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-2 text-sm text-gray-400 hover:text-fairy-gold transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Site web
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function Intervenants() {
   const [people, setPeople] = useState<Intervenant[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('Tous les domaines')
-  const [flipped, setFlipped] = useState<string | null>(null)
+  const [filter, setFilter] = useState('')
 
   useEffect(() => {
     listPublishedIntervenants()
@@ -17,111 +80,102 @@ export default function Intervenants() {
   }, [])
 
   const domains = useMemo(
-    () => ['Tous les domaines', ...new Set(people.map((p) => p.domain))],
+    () => [...new Set(people.map((p) => p.domain))],
     [people],
   )
 
-  const list = people.filter(
-    (p) => filter === 'Tous les domaines' || p.domain === filter,
-  )
+  const list = people.filter((p) => !filter || p.domain === filter)
 
   return (
-    <main>
-      <PageHero
-        eyebrow="LES ACCOMPAGNANT·ES"
-        title="Les visages des ateliers"
-        subtitle="Des artistes, thérapeutes et créateur·ices qui font vivre la Fairy House et vous accompagnent dans votre cheminement."
-        image="/photo/Chill_Room.jpg"
-      />
-
-      <section className="bg-white py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="text-center text-gray-500">Cliquez sur une carte pour en savoir plus</p>
-
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            {domains.map((d) => (
-              <button
-                key={d}
-                onClick={() => setFilter(d)}
-                className={`rounded-full px-5 py-2 text-sm font-medium transition-colors ${
-                  filter === d
-                    ? 'bg-gold text-black'
-                    : 'border border-cream text-ink hover:border-gold'
-                }`}
-              >
-                {d}
-              </button>
-            ))}
+    <main className="flex-1">
+      <div className="min-h-screen">
+        {/* HERO */}
+        <section className="relative h-[60vh] flex items-center justify-center overflow-hidden mt-20">
+          <div className="absolute inset-0">
+            <img
+              src="/photo/Vue_coucher_de_soleil.jpg"
+              alt="Les accompagnant·es"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
           </div>
-
-          {loading ? (
-            <p className="mt-14 text-center text-gray-500">Chargement…</p>
-          ) : list.length === 0 ? (
-            <p className="mx-auto mt-14 max-w-2xl rounded-2xl border border-cream bg-cream-light px-8 py-16 text-center text-gray-500">
-              Aucun·e accompagnant·e pour le moment.
+          <div className="relative z-10 container mx-auto px-4 text-center text-white">
+            <h1 className="text-3xl md:text-6xl lg:text-7xl font-bold mb-6">
+              Les accompagnant·es
+            </h1>
+            <p className="text-base md:text-2xl lg:text-3xl font-light max-w-3xl mx-auto">
+              Les visages des ateliers
+              <br />
+              Des artistes, thérapeutes et créateur·ices qui font vivre la Fairy House et
+              vous accompagnent dans votre cheminement.
             </p>
-          ) : (
-            <div className="mt-14 grid gap-8 md:grid-cols-3">
-              {list.map((p) => {
-                const isFlipped = flipped === p.id
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => setFlipped(isFlipped ? null : p.id)}
-                    className="group flex h-80 flex-col overflow-hidden rounded-2xl border border-cream bg-cream-light text-left transition-shadow hover:shadow-xl"
-                  >
-                    {p.photo_url && (
-                      <img
-                        src={p.photo_url}
-                        alt={p.name}
-                        className="h-32 w-full object-cover"
-                      />
-                    )}
-                    <div className="flex flex-1 flex-col p-8">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-gold">
-                        {p.domain}
-                      </span>
-                      <h3 className="mt-3 text-2xl font-bold text-ink">{p.name}</h3>
-                      <p className="mt-4 flex-1 leading-relaxed text-gray-600">
-                        {p.bio}
-                      </p>
-                      {!isFlipped ? (
-                        <span className="mt-4 text-sm font-medium text-gold">
-                          Cliquer pour en savoir plus →
-                        </span>
-                      ) : (
-                        <div className="mt-4 flex items-center justify-between">
-                          {p.price && (
-                            <span className="text-lg font-bold text-ink">
-                              {p.price}
-                            </span>
-                          )}
-                          {p.website && (
-                            <a
-                              href={p.website}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-sm font-medium text-gold hover:text-gold-dark"
-                            >
-                              Site web
-                            </a>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
 
-      <CTASection
-        title="Contactez nos accompagnant·es"
-        text="Vous souhaitez organiser une session ou en savoir plus sur nos accompagnant·es ?"
-      />
+        {/* LISTE */}
+        <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
+              <p className="text-gray-500 text-sm">
+                Cliquez sur une carte pour en savoir plus
+              </p>
+              <div className="relative">
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  className="appearance-none pl-4 pr-10 py-2.5 bg-white border-2 border-fairy-gold/40 hover:border-fairy-gold rounded-full text-sm font-medium text-gray-700 focus:outline-none focus:border-fairy-gold cursor-pointer shadow-sm"
+                >
+                  <option value="">Tous les domaines</option>
+                  {domains.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-fairy-gold">
+                  ▾
+                </span>
+              </div>
+            </div>
+
+            {loading ? (
+              <p className="text-center text-gray-500 py-12">Chargement…</p>
+            ) : list.length === 0 ? (
+              <p className="text-center text-gray-500 py-12">
+                Aucun·e accompagnant·e pour le moment.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {list.map((p) => (
+                  <PersonCard key={p.id} person={p} />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-20 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="max-w-2xl mx-auto text-center">
+              <h2 className="text-4xl font-bold mb-4 text-gray-900">
+                Contactez nos accompagnant·es
+              </h2>
+              <p className="text-xl text-gray-600 mb-8">
+                Vous souhaitez organiser une session ou en savoir plus sur nos
+                accompagnant·es ?
+              </p>
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-3 px-10 py-5 bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold rounded-full font-bold text-lg transition-all shadow-lg"
+              >
+                <Mail className="w-5 h-5" />
+                Nous contacter
+              </Link>
+            </div>
+          </div>
+        </section>
+      </div>
     </main>
   )
 }

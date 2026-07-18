@@ -1,201 +1,38 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { Link } from 'react-router-dom'
-import { PageHero } from '../components/ui'
-import { createReservation } from '../lib/api'
-
-const TYPES = [
-  'Chambre Litha (2-3 personnes)',
-  'Chambre Mabbon (5 personnes)',
-  'Chambre Imbolc (4 personnes)',
-  'Privatisation simple',
-  'Séjour sur mesure',
-]
+import { useEffect } from 'react'
+import { useReservation } from '../components/Reservation'
+import { Calendar } from '../components/icons'
 
 export default function Reservation() {
-  const [form, setForm] = useState({
-    type: TYPES[0],
-    arrival_date: '',
-    departure_date: '',
-    guests: '1',
-    client_name: '',
-    client_email: '',
-    client_phone: '',
-    message: '',
-  })
-  const [done, setDone] = useState(false)
-  const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
+  const { open } = useReservation()
 
-  function set(key: keyof typeof form, value: string) {
-    setForm((prev) => ({ ...prev, [key]: value }))
-  }
-
-  async function submit(e: FormEvent) {
-    e.preventDefault()
-    setBusy(true)
-    setError('')
-    try {
-      await createReservation({
-        type: form.type,
-        arrival_date: form.arrival_date,
-        departure_date: form.departure_date || undefined,
-        guests: form.guests ? Number(form.guests) : undefined,
-        client_name: form.client_name,
-        client_email: form.client_email,
-        client_phone: form.client_phone || undefined,
-        message: form.message || undefined,
-      })
-      setDone(true)
-    } catch (err) {
-      setError((err as Error).message)
-    } finally {
-      setBusy(false)
-    }
-  }
+  // Ouvre la modale de réservation dès l'arrivée sur la page.
+  useEffect(() => {
+    open()
+  }, [open])
 
   return (
-    <main>
-      <PageHero
-        eyebrow="RÉSERVATION"
-        title="Réservez votre séjour"
-        subtitle="Envoyez-nous votre demande, nous revenons vers vous sous 48h pour confirmer."
-        image="/photo/Vue_coucher_de_soleil.jpg"
-      />
-
-      <section className="bg-cream-light py-24">
-        <div className="mx-auto max-w-2xl px-6">
-          {done ? (
-            <div className="rounded-2xl border border-cream bg-white px-8 py-16 text-center">
-              <h2 className="text-2xl font-bold text-ink">
-                Votre demande a bien été envoyée !
-              </h2>
-              <p className="mt-4 text-gray-600">
-                Merci, nous revenons vers vous sous 48h pour confirmer votre
-                séjour.
-              </p>
-              <Link
-                to="/"
-                className="mt-8 inline-block rounded-full bg-gold px-8 py-3 text-sm font-semibold text-black hover:bg-gold-dark"
-              >
-                Retour à l'accueil
-              </Link>
-            </div>
-          ) : (
-            <form
-              onSubmit={submit}
-              className="space-y-5 rounded-2xl border border-cream bg-white p-8"
-            >
-              {error && (
-                <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-600">
-                  {error}
-                </p>
-              )}
-              <label className="block text-sm font-medium text-ink">
-                Type d'hébergement
-                <select
-                  value={form.type}
-                  onChange={(e) => set('type', e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-cream px-4 py-3 outline-none focus:border-gold"
-                >
-                  {TYPES.map((t) => (
-                    <option key={t}>{t}</option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="grid gap-5 sm:grid-cols-2">
-                <label className="block text-sm font-medium text-ink">
-                  Date d'arrivée *
-                  <input
-                    type="date"
-                    required
-                    value={form.arrival_date}
-                    onChange={(e) => set('arrival_date', e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-cream px-4 py-3 outline-none focus:border-gold"
-                  />
-                </label>
-                <label className="block text-sm font-medium text-ink">
-                  Date de départ
-                  <input
-                    type="date"
-                    value={form.departure_date}
-                    onChange={(e) => set('departure_date', e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-cream px-4 py-3 outline-none focus:border-gold"
-                  />
-                </label>
-              </div>
-
-              <label className="block text-sm font-medium text-ink">
-                Nombre de personnes
-                <select
-                  value={form.guests}
-                  onChange={(e) => set('guests', e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-cream px-4 py-3 outline-none focus:border-gold"
-                >
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
-                    <option key={n} value={n}>
-                      {n} {n === 1 ? 'personne' : 'personnes'}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="grid gap-5 sm:grid-cols-2">
-                <label className="block text-sm font-medium text-ink">
-                  Nom complet *
-                  <input
-                    required
-                    value={form.client_name}
-                    onChange={(e) => set('client_name', e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-cream px-4 py-3 outline-none focus:border-gold"
-                  />
-                </label>
-                <label className="block text-sm font-medium text-ink">
-                  Email *
-                  <input
-                    type="email"
-                    required
-                    value={form.client_email}
-                    onChange={(e) => set('client_email', e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-cream px-4 py-3 outline-none focus:border-gold"
-                  />
-                </label>
-              </div>
-
-              <label className="block text-sm font-medium text-ink">
-                Téléphone
-                <input
-                  type="tel"
-                  value={form.client_phone}
-                  onChange={(e) => set('client_phone', e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-cream px-4 py-3 outline-none focus:border-gold"
-                />
-              </label>
-
-              <label className="block text-sm font-medium text-ink">
-                Votre message
-                <textarea
-                  rows={4}
-                  value={form.message}
-                  onChange={(e) => set('message', e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-cream px-4 py-3 outline-none focus:border-gold"
-                />
-              </label>
-
-              <button
-                disabled={busy}
-                className="rounded-full bg-gold px-8 py-3 text-sm font-semibold text-black transition-colors hover:bg-gold-dark disabled:opacity-60"
-              >
-                {busy ? 'Envoi…' : 'Envoyer ma demande'}
-              </button>
-              <p className="text-center text-sm text-gray-500">
-                * Champs obligatoires • Réponse sous 48h
-              </p>
-            </form>
-          )}
+    <main className="flex-1">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white px-4 pt-32 pb-24">
+        <div className="text-center max-w-lg">
+          <div className="w-16 h-16 bg-fairy-gold/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Calendar className="w-8 h-8 text-fairy-gold" />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Réserver votre séjour
+          </h1>
+          <p className="text-gray-600 mb-8">
+            Remplissez le formulaire pour nous envoyer votre demande. Nous revenons vers
+            vous sous 48h pour confirmer.
+          </p>
+          <button
+            onClick={open}
+            className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-black hover:from-black hover:to-black hover:text-fairy-gold rounded-full font-bold text-lg transition-all shadow-lg"
+          >
+            <Calendar className="w-5 h-5" />
+            Ouvrir le formulaire
+          </button>
         </div>
-      </section>
+      </div>
     </main>
   )
 }
