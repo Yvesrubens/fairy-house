@@ -17,7 +17,7 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <Link to="/" className="inline-block mb-6">
               <img
-                src="/logo-fonce-bg.png"
+                src="/logo-clair-bg.png"
                 alt="Fairy House"
                 className="h-20 w-auto hover:scale-105 transition-transform duration-300"
               />
