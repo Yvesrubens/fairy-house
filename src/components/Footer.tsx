@@ -44,7 +44,7 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-white/70">
               <li>
                 <span className="block text-white/50">Email</span>
-                <a href="mailto:contact@fairyhouse.com" className="hover:text-white">contact@fairyhouse.com</a>
+                <a href="mailto:contact@fairyhousecollectif.com" className="hover:text-white">contact@fairyhousecollectif.com</a>
               </li>
               <li>
                 <span className="block text-white/50">Téléphone</span>

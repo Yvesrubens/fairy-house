@@ -159,8 +159,8 @@ export default function LeLieu() {
               <p className="mt-3 text-gray-600">
                 <a href="tel:+33123456789" className="hover:text-gold">+33 1 23 45 67 89</a>
                 <br />
-                <a href="mailto:contact@fairyhouse.com" className="hover:text-gold">
-                  contact@fairyhouse.com
+                <a href="mailto:contact@fairyhousecollectif.com" className="hover:text-gold">
+                  contact@fairyhousecollectif.com
                 </a>
               </p>
             </div>

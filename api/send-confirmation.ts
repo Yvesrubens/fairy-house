@@ -8,7 +8,7 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY as string
 const RESEND_FROM = process.env.RESEND_FROM as string
 
 const CONTACT = {
-  email: 'contact@fairyhouse.com',
+  email: 'contact@fairyhousecollectif.com',
   phone: '+33 1 23 45 67 89',
   address: 'Le Grand Leu, 45230 La Chapelle sur Aveyron',
 }

@@ -11,7 +11,7 @@ const RESEND_FROM = process.env.RESEND_FROM as string
 const ISSUER = {
   name: 'Fairy House',
   address: 'Le Grand Leu, 45230 La Chapelle sur Aveyron',
-  email: 'contact@fairyhouse.com',
+  email: 'contact@fairyhousecollectif.com',
   phone: '+33 1 23 45 67 89',
   siret: process.env.FH_SIRET || 'SIRET : à compléter',
   tva: process.env.FH_TVA || 'N° TVA : à compléter',

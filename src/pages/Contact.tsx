@@ -149,10 +149,10 @@ export default function Contact() {
                   Email
                 </h3>
                 <a
-                  href="mailto:contact@fairyhouse.com"
+                  href="mailto:contact@fairyhousecollectif.com"
                   className="mt-1 block text-gray-700 hover:text-gold"
                 >
-                  contact@fairyhouse.com
+                  contact@fairyhousecollectif.com
                 </a>
                 <p className="text-sm text-gray-500">Réponse sous 48h</p>
               </div>
