@@ -12,8 +12,8 @@ export default function Footer() {
               sécurisant pour se (re)découvrir.
             </p>
             <div className="mt-6 flex gap-4">
-              <a href="https://www.facebook.com/FairyHouse" className="text-white/70 hover:text-gold" aria-label="Facebook">Facebook</a>
-              <a href="https://www.instagram.com/fairyhouse" className="text-white/70 hover:text-gold" aria-label="Instagram">Instagram</a>
+              <a href="https://www.facebook.com/profile.php?id=61590986093696" className="text-white/70 hover:text-gold" aria-label="Facebook">Facebook</a>
+              <a href="https://www.instagram.com/fairyhouse.collectif/" className="text-white/70 hover:text-gold" aria-label="Instagram">Instagram</a>
             </div>
           </div>
 

@@ -170,13 +170,13 @@ export default function Contact() {
                 </h3>
                 <div className="mt-2 flex gap-4">
                   <a
-                    href="https://www.facebook.com/FairyHouse"
+                    href="https://www.facebook.com/profile.php?id=61590986093696"
                     className="text-gray-700 hover:text-gold"
                   >
                     Facebook
                   </a>
                   <a
-                    href="https://www.instagram.com/fairyhouse"
+                    href="https://www.instagram.com/fairyhouse.collectif/"
                     className="text-gray-700 hover:text-gold"
                   >
                     Instagram
