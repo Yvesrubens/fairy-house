@@ -107,6 +107,19 @@ export async function updateReservationStatus(
   if (error) throw new Error(error.message)
 }
 
+export async function deleteReservation(id: string): Promise<void> {
+  const { error } = await supabase.from('reservations').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteAllReservations(): Promise<void> {
+  const { error } = await supabase
+    .from('reservations')
+    .delete()
+    .not('id', 'is', null)
+  if (error) throw new Error(error.message)
+}
+
 // ------------------------------------------------------ Admin: events CRUD
 export async function listAllEvents(): Promise<EventRow[]> {
   const { data, error } = await supabase

@@ -112,6 +112,8 @@ drop policy if exists res_select on reservations;
 create policy res_select on reservations for select using (is_admin());
 drop policy if exists res_update on reservations;
 create policy res_update on reservations for update using (is_admin());
+drop policy if exists res_delete on reservations;
+create policy res_delete on reservations for delete using (is_admin());
 
 drop policy if exists msg_insert on messages;
 create policy msg_insert on messages for insert with check (true);

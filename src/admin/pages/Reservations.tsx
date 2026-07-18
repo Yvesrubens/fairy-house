@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { listReservations, updateReservationStatus } from '../../lib/api'
+import {
+  listReservations,
+  updateReservationStatus,
+  deleteReservation,
+  deleteAllReservations,
+} from '../../lib/api'
 import { supabase } from '../../lib/supabase'
 import { formatDate, formatEuro, toCSV } from '../../lib/format'
 import DevisForm from './DevisForm'
@@ -43,6 +48,33 @@ export default function Reservations() {
   async function setStatus(id: string, status: ReservationStatus) {
     await updateReservationStatus(id, status)
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)))
+  }
+
+  async function removeOne(id: string, ref: string) {
+    if (!confirm(`Supprimer définitivement la réservation ${ref} ?`)) return
+    try {
+      await deleteReservation(id)
+      setRows((prev) => prev.filter((r) => r.id !== id))
+      setNotice(`Réservation ${ref} supprimée.`)
+    } catch (err) {
+      alert((err as Error).message)
+    }
+  }
+
+  async function clearAll() {
+    if (
+      !confirm(
+        `Vider TOUTES les réservations (${rows.length}) ? Cette action est irréversible.`,
+      )
+    )
+      return
+    try {
+      await deleteAllReservations()
+      setRows([])
+      setNotice('Toutes les réservations ont été supprimées.')
+    } catch (err) {
+      alert((err as Error).message)
+    }
   }
 
   async function sendConfirmation(id: string) {
@@ -117,12 +149,21 @@ export default function Reservations() {
       )}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Réservations</h1>
-        <button
-          onClick={exportCSV}
-          className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
-        >
-          Exporter CSV
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={exportCSV}
+            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+          >
+            Exporter CSV
+          </button>
+          <button
+            onClick={clearAll}
+            disabled={rows.length === 0}
+            className="rounded-lg border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-40"
+          >
+            Vider les réservations
+          </button>
+        </div>
       </div>
 
       <div className="mt-6 flex items-center gap-3 rounded-2xl border bg-white px-5 py-4">
@@ -222,6 +263,12 @@ export default function Reservations() {
                       className="text-sm font-medium text-gold hover:opacity-80"
                     >
                       Créer un devis
+                    </button>
+                    <button
+                      onClick={() => removeOne(r.id, r.reference)}
+                      className="text-sm font-medium text-rose-500 hover:text-rose-600"
+                    >
+                      Supprimer
                     </button>
                   </div>
                 </td>
