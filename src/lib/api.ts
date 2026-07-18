@@ -107,6 +107,32 @@ export async function updateReservationStatus(
   if (error) throw new Error(error.message)
 }
 
+export interface ManualReservationInput {
+  client_name: string
+  client_email: string
+  client_phone?: string
+  type: string
+  arrival_date: string
+  departure_date?: string
+  guests?: number
+  amount?: number
+  status?: ReservationStatus
+  message?: string
+}
+
+export async function createReservationManual(
+  input: ManualReservationInput,
+): Promise<void> {
+  const { data: ref, error: rErr } = await supabase.rpc(
+    'next_reservation_reference',
+  )
+  if (rErr) throw new Error(rErr.message)
+  const { error } = await supabase
+    .from('reservations')
+    .insert({ ...input, reference: ref })
+  if (error) throw new Error(error.message)
+}
+
 export async function deleteReservation(id: string): Promise<void> {
   const { error } = await supabase.from('reservations').delete().eq('id', id)
   if (error) throw new Error(error.message)

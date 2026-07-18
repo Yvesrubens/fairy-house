@@ -8,6 +8,7 @@ import {
 import { supabase } from '../../lib/supabase'
 import { formatDate, formatEuro, toCSV } from '../../lib/format'
 import DevisForm from './DevisForm'
+import ReservationForm from './ReservationForm'
 import type { Reservation, ReservationStatus } from '../../types/db'
 
 const STATUS_LABEL: Record<ReservationStatus, string> = {
@@ -43,7 +44,12 @@ export default function Reservations() {
 
   const [sending, setSending] = useState<string | null>(null)
   const [devisFor, setDevisFor] = useState<Reservation | null>(null)
+  const [creating, setCreating] = useState(false)
   const [notice, setNotice] = useState('')
+
+  async function reload() {
+    setRows(await listReservations())
+  }
 
   async function setStatus(id: string, status: ReservationStatus) {
     await updateReservationStatus(id, status)
@@ -142,6 +148,16 @@ export default function Reservations() {
           }}
         />
       )}
+      {creating && (
+        <ReservationForm
+          onCancel={() => setCreating(false)}
+          onSaved={async () => {
+            setCreating(false)
+            await reload()
+            setNotice('Réservation créée.')
+          }}
+        />
+      )}
       {notice && (
         <p className="mb-4 rounded-lg bg-green-50 px-4 py-2 text-sm text-green-700">
           {notice}
@@ -150,6 +166,12 @@ export default function Reservations() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Réservations</h1>
         <div className="flex gap-3">
+          <button
+            onClick={() => setCreating(true)}
+            className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700"
+          >
+            Nouvelle réservation
+          </button>
           <button
             onClick={exportCSV}
             className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
