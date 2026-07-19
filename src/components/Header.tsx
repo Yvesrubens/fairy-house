@@ -39,7 +39,7 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center group">
             <img
-              src="/logo-clair-bg.png"
+              src={scrolled ? '/logo-clair-bg.png' : '/logo-fonce-bg.png'}
               alt="Fairy House"
               className="h-16 w-auto transition-transform duration-300 group-hover:scale-105"
             />
