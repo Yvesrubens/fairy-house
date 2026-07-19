@@ -38,17 +38,11 @@ export default function Header() {
       <nav className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center group">
-            <span
-              className={`inline-flex transition-all duration-300 ${
-                scrolled ? '' : 'rounded-xl bg-white/85 px-3 py-1 shadow-sm'
-              }`}
-            >
-              <img
-                src="/logo-clair-bg.png"
-                alt="Fairy House"
-                className="h-16 w-auto transition-transform duration-300 group-hover:scale-105"
-              />
-            </span>
+            <img
+              src="/logo-clair-bg.png"
+              alt="Fairy House"
+              className="h-16 w-auto transition-transform duration-300 group-hover:scale-105"
+            />
           </Link>
 
           <div className="hidden lg:flex items-center gap-8">
