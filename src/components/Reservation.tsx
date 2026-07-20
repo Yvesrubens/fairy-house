@@ -4,12 +4,13 @@ import {
   useContext,
   useState,
 } from 'react'
-import type { FormEvent, ReactNode } from 'react'
-import { createReservation } from '../lib/api'
-import { Mail, Phone, Calendar, Users, MessageSquare, Close } from './icons'
+import type { ReactNode } from 'react'
+import { Close } from './icons'
+import ReservationForm from './ReservationForm'
+import type { ReservationContext } from './ReservationForm'
 
 interface ReservationValue {
-  open: () => void
+  open: (ctx?: ReservationContext) => void
   close: () => void
 }
 
@@ -21,70 +22,17 @@ export function useReservation(): ReservationValue {
   return v
 }
 
-const ACCOMMODATIONS = [
-  '1 personne / 1 lit',
-  'Chambre Litha (2-3 personnes)',
-  'Chambre Mabbon (5 personnes)',
-  'Chambre Imbolc (4 personnes)',
-  'Privatisation simple',
-  'Séjour sur mesure',
-]
-
-const fieldCls =
-  'w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-fairy-gold focus:outline-none transition-colors'
-
-const EMPTY = {
-  name: '',
-  email: '',
-  phone: '',
-  checkIn: '',
-  checkOut: '',
-  guests: '1',
-  accommodation: '',
-  message: '',
-}
-
 export function ReservationProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [form, setForm] = useState({ ...EMPTY })
-  const [done, setDone] = useState(false)
-  const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
+  const [ctx, setCtx] = useState<ReservationContext | null>(null)
 
-  const open = useCallback(() => {
-    setForm({ ...EMPTY })
-    setDone(false)
-    setError('')
+  const open = useCallback((context?: ReservationContext) => {
+    setCtx(context ?? null)
     setIsOpen(true)
   }, [])
   const close = useCallback(() => setIsOpen(false), [])
 
-  function set(key: keyof typeof form, value: string) {
-    setForm((prev) => ({ ...prev, [key]: value }))
-  }
-
-  async function submit(e: FormEvent) {
-    e.preventDefault()
-    setBusy(true)
-    setError('')
-    try {
-      await createReservation({
-        client_name: form.name,
-        client_email: form.email,
-        client_phone: form.phone || undefined,
-        type: form.accommodation || 'Non précisé',
-        arrival_date: form.checkIn,
-        departure_date: form.checkOut || undefined,
-        guests: form.guests ? Number(form.guests) : undefined,
-        message: form.message || undefined,
-      })
-      setDone(true)
-    } catch (err) {
-      setError((err as Error).message)
-    } finally {
-      setBusy(false)
-    }
-  }
+  const isEvent = Boolean(ctx?.eventId)
 
   return (
     <Ctx.Provider value={{ open, close }}>
@@ -100,10 +48,12 @@ export function ReservationProvider({ children }: { children: ReactNode }) {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-3xl font-bold text-black">
-                    Réserver votre séjour
+                    {isEvent ? 'Réserver votre place' : 'Réserver votre séjour'}
                   </h2>
                   <p className="text-black/70 mt-1">
-                    Remplissez le formulaire ci-dessous
+                    {isEvent
+                      ? ctx?.eventTitle
+                      : 'Remplissez le formulaire ci-dessous'}
                   </p>
                 </div>
                 <button
@@ -116,175 +66,9 @@ export function ReservationProvider({ children }: { children: ReactNode }) {
               </div>
             </div>
 
-            {done ? (
-              <div className="p-8 text-center">
-                <h3 className="text-2xl font-bold text-gray-900">
-                  Votre demande a bien été envoyée !
-                </h3>
-                <p className="mt-4 text-gray-600">
-                  Merci, nous revenons vers vous sous 48h pour confirmer votre séjour.
-                </p>
-                <button
-                  onClick={close}
-                  className="mt-8 px-8 py-3 bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-black rounded-full font-bold transition-all hover:from-black hover:to-black hover:text-fairy-gold"
-                >
-                  Fermer
-                </button>
-              </div>
-            ) : (
-              <form className="p-8 space-y-6" onSubmit={submit}>
-                {error && (
-                  <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-600">
-                    {error}
-                  </p>
-                )}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Nom complet *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Votre nom"
-                    value={form.name}
-                    onChange={(e) => set('name', e.target.value)}
-                    className={fieldCls}
-                  />
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <Mail className="w-4 h-4 inline mr-1" />
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="votre@email.com"
-                      value={form.email}
-                      onChange={(e) => set('email', e.target.value)}
-                      className={fieldCls}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <Phone className="w-4 h-4 inline mr-1" />
-                      Téléphone *
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="+33 6 12 34 56 78"
-                      value={form.phone}
-                      onChange={(e) => set('phone', e.target.value)}
-                      className={fieldCls}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <Calendar className="w-4 h-4 inline mr-1" />
-                      Date d'arrivée *
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      value={form.checkIn}
-                      onChange={(e) => set('checkIn', e.target.value)}
-                      className={fieldCls}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <Calendar className="w-4 h-4 inline mr-1" />
-                      Date de départ *
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      value={form.checkOut}
-                      onChange={(e) => set('checkOut', e.target.value)}
-                      className={fieldCls}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <Users className="w-4 h-4 inline mr-1" />
-                      Nombre de personnes *
-                    </label>
-                    <select
-                      required
-                      value={form.guests}
-                      onChange={(e) => set('guests', e.target.value)}
-                      className={fieldCls}
-                    >
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
-                        <option key={n} value={n}>
-                          {n} {n === 1 ? 'personne' : 'personnes'}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Type d'hébergement
-                    </label>
-                    <select
-                      value={form.accommodation}
-                      onChange={(e) => set('accommodation', e.target.value)}
-                      className={fieldCls}
-                    >
-                      <option value="">Choisir...</option>
-                      {ACCOMMODATIONS.map((a) => (
-                        <option key={a} value={a}>
-                          {a}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <MessageSquare className="w-4 h-4 inline mr-1" />
-                    Message (optionnel)
-                  </label>
-                  <textarea
-                    rows={4}
-                    placeholder="Parlez-nous de votre projet..."
-                    value={form.message}
-                    onChange={(e) => set('message', e.target.value)}
-                    className={`${fieldCls} resize-none`}
-                  />
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={close}
-                    className="flex-1 px-6 py-4 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full font-semibold transition-all"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={busy}
-                    className="flex-1 px-6 py-4 bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-black hover:from-black hover:to-black hover:text-fairy-gold rounded-full font-bold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {busy ? 'Envoi…' : 'Envoyer la demande'}
-                  </button>
-                </div>
-                <p className="text-xs text-gray-500 text-center">
-                  * Champs obligatoires • Réponse sous 48h
-                </p>
-              </form>
-            )}
+            {/* La clé force le remontage du formulaire à chaque ouverture,
+                ce qui réinitialise l'état et applique le contexte éventuel. */}
+            <ReservationForm key={ctx?.eventId ?? 'sejour'} ctx={ctx} onCancel={close} />
           </div>
         </div>
       )}

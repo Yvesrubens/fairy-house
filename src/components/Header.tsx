@@ -86,7 +86,7 @@ export default function Header() {
               </a>
             </div>
             <button
-              onClick={openReservation}
+              onClick={() => openReservation()}
               className="hidden md:inline-flex items-center gap-2 bg-fairy-gold hover:bg-black text-black hover:text-fairy-gold px-6 py-3 rounded-full font-semibold transition-all shadow-lg hover:shadow-xl"
             >
               <Calendar className="w-4 h-4" />

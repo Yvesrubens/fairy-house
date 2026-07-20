@@ -1,9 +1,11 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Header from './components/Header'
 import Footer from './components/Footer'
+import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
 import LeLieu from './pages/LeLieu'
 import Evenements from './pages/Evenements'
+import EvenementDetail from './pages/EvenementDetail'
 import Blog from './pages/Blog'
 import Intervenants from './pages/Intervenants'
 import Contact from './pages/Contact'
@@ -11,6 +13,7 @@ import Faq from './pages/Faq'
 import BlogArticle from './pages/BlogArticle'
 import Reservation from './pages/Reservation'
 import Placeholder from './pages/Placeholder'
+import { MentionsLegales, CGV, Confidentialite } from './pages/Legal'
 import { ReservationProvider } from './components/Reservation'
 import { AuthProvider } from './admin/AuthProvider'
 import RequireAdmin from './admin/RequireAdmin'
@@ -22,23 +25,29 @@ import Events from './admin/pages/Events'
 import Articles from './admin/pages/Articles'
 import IntervenantsAdmin from './admin/pages/Intervenants'
 import Messages from './admin/pages/Messages'
+import Newsletter from './admin/pages/Newsletter'
 import Settings from './admin/pages/Settings'
 
 function PublicSite() {
   return (
     <ReservationProvider>
       <div className="min-h-screen bg-white">
+        <ScrollToTop />
         <Header />
         <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/le-lieu" element={<LeLieu />} />
         <Route path="/evenements" element={<Evenements />} />
+        <Route path="/evenements/:slug" element={<EvenementDetail />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogArticle />} />
         <Route path="/intervenants" element={<Intervenants />} />
         <Route path="/reserver" element={<Reservation />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/faq" element={<Faq />} />
+        <Route path="/mentions-legales" element={<MentionsLegales />} />
+        <Route path="/cgv" element={<CGV />} />
+        <Route path="/confidentialite" element={<Confidentialite />} />
         <Route path="*" element={<Placeholder title="Page introuvable" />} />
       </Routes>
         <Footer />
@@ -67,6 +76,7 @@ export default function App() {
           <Route path="articles" element={<Articles />} />
           <Route path="intervenants" element={<IntervenantsAdmin />} />
           <Route path="messages" element={<Messages />} />
+          <Route path="newsletter" element={<Newsletter />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="/*" element={<PublicSite />} />

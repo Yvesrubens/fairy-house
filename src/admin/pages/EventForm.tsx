@@ -69,6 +69,12 @@ export default function EventForm({
         onChange={(v) => set('location', v)}
       />
       <Field
+        label="Nombre de places (quota)"
+        type="number"
+        value={row.capacity != null ? String(row.capacity) : ''}
+        onChange={(v) => set('capacity', v ? Number(v) : null)}
+      />
+      <Field
         label="Description"
         textarea
         value={row.description ?? ''}

@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { listPublishedArticles } from '../lib/api'
 import { formatDate } from '../lib/format'
 import type { Article } from '../types/db'
+import NewsletterForm from '../components/NewsletterForm'
 
 export default function Blog() {
   const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
-  const [email, setEmail] = useState('')
-  const [subscribed, setSubscribed] = useState(false)
 
   useEffect(() => {
     listPublishedArticles()
@@ -18,16 +16,11 @@ export default function Blog() {
       .finally(() => setLoading(false))
   }, [])
 
-  function subscribe(e: FormEvent) {
-    e.preventDefault()
-    if (email) setSubscribed(true)
-  }
-
   return (
     <main className="flex-1">
       <div className="min-h-screen">
         {/* HERO */}
-        <section className="relative h-[60vh] flex items-center justify-center overflow-hidden mt-20">
+        <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0">
             <img
               src="/photo/Blog.jpg"
@@ -117,30 +110,9 @@ export default function Blog() {
               Recevez des nouvelles du lieu, des retraites et des mouvements qui le
               traversent au fil du temps.
             </p>
-            {subscribed ? (
-              <p className="max-w-xl mx-auto text-lg font-semibold">
-                Merci, vous faites désormais partie du cercle ✨
-              </p>
-            ) : (
-              <form onSubmit={subscribe} className="max-w-xl mx-auto">
-                <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                  <input
-                    type="email"
-                    required
-                    placeholder="Votre email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="flex-1 px-6 py-4 rounded-full bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
-                  />
-                  <button
-                    type="submit"
-                    className="px-8 py-4 bg-black text-white rounded-full font-semibold hover:bg-gray-900 transition-all disabled:opacity-60 whitespace-nowrap"
-                  >
-                    Entrer dans le cercle
-                  </button>
-                </div>
-              </form>
-            )}
+            <div className="max-w-xl mx-auto">
+              <NewsletterForm source="journal" variant="light" />
+            </div>
           </div>
         </section>
       </div>

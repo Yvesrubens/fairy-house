@@ -6,7 +6,7 @@ export default function Faq() {
     <main className="flex-1">
       <div className="min-h-screen">
         {/* HERO */}
-        <section className="relative h-[40vh] flex items-center justify-center overflow-hidden mt-20 bg-fairy-black">
+        <section className="relative h-[40vh] flex items-center justify-center overflow-hidden bg-fairy-black">
           <div className="relative z-10 container mx-auto px-4 text-center text-white">
             <div className="w-16 h-16 bg-fairy-gold/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <HelpCircle className="w-8 h-8 text-fairy-gold" />

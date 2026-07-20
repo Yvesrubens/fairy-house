@@ -20,6 +20,7 @@ const base: Reservation = {
   amount: 100,
   status: 'confirmed',
   message: null,
+  event_id: null,
   confirmation_sent_at: null,
   created_at: '2026-06-03T10:00:00Z',
 }
@@ -51,6 +52,7 @@ describe('stats', () => {
       event_date: '2026-06-20',
       location: null,
       image_url: null,
+      capacity: null,
       published: true,
       created_at: '',
     }

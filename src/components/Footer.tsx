@@ -97,14 +97,18 @@ export default function Footer() {
                   FAQ
                 </Link>
               </li>
-              {['Mentions légales', 'CGV', 'Confidentialité'].map((l) => (
-                <li key={l}>
-                  <a
-                    href="#"
+              {[
+                { label: 'Mentions légales', to: '/mentions-legales' },
+                { label: 'CGV', to: '/cgv' },
+                { label: 'Confidentialité', to: '/confidentialite' },
+              ].map((l) => (
+                <li key={l.to}>
+                  <Link
+                    to={l.to}
                     className="hover:text-fairy-gold transition-colors hover:translate-x-1 inline-block font-medium"
                   >
-                    {l}
-                  </a>
+                    {l.label}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -122,10 +126,10 @@ export default function Footer() {
                 <div>
                   <div className="text-gray-500 text-xs mb-1 font-semibold">Email</div>
                   <a
-                    href="mailto:contact@fairyhousecollectif.com"
+                    href="mailto:fairyhouse.collectif@gmail.com"
                     className="hover:text-fairy-gold transition-colors font-medium"
                   >
-                    contact@fairyhousecollectif.com
+                    fairyhouse.collectif@gmail.com
                   </a>
                 </div>
               </li>
@@ -136,10 +140,10 @@ export default function Footer() {
                     Téléphone
                   </div>
                   <a
-                    href="tel:+33123456789"
+                    href="tel:+33671398807"
                     className="hover:text-fairy-gold transition-colors font-medium"
                   >
-                    +33 1 23 45 67 89
+                    +33 6 71 39 88 07
                   </a>
                 </div>
               </li>
@@ -148,7 +152,7 @@ export default function Footer() {
                 <div>
                   <div className="text-gray-500 text-xs mb-1 font-semibold">Adresse</div>
                   <span className="font-medium">
-                    Le Grand Leu
+                    2 Le Grand Leu
                     <br />
                     45230 La Chapelle sur Aveyron
                   </span>

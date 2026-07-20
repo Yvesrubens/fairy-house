@@ -23,6 +23,7 @@ create table if not exists reservations (
   amount numeric not null default 0,
   status text not null default 'pending' check (status in ('pending','confirmed','cancelled')),
   message text,
+  event_id uuid,
   confirmation_sent_at timestamptz,
   created_at timestamptz not null default now()
 );
@@ -36,9 +37,17 @@ create table if not exists events (
   event_date date,
   location text,
   image_url text,
+  capacity int,
   published boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+-- Lien réservation -> événement (ajouté après la création de `events`)
+alter table reservations
+  drop constraint if exists reservations_event_id_fkey;
+alter table reservations
+  add constraint reservations_event_id_fkey
+  foreign key (event_id) references events(id) on delete set null;
 
 create table if not exists articles (
   id uuid primary key default gen_random_uuid(),
@@ -76,6 +85,14 @@ create table if not exists messages (
   created_at timestamptz not null default now()
 );
 
+-- Abonné·es à la newsletter (formulaire du Journal + « Être informé·e »)
+create table if not exists newsletter_subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text unique not null,
+  source text,
+  created_at timestamptz not null default now()
+);
+
 -- --------------------------------------------------------------- Functions
 -- L'utilisateur courant est-il un admin ?
 create or replace function is_admin() returns boolean
@@ -84,8 +101,12 @@ language sql security definer stable as $$
 $$;
 
 -- Génération de référence : FH-YYYY-NNNNN par année
+-- security definer : indispensable pour que la fonction puisse lire la table
+-- `reservations` (protégée par RLS) même quand elle est appelée par un
+-- visiteur public. Sans cela, le numéro calculé reste toujours 1 et provoque
+-- une violation de contrainte unique sur `reference`.
 create or replace function next_reservation_reference() returns text
-language plpgsql as $$
+language plpgsql security definer as $$
 declare
   yr text := to_char(now(), 'YYYY');
   n int;
@@ -102,6 +123,7 @@ alter table events enable row level security;
 alter table articles enable row level security;
 alter table intervenants enable row level security;
 alter table messages enable row level security;
+alter table newsletter_subscribers enable row level security;
 
 drop policy if exists admins_select on admins;
 create policy admins_select on admins for select using (is_admin());
@@ -121,6 +143,14 @@ drop policy if exists msg_select on messages;
 create policy msg_select on messages for select using (is_admin());
 drop policy if exists msg_update on messages;
 create policy msg_update on messages for update using (is_admin());
+
+-- Newsletter : inscription ouverte à tous, lecture/suppression réservées à l'admin
+drop policy if exists news_insert on newsletter_subscribers;
+create policy news_insert on newsletter_subscribers for insert with check (true);
+drop policy if exists news_select on newsletter_subscribers;
+create policy news_select on newsletter_subscribers for select using (is_admin());
+drop policy if exists news_delete on newsletter_subscribers;
+create policy news_delete on newsletter_subscribers for delete using (is_admin());
 
 drop policy if exists ev_public on events;
 create policy ev_public on events for select using (published or is_admin());

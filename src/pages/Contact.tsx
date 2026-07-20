@@ -51,7 +51,7 @@ export default function Contact() {
     <main className="flex-1">
       <div className="min-h-screen">
         {/* HERO */}
-        <section className="relative h-[60vh] flex items-center justify-center overflow-hidden mt-20">
+        <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0">
             <img
               src="/photo/PXL_20260101_081856561.jpg"
@@ -205,10 +205,10 @@ export default function Contact() {
                       <div>
                         <h4 className="font-semibold mb-1">Email</h4>
                         <a
-                          href="mailto:contact@fairyhousecollectif.com"
+                          href="mailto:fairyhouse.collectif@gmail.com"
                           className="text-gray-600 hover:text-fairy-gold transition-colors"
                         >
-                          contact@fairyhousecollectif.com
+                          fairyhouse.collectif@gmail.com
                         </a>
                         <p className="text-sm text-gray-500 mt-1">Réponse sous 48h</p>
                       </div>
@@ -220,7 +220,7 @@ export default function Contact() {
                       <div>
                         <h4 className="font-semibold mb-1">Adresse</h4>
                         <p className="text-gray-600">
-                          Le Grand Leu
+                          2 Le Grand Leu
                           <br />
                           45230 La Chapelle sur Aveyron
                           <br />

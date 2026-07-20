@@ -13,6 +13,7 @@ export interface Reservation {
   amount: number
   status: ReservationStatus
   message: string | null
+  event_id: string | null
   confirmation_sent_at: string | null
   created_at: string
 }
@@ -26,6 +27,7 @@ export interface EventRow {
   event_date: string | null
   location: string | null
   image_url: string | null
+  capacity: number | null
   published: boolean
   created_at: string
 }
@@ -51,6 +53,13 @@ export interface Intervenant {
   website: string | null
   photo_url: string | null
   published: boolean
+  created_at: string
+}
+
+export interface NewsletterSubscriber {
+  id: string
+  email: string
+  source: string | null
   created_at: string
 }
 

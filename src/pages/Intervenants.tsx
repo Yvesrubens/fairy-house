@@ -71,6 +71,7 @@ export default function Intervenants() {
   const [people, setPeople] = useState<Intervenant[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('')
+  const [nameFilter, setNameFilter] = useState('')
 
   useEffect(() => {
     listPublishedIntervenants()
@@ -84,13 +85,26 @@ export default function Intervenants() {
     [people],
   )
 
-  const list = people.filter((p) => !filter || p.domain === filter)
+  // Noms disponibles pour le domaine sélectionné (ou tous)
+  const names = useMemo(
+    () =>
+      people
+        .filter((p) => !filter || p.domain === filter)
+        .map((p) => p.name),
+    [people, filter],
+  )
+
+  const list = people.filter(
+    (p) =>
+      (!filter || p.domain === filter) &&
+      (!nameFilter || p.name === nameFilter),
+  )
 
   return (
     <main className="flex-1">
       <div className="min-h-screen">
         {/* HERO */}
-        <section className="relative h-[60vh] flex items-center justify-center overflow-hidden mt-20">
+        <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0">
             <img
               src="/photo/Vue_coucher_de_soleil.jpg"
@@ -119,22 +133,44 @@ export default function Intervenants() {
               <p className="text-gray-500 text-sm">
                 Cliquez sur une carte pour en savoir plus
               </p>
-              <div className="relative">
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  className="appearance-none pl-4 pr-10 py-2.5 bg-white border-2 border-fairy-gold/40 hover:border-fairy-gold rounded-full text-sm font-medium text-gray-700 focus:outline-none focus:border-fairy-gold cursor-pointer shadow-sm"
-                >
-                  <option value="">Tous les domaines</option>
-                  {domains.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-fairy-gold">
-                  ▾
-                </span>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative">
+                  <select
+                    value={filter}
+                    onChange={(e) => {
+                      setFilter(e.target.value)
+                      setNameFilter('')
+                    }}
+                    className="appearance-none pl-4 pr-10 py-2.5 bg-white border-2 border-fairy-gold/40 hover:border-fairy-gold rounded-full text-sm font-medium text-gray-700 focus:outline-none focus:border-fairy-gold cursor-pointer shadow-sm"
+                  >
+                    <option value="">Tous les domaines</option>
+                    {domains.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-fairy-gold">
+                    ▾
+                  </span>
+                </div>
+                <div className="relative">
+                  <select
+                    value={nameFilter}
+                    onChange={(e) => setNameFilter(e.target.value)}
+                    className="appearance-none pl-4 pr-10 py-2.5 bg-white border-2 border-fairy-gold/40 hover:border-fairy-gold rounded-full text-sm font-medium text-gray-700 focus:outline-none focus:border-fairy-gold cursor-pointer shadow-sm"
+                  >
+                    <option value="">Tou·tes les accompagnant·es</option>
+                    {names.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-fairy-gold">
+                    ▾
+                  </span>
+                </div>
               </div>
             </div>
 

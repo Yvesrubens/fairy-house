@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ChevronDown,
@@ -9,6 +10,12 @@ import {
   ArrowRight,
 } from '../components/icons'
 import { useReservation } from '../components/Reservation'
+import { listPublishedEvents } from '../lib/api'
+import { formatDate } from '../lib/format'
+import type { EventRow } from '../types/db'
+
+// Nombre maximum d'événements affichés dans la section Programmation
+const MAX_EVENEMENTS_ACCUEIL = 3
 
 const ROOMS = [
   {
@@ -69,6 +76,21 @@ const SPARKLE_DOTS = [
 
 export default function Home() {
   const { open: openReservation } = useReservation()
+  const [events, setEvents] = useState<EventRow[]>([])
+  const [eventsLoading, setEventsLoading] = useState(true)
+
+  useEffect(() => {
+    listPublishedEvents()
+      .then((all) => {
+        // On ne garde que les événements à venir (ou sans date), triés au plus proche
+        const today = new Date().toISOString().slice(0, 10)
+        const upcoming = all.filter((e) => !e.event_date || e.event_date >= today)
+        setEvents(upcoming.slice(0, MAX_EVENEMENTS_ACCUEIL))
+      })
+      .catch(() => setEvents([]))
+      .finally(() => setEventsLoading(false))
+  }, [])
+
   return (
     <main className="flex-1">
       <div className="min-h-screen">
@@ -205,11 +227,61 @@ export default function Home() {
               </h2>
               <div className="w-32 h-1.5 bg-gradient-to-r from-transparent via-fairy-gold to-transparent mx-auto mb-6" />
             </div>
-            <div className="grid md:grid-cols-2 gap-8 max-w-7xl mx-auto">
-              <div className="col-span-2 text-center py-12 text-gray-500">
-                Aucun événement à venir
+            {eventsLoading ? (
+              <p className="text-center text-gray-500 py-12">Chargement…</p>
+            ) : events.length > 0 ? (
+              <>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                  {events.map((e) => (
+                    <article
+                      key={e.id}
+                      className="group bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 flex flex-col"
+                    >
+                      {e.image_url && (
+                        <div className="relative h-52 overflow-hidden">
+                          <img
+                            src={e.image_url}
+                            alt={e.title}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          />
+                        </div>
+                      )}
+                      <div className="p-6 flex flex-col flex-grow">
+                        {e.event_date && (
+                          <p className="text-sm font-semibold uppercase tracking-wider text-fairy-gold">
+                            {formatDate(e.event_date)}
+                          </p>
+                        )}
+                        <h3 className="mt-2 text-xl font-bold text-gray-900 group-hover:text-fairy-gold transition-colors">
+                          {e.title}
+                        </h3>
+                        {e.location && (
+                          <p className="mt-1 text-sm text-gray-500">{e.location}</p>
+                        )}
+                        {e.description && (
+                          <p className="mt-3 leading-relaxed text-gray-600">
+                            {e.description}
+                          </p>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+                <div className="text-center mt-12">
+                  <Link
+                    to="/evenements"
+                    className="inline-flex items-center gap-2 px-8 py-4 bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold rounded-full font-bold transition-all"
+                  >
+                    Voir tous les événements
+                    <ArrowRight className="w-5 h-5" />
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                Aucun événement à venir pour le moment.
               </div>
-            </div>
+            )}
           </div>
         </section>
 
@@ -278,7 +350,7 @@ export default function Home() {
                       ))}
                     </div>
                     <button
-                      onClick={openReservation}
+                      onClick={() => openReservation()}
                       className="w-full px-8 py-4 bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-black hover:from-black hover:to-black hover:text-fairy-gold rounded-full font-bold transition-all shadow-lg hover:shadow-xl mt-auto text-center block"
                     >
                       Réserver maintenant
@@ -356,7 +428,7 @@ export default function Home() {
                     </ul>
                     {p.to === '/reserver' ? (
                       <button
-                        onClick={openReservation}
+                        onClick={() => openReservation()}
                         className="w-full px-6 py-4 bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold rounded-full font-bold transition-all shadow-md hover:shadow-lg text-center block mt-auto"
                       >
                         {p.cta}

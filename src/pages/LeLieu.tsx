@@ -39,7 +39,8 @@ const COMFORT = [
     Icon: Bed,
     items: [
       'Chambres partagées (de 3 à 5 personnes)',
-      'Salles de bain partagées',
+      '45€ / nuit / personne',
+      'Salles de bain communes',
       'Linge de maison en option : 5€ / personne',
     ],
   },
@@ -111,7 +112,7 @@ export default function LeLieu() {
     <main className="flex-1">
       <div className="min-h-screen">
         {/* HERO */}
-        <section className="relative h-[70vh] flex items-center justify-center overflow-hidden mt-20">
+        <section className="relative h-[70vh] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0">
             <img
               src="/photo/Vue_coucher_de_soleil.jpg"
@@ -224,6 +225,24 @@ export default function LeLieu() {
           </div>
         </section>
 
+        {/* CTA */}
+        <section className="py-20 bg-fairy-black text-white">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-2xl md:text-4xl font-bold mb-6">
+              Prêt·e à découvrir Fairy House ?
+            </h2>
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+              Réservez dès maintenant votre séjour dans notre havre de paix
+            </p>
+            <button
+              onClick={() => openReservation()}
+              className="inline-flex items-center justify-center gap-2 font-semibold transition-all duration-300 rounded-full bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-white shadow-lg hover:shadow-2xl hover:scale-105 animate-glow px-10 py-5 text-xl"
+            >
+              <span>Réserver maintenant</span>
+            </button>
+          </div>
+        </section>
+
         {/* COMMENT VENIR */}
         <section className="py-24 bg-gradient-to-br from-fairy-gold/5 to-white">
           <div className="container mx-auto px-4">
@@ -240,7 +259,7 @@ export default function LeLieu() {
                     <div>
                       <h3 className="font-bold text-lg mb-2">Adresse</h3>
                       <p className="text-gray-600">
-                        Le Grand Leu
+                        2 Le Grand Leu
                         <br />
                         45230 La Chapelle sur Aveyron
                         <br />
@@ -271,17 +290,17 @@ export default function LeLieu() {
                       <h3 className="font-bold text-lg mb-2">Contact</h3>
                       <p className="text-gray-600">
                         <a
-                          href="tel:+33123456789"
+                          href="tel:+33671398807"
                           className="hover:text-fairy-gold transition-colors"
                         >
-                          +33 1 23 45 67 89
+                          +33 6 71 39 88 07
                         </a>
                         <br />
                         <a
-                          href="mailto:contact@fairyhousecollectif.com"
+                          href="mailto:fairyhouse.collectif@gmail.com"
                           className="hover:text-fairy-gold transition-colors"
                         >
-                          contact@fairyhousecollectif.com
+                          fairyhouse.collectif@gmail.com
                         </a>
                       </p>
                     </div>
@@ -301,24 +320,6 @@ export default function LeLieu() {
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="py-20 bg-fairy-black text-white">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-2xl md:text-4xl font-bold mb-6">
-              Prêt(e) à découvrir Fairy House ?
-            </h2>
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Réservez dès maintenant votre séjour dans notre havre de paix
-            </p>
-            <button
-              onClick={openReservation}
-              className="inline-flex items-center justify-center gap-2 font-semibold transition-all duration-300 rounded-full bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-white shadow-lg hover:shadow-2xl hover:scale-105 animate-glow px-10 py-5 text-xl"
-            >
-              <span>Réserver maintenant</span>
-            </button>
           </div>
         </section>
       </div>

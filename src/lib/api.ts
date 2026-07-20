@@ -3,6 +3,7 @@ import type {
   Article,
   EventRow,
   Intervenant,
+  NewsletterSubscriber,
   Reservation,
   ReservationStatus,
 } from '../types/db'
@@ -19,6 +20,16 @@ export async function listPublishedEvents(): Promise<EventRow[]> {
     .select('*')
     .eq('published', true)
     .order('event_date', { ascending: true })
+  return unwrap(data, error)
+}
+
+export async function getEventBySlug(slug: string): Promise<EventRow | null> {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('slug', slug)
+    .eq('published', true)
+    .maybeSingle()
   return unwrap(data, error)
 }
 
@@ -60,6 +71,7 @@ export interface ReservationInput {
   departure_date?: string
   guests?: number
   message?: string
+  event_id?: string
 }
 
 export async function createReservation(input: ReservationInput): Promise<void> {
@@ -70,6 +82,35 @@ export async function createReservation(input: ReservationInput): Promise<void> 
   const { error } = await supabase
     .from('reservations')
     .insert({ ...input, reference: ref })
+  if (error) throw new Error(error.message)
+}
+
+// ------------------------------------------------------------ Newsletter
+export async function subscribeNewsletter(
+  email: string,
+  source?: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from('newsletter_subscribers')
+    .upsert({ email, source }, { onConflict: 'email', ignoreDuplicates: true })
+  if (error) throw new Error(error.message)
+}
+
+export async function listNewsletterSubscribers(): Promise<
+  NewsletterSubscriber[]
+> {
+  const { data, error } = await supabase
+    .from('newsletter_subscribers')
+    .select('*')
+    .order('created_at', { ascending: false })
+  return unwrap(data, error)
+}
+
+export async function deleteNewsletterSubscriber(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('newsletter_subscribers')
+    .delete()
+    .eq('id', id)
   if (error) throw new Error(error.message)
 }
 
