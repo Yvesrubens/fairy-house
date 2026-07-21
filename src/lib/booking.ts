@@ -9,6 +9,9 @@ export const ROOMS = [
 
 export const HOUSE_CAPACITY = 12
 export const TOTAL_BEDS = 11
+// Inventaire de lits pour le parcours individuel.
+export const SIMPLE_BEDS = 10
+export const DOUBLE_BEDS = 1
 
 export const PRICE_PER_PERSON_NIGHT = 45
 export const LINGE_PER_PERSON_NIGHT = 8

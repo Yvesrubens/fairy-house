@@ -65,7 +65,7 @@ export default function StepPayment({
       ? state.wholeHouse
         ? HOUSE_CAPACITY
         : state.rooms.reduce((sum, r) => sum + r.guests, 0)
-      : state.beds
+      : state.individualGuests
 
   const nightsCount = nights(state.arrival, state.departure)
   const quote = computeQuote(pers, nightsCount, state.options)

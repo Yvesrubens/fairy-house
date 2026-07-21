@@ -14,7 +14,9 @@ const INITIAL_STATE: BookingState = {
   mode: null,
   rooms: [],
   wholeHouse: false,
-  beds: 1,
+  simpleBeds: 1,
+  doubleBeds: 0,
+  individualGuests: 1,
   customGuests: 1,
   arrival: '',
   departure: '',
@@ -81,7 +83,15 @@ export default function Reservation() {
       ? HOUSE_CAPACITY
       : state.mode === 'groupe'
         ? state.rooms.reduce((s, r) => s + r.guests, 0)
-        : state.beds
+        : state.individualGuests
+    const bedsSummary = [
+      state.simpleBeds > 0 &&
+        `${state.simpleBeds} lit${state.simpleBeds > 1 ? 's' : ''} simple${state.simpleBeds > 1 ? 's' : ''}`,
+      state.doubleBeds > 0 &&
+        `${state.doubleBeds} lit${state.doubleBeds > 1 ? 's' : ''} double${state.doubleBeds > 1 ? 's' : ''}`,
+    ]
+      .filter(Boolean)
+      .join(', ')
     const n = nights(state.arrival, state.departure)
     const quote = computeQuote(pers, n, state.options)
     const today = new Date().toISOString().slice(0, 10)
@@ -94,7 +104,7 @@ export default function Reservation() {
         ? state.wholeHouse
           ? 'Séjour groupe — Maison complète'
           : `Séjour groupe — ${state.rooms.map((r) => r.room).join(', ')}`
-        : `Séjour individuel — ${state.beds} lit(s)`
+        : `Séjour individuel — ${bedsSummary} — ${pers} personne${pers > 1 ? 's' : ''}`
     try {
       setBusy(true)
       const { id } = await createReservation({
@@ -108,7 +118,10 @@ export default function Reservation() {
         message: state.message || undefined,
         mode: state.mode ?? undefined,
         rooms: state.wholeHouse ? { wholeHouse: true } : state.rooms,
-        beds: state.mode === 'individuel' ? state.beds : undefined,
+        beds:
+          state.mode === 'individuel'
+            ? state.simpleBeds + state.doubleBeds
+            : undefined,
         options: state.options,
         activities_requested: state.activitiesRequested,
         allergies: state.allergies || undefined,

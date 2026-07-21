@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { StepProps } from './types'
-import { TOTAL_BEDS, nights } from '../../lib/booking'
-import { Calendar, Bed } from '../icons'
+import { SIMPLE_BEDS, DOUBLE_BEDS, nights } from '../../lib/booking'
+import { Calendar, Bed, Users } from '../icons'
 
 const fieldCls =
   'w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-fairy-gold focus:outline-none transition-colors'
@@ -11,7 +11,9 @@ function today(): string {
 }
 
 /**
- * Étape 3 : sélection du nombre de lits pour un séjour individuel.
+ * Étape 3 (individuel) : choix des lits par type (simples / double), des dates,
+ * des options et du nombre de personnes.
+ * Capacité d'accueil = lits simples + 2 × lits doubles.
  */
 export default function StepIndividualSelection({
   state,
@@ -21,9 +23,21 @@ export default function StepIndividualSelection({
 }: StepProps) {
   const [error, setError] = useState('')
 
+  const bedCapacity = state.simpleBeds + state.doubleBeds * 2
+
   function validateAndNext() {
-    if (state.beds < 1) {
+    if (state.simpleBeds + state.doubleBeds < 1) {
       setError('Veuillez choisir au moins un lit.')
+      return
+    }
+    if (state.individualGuests < 1) {
+      setError('Veuillez indiquer le nombre de personnes.')
+      return
+    }
+    if (state.individualGuests > bedCapacity) {
+      setError(
+        `Le nombre de personnes (${state.individualGuests}) dépasse la capacité des lits choisis (${bedCapacity}).`,
+      )
       return
     }
     if (nights(state.arrival, state.departure) < 1) {
@@ -42,23 +56,64 @@ export default function StepIndividualSelection({
         </p>
       )}
 
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <Bed className="w-4 h-4 inline mr-1" />
+            Lits simples
+          </label>
+          <select
+            value={state.simpleBeds}
+            onChange={(e) => setState({ simpleBeds: Number(e.target.value) })}
+            className={fieldCls}
+          >
+            {Array.from({ length: SIMPLE_BEDS + 1 }, (_, i) => i).map((n) => (
+              <option key={n} value={n}>
+                {n} {n <= 1 ? 'lit simple' : 'lits simples'}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <Bed className="w-4 h-4 inline mr-1" />
+            Lits doubles
+          </label>
+          <select
+            value={state.doubleBeds}
+            onChange={(e) => setState({ doubleBeds: Number(e.target.value) })}
+            className={fieldCls}
+          >
+            {Array.from({ length: DOUBLE_BEDS + 1 }, (_, i) => i).map((n) => (
+              <option key={n} value={n}>
+                {n} {n <= 1 ? 'lit double' : 'lits doubles'}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">
-          <Bed className="w-4 h-4 inline mr-1" />
-          Nombre de lits *
+          <Users className="w-4 h-4 inline mr-1" />
+          Nombre de personnes *
         </label>
-        <select
-          required
-          value={state.beds || 1}
-          onChange={(e) => setState({ beds: Number(e.target.value) })}
+        <input
+          type="number"
+          min={1}
+          max={bedCapacity || undefined}
+          value={state.individualGuests}
+          onChange={(e) =>
+            setState({
+              individualGuests: Math.max(1, Number(e.target.value) || 1),
+            })
+          }
           className={fieldCls}
-        >
-          {Array.from({ length: TOTAL_BEDS }, (_, i) => i + 1).map((n) => (
-            <option key={n} value={n}>
-              {n} {n === 1 ? 'lit' : 'lits'}
-            </option>
-          ))}
-        </select>
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Capacité des lits choisis : {bedCapacity} personne
+          {bedCapacity > 1 ? 's' : ''}.
+        </p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
