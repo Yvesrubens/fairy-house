@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { Facebook, Instagram, Calendar, Menu, Close } from './icons'
 
 const NAV = [
@@ -15,7 +15,6 @@ const FACEBOOK = 'https://www.facebook.com/profile.php?id=61590986093696'
 const INSTAGRAM = 'https://www.instagram.com/fairyhouse.collectif/'
 
 export default function Header() {
-  const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -84,13 +83,13 @@ export default function Header() {
                 <Instagram className="w-5 h-5" />
               </a>
             </div>
-            <button
-              onClick={() => navigate('/reserver')}
+            <Link
+              to="/reserver"
               className="hidden md:inline-flex items-center gap-2 bg-fairy-gold hover:bg-black text-black hover:text-fairy-gold px-6 py-3 rounded-full font-semibold transition-all shadow-lg hover:shadow-xl"
             >
               <Calendar className="w-4 h-4" />
               Réserver
-            </button>
+            </Link>
             <button
               className={`lg:hidden p-2 transition-colors hover:text-fairy-gold ${linkColor}`}
               onClick={() => setOpen((v) => !v)}
@@ -114,16 +113,14 @@ export default function Header() {
                   {item.label}
                 </Link>
               ))}
-              <button
-                onClick={() => {
-                  setOpen(false)
-                  navigate('/reserver')
-                }}
+              <Link
+                to="/reserver"
+                onClick={() => setOpen(false)}
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-fairy-gold px-6 py-3 text-center text-sm font-semibold text-black"
               >
                 <Calendar className="w-4 h-4" />
                 Réserver
-              </button>
+              </Link>
               <div className="flex items-center gap-4 pt-2">
                 <a href={FACEBOOK} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-ink hover:text-fairy-gold">
                   <Facebook className="w-5 h-5" />
