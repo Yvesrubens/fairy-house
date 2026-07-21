@@ -8,6 +8,7 @@ import { confirmationEmail } from './_lib/confirmation'
 
 const SUPABASE_URL = process.env.SUPABASE_URL as string
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY as string
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string
 const RESEND_API_KEY = process.env.RESEND_API_KEY as string
 const RESEND_FROM = process.env.RESEND_FROM as string
 
@@ -44,8 +45,14 @@ export default async function handler(req: any, res: any) {
     res.status(500).json({ error: 'Configuration email manquante (RESEND).' })
     return
   }
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
+    res
+      .status(500)
+      .json({ error: 'Configuration serveur manquante (SUPABASE_SERVICE_ROLE_KEY).' })
+    return
+  }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
   const { data: r, error } = await supabase
     .from('reservations')
     .select('*')
@@ -53,6 +60,11 @@ export default async function handler(req: any, res: any) {
     .maybeSingle()
   if (error || !r) {
     res.status(404).json({ error: 'Réservation introuvable' })
+    return
+  }
+
+  if (r.confirmation_sent_at) {
+    res.status(200).json({ ok: true, alreadySent: true })
     return
   }
 
@@ -116,6 +128,13 @@ export default async function handler(req: any, res: any) {
       html: devisHtml,
       attachments: [{ filename: `${reference}.pdf`, content: pdfBase64 }],
     })
+  }
+
+  if (okConfirm) {
+    await supabase
+      .from('reservations')
+      .update({ confirmation_sent_at: new Date().toISOString() })
+      .eq('id', reservationId)
   }
 
   // La réservation reste enregistrée quoi qu'il arrive ; on signale juste l'état d'envoi.

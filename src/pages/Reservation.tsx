@@ -7,7 +7,7 @@ import StepIndividualSelection from '../components/reservation/StepIndividualSel
 import StepDetails from '../components/reservation/StepDetails'
 import StepPayment from '../components/reservation/StepPayment'
 import { createReservation } from '../lib/api'
-import { HOUSE_CAPACITY, computeQuote, nights, splitPlan } from '../lib/booking'
+import { HOUSE_CAPACITY, canSplit, computeQuote, nights, splitPlan } from '../lib/booking'
 
 const INITIAL_STATE: BookingState = {
   mode: null,
@@ -51,8 +51,9 @@ export default function Reservation() {
         : state.beds
     const n = nights(state.arrival, state.departure)
     const quote = computeQuote(pers, n, state.options)
+    const today = new Date().toISOString().slice(0, 10)
     const split =
-      state.paymentPlan === 'split'
+      state.paymentPlan === 'split' && canSplit(state.arrival, today)
         ? splitPlan(quote.totalTtc, state.arrival)
         : null
     const typeLabel =
@@ -79,7 +80,7 @@ export default function Reservation() {
         activities_requested: state.activitiesRequested,
         allergies: state.allergies || undefined,
         payment_method: state.paymentMethod ?? undefined,
-        payment_plan: state.paymentPlan,
+        payment_plan: split ? 'split' : 'once',
         total_ht: quote.totalHt,
         vat_rate: 10,
         total_ttc: quote.totalTtc,

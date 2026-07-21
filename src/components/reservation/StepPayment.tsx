@@ -1,6 +1,7 @@
 import type { StepProps } from './types'
 import {
   HOUSE_CAPACITY,
+  canSplit,
   computeQuote,
   nights,
   splitPlan,
@@ -31,8 +32,9 @@ export default function StepPayment({
 
   const nightsCount = nights(state.arrival, state.departure)
   const quote = computeQuote(pers, nightsCount, state.options)
+  const today = new Date().toISOString().slice(0, 10)
   const plan =
-    state.paymentPlan === 'split'
+    state.paymentPlan === 'split' && canSplit(state.arrival, today)
       ? splitPlan(quote.totalTtc, state.arrival)
       : null
 

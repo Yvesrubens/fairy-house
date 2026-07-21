@@ -96,13 +96,12 @@ export async function createReservation(
     'next_reservation_reference',
   )
   if (rErr) throw new Error(rErr.message)
-  const { data, error } = await supabase
+  const id = crypto.randomUUID()
+  const { error } = await supabase
     .from('reservations')
-    .insert({ ...input, reference: ref, amount: input.total_ttc ?? 0 })
-    .select('id, reference')
-    .single()
+    .insert({ ...input, id, reference: ref, amount: input.total_ttc ?? 0 })
   if (error) throw new Error(error.message)
-  return { id: data.id as string, reference: data.reference as string }
+  return { id, reference: ref as string }
 }
 
 // ------------------------------------------------------------ Newsletter
