@@ -162,9 +162,9 @@ export default function Reservation() {
                     Votre demande a bien été envoyée !
                   </h3>
                   <p className="mt-4 text-gray-600">
-                    Un email de confirmation vous a été adressé. Pour un
-                    règlement par virement, vous recevrez un devis avec nos
-                    coordonnées bancaires.
+                    {state.paymentMethod === 'virement'
+                      ? 'Un email de confirmation vous a été adressé, ainsi qu’un devis avec nos coordonnées bancaires pour le règlement par virement.'
+                      : 'Votre paiement (simulation) a bien été pris en compte et un email de confirmation vous a été adressé.'}
                   </p>
                 </div>
               ) : (
