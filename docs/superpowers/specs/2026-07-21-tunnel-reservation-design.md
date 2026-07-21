@@ -89,8 +89,8 @@ personnes (groupe : somme des personnes par chambre ; individuel : nombre de lit
 - Si 2× : acompte = `round(TTC / 2)`, solde = `TTC − acompte`, échéance solde =
   `arrivée − 30 jours`.
 
-Tous les prix ci-dessus sont considérés **HT** ; le TTC est ce que règle le client.
-(À confirmer si les 45 € affichés sur le site sont HT ou TTC — voir Points ouverts.)
+Tous les prix ci-dessus (45 € séjour, 8 € linge, 20 € pension) sont **HT** (confirmé) ;
+le TTC (HT + TVA 10 %) est ce que règle le client.
 
 ## Modèle de données
 
@@ -162,13 +162,12 @@ La modale `ReservationProvider` / `ReservationForm` actuelle est conservée pour
   bornes de capacité, seuil des 30 jours). TDD.
 - Vérification manuelle du tunnel via le preview (chaque étape, deux parcours).
 
-## Points ouverts (à confirmer avant/pendant l'implémentation)
+## Points confirmés / en attente
 
-1. **HT vs TTC** : les 45 €/nuit/pers affichés sont-ils HT ou TTC ? (impacte le calcul de
-   la TVA affichée). Hypothèse actuelle : HT.
-2. **RIB / SIRET / TVA** : valeurs réelles à fournir pour le mail virement (placeholders en
-   attendant).
-3. **Pension « jour »** : assimilé à une nuit de séjour dans les calculs — à confirmer.
+1. **HT vs TTC** — ✅ confirmé : les prix (45 €, 8 €, 20 €) sont **HT**. Le client règle le TTC.
+2. **Pension « jour »** — ✅ confirmé : assimilé à une nuit de séjour dans les calculs.
+3. **RIB / SIRET / TVA** — ⏳ en attente : valeurs réelles à fournir pour le mail virement.
+   Placeholders en variables d'environnement en attendant (n'empêche pas l'implémentation).
 
 ## Hors périmètre (évolutions futures)
 
