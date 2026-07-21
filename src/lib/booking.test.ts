@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  ROOMS, HOUSE_CAPACITY, TOTAL_BEDS, VAT_RATE,
+  ROOMS, HOUSE_CAPACITY, TOTAL_BEDS,
   nights, computeQuote, canSplit, splitPlan,
 } from './booking'
 

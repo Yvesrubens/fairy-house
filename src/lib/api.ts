@@ -72,17 +72,37 @@ export interface ReservationInput {
   guests?: number
   message?: string
   event_id?: string
+  // Tunnel de réservation
+  mode?: 'groupe' | 'individuel'
+  rooms?: { room: string; guests: number }[] | { wholeHouse: true }
+  beds?: number
+  options?: { linge: boolean; pension: boolean }
+  activities_requested?: boolean
+  allergies?: string
+  payment_method?: 'virement' | 'cb' | 'paypal'
+  payment_plan?: 'once' | 'split'
+  total_ht?: number
+  vat_rate?: number
+  total_ttc?: number
+  deposit_amount?: number
+  balance_amount?: number
+  balance_due_date?: string
 }
 
-export async function createReservation(input: ReservationInput): Promise<void> {
+export async function createReservation(
+  input: ReservationInput,
+): Promise<{ id: string; reference: string }> {
   const { data: ref, error: rErr } = await supabase.rpc(
     'next_reservation_reference',
   )
   if (rErr) throw new Error(rErr.message)
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('reservations')
-    .insert({ ...input, reference: ref })
+    .insert({ ...input, reference: ref, amount: input.total_ttc ?? 0 })
+    .select('id, reference')
+    .single()
   if (error) throw new Error(error.message)
+  return { id: data.id as string, reference: data.reference as string }
 }
 
 // ------------------------------------------------------------ Newsletter
