@@ -11,9 +11,10 @@ function today(): string {
 }
 
 /**
- * Étape 3 (individuel) : choix des lits par type (simples / double), des dates,
- * des options et du nombre de personnes.
- * Capacité d'accueil = lits simples + 2 × lits doubles.
+ * Étape 3 (individuel) : choix des lits par type (simples / double), des dates
+ * et des options. La facturation se fait sur la CAPACITÉ des lits choisis
+ * (1 lit simple = 1 personne, 1 lit double = 2 personnes) — on ne demande donc
+ * pas séparément le nombre de personnes.
  */
 export default function StepIndividualSelection({
   state,
@@ -25,19 +26,17 @@ export default function StepIndividualSelection({
 
   const bedCapacity = state.simpleBeds + state.doubleBeds * 2
 
+  // Les lits pilotent le nombre de personnes facturées (= capacité). On garde
+  // `individualGuests` synchronisé pour le devis et l'enregistrement.
+  function setBeds(patch: { simpleBeds?: number; doubleBeds?: number }) {
+    const simpleBeds = patch.simpleBeds ?? state.simpleBeds
+    const doubleBeds = patch.doubleBeds ?? state.doubleBeds
+    setState({ simpleBeds, doubleBeds, individualGuests: simpleBeds + doubleBeds * 2 })
+  }
+
   function validateAndNext() {
     if (state.simpleBeds + state.doubleBeds < 1) {
       setError('Veuillez choisir au moins un lit.')
-      return
-    }
-    if (state.individualGuests < 1) {
-      setError('Veuillez indiquer le nombre de personnes.')
-      return
-    }
-    if (state.individualGuests > bedCapacity) {
-      setError(
-        `Le nombre de personnes (${state.individualGuests}) dépasse la capacité des lits choisis (${bedCapacity}).`,
-      )
       return
     }
     if (nights(state.arrival, state.departure) < 1) {
@@ -64,7 +63,7 @@ export default function StepIndividualSelection({
           </label>
           <select
             value={state.simpleBeds}
-            onChange={(e) => setState({ simpleBeds: Number(e.target.value) })}
+            onChange={(e) => setBeds({ simpleBeds: Number(e.target.value) })}
             className={fieldCls}
           >
             {Array.from({ length: SIMPLE_BEDS + 1 }, (_, i) => i).map((n) => (
@@ -81,7 +80,7 @@ export default function StepIndividualSelection({
           </label>
           <select
             value={state.doubleBeds}
-            onChange={(e) => setState({ doubleBeds: Number(e.target.value) })}
+            onChange={(e) => setBeds({ doubleBeds: Number(e.target.value) })}
             className={fieldCls}
           >
             {Array.from({ length: DOUBLE_BEDS + 1 }, (_, i) => i).map((n) => (
@@ -93,26 +92,15 @@ export default function StepIndividualSelection({
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          <Users className="w-4 h-4 inline mr-1" />
-          Nombre de personnes *
-        </label>
-        <input
-          type="number"
-          min={1}
-          max={bedCapacity || undefined}
-          value={state.individualGuests}
-          onChange={(e) =>
-            setState({
-              individualGuests: Math.max(1, Number(e.target.value) || 1),
-            })
-          }
-          className={fieldCls}
-        />
-        <p className="mt-1 text-xs text-gray-500">
-          Capacité des lits choisis : {bedCapacity} personne
-          {bedCapacity > 1 ? 's' : ''}.
+      <div className="flex items-center gap-2 rounded-xl bg-fairy-gold/10 px-4 py-3">
+        <Users className="w-5 h-5 text-fairy-gold" />
+        <p className="text-sm text-gray-700">
+          Capacité des lits choisis :{' '}
+          <strong>
+            {bedCapacity} personne{bedCapacity > 1 ? 's' : ''}
+          </strong>{' '}
+          — la réservation est facturée sur cette base (1 lit simple = 1 pers.,
+          1 lit double = 2 pers.).
         </p>
       </div>
 

@@ -32,17 +32,20 @@ describe('computeQuote', () => {
     expect(q.totalTtc).toBe(297)
     expect(q.lines).toHaveLength(1)
   })
-  it('adds linge and pension lines', () => {
-    // séjour 270 + linge 2×3×8=48 + pension 2×3×20=120 = 438 HT
+  it('adds linge (par personne) and pension (par nuitée) lines', () => {
+    // séjour 2×3×45=270 + linge 2×8=16 (par personne) + pension 2×3×20=120 = 406 HT
     const q = computeQuote(2, 3, { linge: true, pension: true })
-    expect(q.totalHt).toBe(438)
-    expect(q.vat).toBeCloseTo(43.8, 2)
-    expect(q.totalTtc).toBeCloseTo(481.8, 2)
+    expect(q.totalHt).toBe(406)
+    expect(q.vat).toBeCloseTo(40.6, 2)
+    expect(q.totalTtc).toBeCloseTo(446.6, 2)
     expect(q.lines).toHaveLength(3)
     expect(q.lines[1].label).toBe('Linge de maison')
     expect(q.lines[1].unitPrice).toBe(8)
+    expect(q.lines[1].qty).toBe(2) // par personne, indépendant des nuits
+    expect(q.lines[1].total).toBe(16)
     expect(q.lines[2].label).toBe('Pension complète')
     expect(q.lines[2].unitPrice).toBe(20)
+    expect(q.lines[2].qty).toBe(6) // 2 pers × 3 nuits
   })
 })
 

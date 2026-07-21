@@ -14,7 +14,7 @@ export const SIMPLE_BEDS = 10
 export const DOUBLE_BEDS = 1
 
 export const PRICE_PER_PERSON_NIGHT = 45
-export const LINGE_PER_PERSON_NIGHT = 8
+export const LINGE_PER_PERSON = 8 // forfait par personne (pas par nuit)
 export const PENSION_PER_PERSON_NIGHT = 20
 export const VAT_RATE = 10
 export const SPLIT_MIN_DAYS = 30
@@ -65,8 +65,9 @@ export function computeQuote(
     total: stay,
   })
   if (opts.linge) {
-    const t = LINGE_PER_PERSON_NIGHT * pers * nightsCount
-    lines.push({ label: 'Linge de maison', qty: pers * nightsCount, unitPrice: LINGE_PER_PERSON_NIGHT, total: t })
+    // Forfait linge : facturé par personne, une seule fois (pas par nuit).
+    const t = LINGE_PER_PERSON * pers
+    lines.push({ label: 'Linge de maison', qty: pers, unitPrice: LINGE_PER_PERSON, total: t })
   }
   if (opts.pension) {
     const t = PENSION_PER_PERSON_NIGHT * pers * nightsCount
