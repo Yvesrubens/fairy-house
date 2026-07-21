@@ -39,6 +39,10 @@ describe('computeQuote', () => {
     expect(q.vat).toBeCloseTo(43.8, 2)
     expect(q.totalTtc).toBeCloseTo(481.8, 2)
     expect(q.lines).toHaveLength(3)
+    expect(q.lines[1].label).toBe('Linge de maison')
+    expect(q.lines[1].unitPrice).toBe(8)
+    expect(q.lines[2].label).toBe('Pension complète')
+    expect(q.lines[2].unitPrice).toBe(20)
   })
 })
 
@@ -48,6 +52,9 @@ describe('canSplit', () => {
   })
   it('false when arrival is within 30 days', () => {
     expect(canSplit('2026-08-10', '2026-07-21')).toBe(false)
+  })
+  it('false when arrival is exactly 30 days ahead (boundary)', () => {
+    expect(canSplit('2026-08-20', '2026-07-21')).toBe(false)
   })
 })
 

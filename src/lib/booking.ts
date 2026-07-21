@@ -41,8 +41,8 @@ function round2(n: number): number {
 
 /** Nombre de nuits entre deux dates ISO (YYYY-MM-DD). 0 si égales ou inversées. */
 export function nights(arrival: string, departure: string): number {
-  const a = Date.parse(arrival)
-  const d = Date.parse(departure)
+  const a = Date.parse(arrival + 'T00:00:00Z')
+  const d = Date.parse(departure + 'T00:00:00Z')
   if (Number.isNaN(a) || Number.isNaN(d) || d <= a) return 0
   return Math.round((d - a) / 86_400_000)
 }
