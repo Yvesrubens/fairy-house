@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   HomeIcon,
   Bed,
@@ -8,7 +9,6 @@ import {
   Car,
   Phone,
 } from '../components/icons'
-import { useReservation } from '../components/Reservation'
 
 const SPACES = [
   {
@@ -107,7 +107,7 @@ function FlipCard({ space }: { space: { name: string; img: string; text: string 
 }
 
 export default function LeLieu() {
-  const { open: openReservation } = useReservation()
+  const navigate = useNavigate()
   return (
     <main className="flex-1">
       <div className="min-h-screen">
@@ -235,7 +235,7 @@ export default function LeLieu() {
               Réservez dès maintenant votre séjour dans notre havre de paix
             </p>
             <button
-              onClick={() => openReservation()}
+              onClick={() => navigate('/reserver')}
               className="inline-flex items-center justify-center gap-2 font-semibold transition-all duration-300 rounded-full bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-white shadow-lg hover:shadow-2xl hover:scale-105 animate-glow px-10 py-5 text-xl"
             >
               <span>Réserver maintenant</span>

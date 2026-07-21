@@ -14,6 +14,20 @@ export interface Reservation {
   status: ReservationStatus
   message: string | null
   event_id: string | null
+  mode: 'groupe' | 'individuel' | 'sur-mesure' | null
+  rooms: { room: string; guests: number }[] | { wholeHouse: true } | null
+  beds: number | null
+  options: { linge: boolean; pension: boolean } | null
+  activities_requested: boolean
+  allergies: string | null
+  payment_method: 'virement' | 'cb' | 'paypal' | null
+  payment_plan: 'once' | 'split' | null
+  total_ht: number | null
+  vat_rate: number | null
+  total_ttc: number | null
+  deposit_amount: number | null
+  balance_amount: number | null
+  balance_due_date: string | null
   confirmation_sent_at: string | null
   created_at: string
 }

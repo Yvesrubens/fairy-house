@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   ChevronDown,
   Heart,
@@ -9,7 +9,6 @@ import {
   CheckCircle,
   ArrowRight,
 } from '../components/icons'
-import { useReservation } from '../components/Reservation'
 import { listPublishedEvents } from '../lib/api'
 import { formatDate } from '../lib/format'
 import type { EventRow } from '../types/db'
@@ -75,7 +74,7 @@ const SPARKLE_DOTS = [
 ]
 
 export default function Home() {
-  const { open: openReservation } = useReservation()
+  const navigate = useNavigate()
   const [events, setEvents] = useState<EventRow[]>([])
   const [eventsLoading, setEventsLoading] = useState(true)
 
@@ -350,7 +349,7 @@ export default function Home() {
                       ))}
                     </div>
                     <button
-                      onClick={() => openReservation()}
+                      onClick={() => navigate('/reserver')}
                       className="w-full px-8 py-4 bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-black hover:from-black hover:to-black hover:text-fairy-gold rounded-full font-bold transition-all shadow-lg hover:shadow-xl mt-auto text-center block"
                     >
                       Réserver maintenant
@@ -428,7 +427,7 @@ export default function Home() {
                     </ul>
                     {p.to === '/reserver' ? (
                       <button
-                        onClick={() => openReservation()}
+                        onClick={() => navigate('/reserver')}
                         className="w-full px-6 py-4 bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold rounded-full font-bold transition-all shadow-md hover:shadow-lg text-center block mt-auto"
                       >
                         {p.cta}
