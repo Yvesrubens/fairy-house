@@ -14,7 +14,7 @@ export interface Reservation {
   status: ReservationStatus
   message: string | null
   event_id: string | null
-  mode: 'groupe' | 'individuel' | null
+  mode: 'groupe' | 'individuel' | 'sur-mesure' | null
   rooms: { room: string; guests: number }[] | { wholeHouse: true } | null
   beds: number | null
   options: { linge: boolean; pension: boolean } | null

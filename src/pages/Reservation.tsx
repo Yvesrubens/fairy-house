@@ -6,6 +6,7 @@ import StepGroupSelection from '../components/reservation/StepGroupSelection'
 import StepIndividualSelection from '../components/reservation/StepIndividualSelection'
 import StepDetails from '../components/reservation/StepDetails'
 import StepPayment from '../components/reservation/StepPayment'
+import StepCustom from '../components/reservation/StepCustom'
 import { createReservation } from '../lib/api'
 import { HOUSE_CAPACITY, canSplit, computeQuote, nights, splitPlan } from '../lib/booking'
 
@@ -14,6 +15,7 @@ const INITIAL_STATE: BookingState = {
   rooms: [],
   wholeHouse: false,
   beds: 1,
+  customGuests: 1,
   arrival: '',
   departure: '',
   options: { linge: false, pension: false },
@@ -29,6 +31,7 @@ const INITIAL_STATE: BookingState = {
 }
 
 const STEP_LABELS = ['Séjour', 'Sélection', 'Coordonnées', 'Paiement']
+const CUSTOM_LABELS = ['Séjour', 'Votre demande']
 
 export default function Reservation() {
   const [step, setStep] = useState(0)
@@ -44,6 +47,36 @@ export default function Reservation() {
   const onBack = () => setStep((s) => s - 1)
 
   async function onSubmit() {
+    // Parcours sur mesure : aucune tarification ni paiement. On enregistre la
+    // demande (statut pending) ; l'équipe établit et envoie le devis ensuite.
+    if (state.mode === 'sur-mesure') {
+      try {
+        setBusy(true)
+        const { id } = await createReservation({
+          client_name: `${state.firstName} ${state.lastName}`.trim(),
+          client_email: state.email,
+          client_phone: state.phone || undefined,
+          type: 'Séjour sur mesure',
+          arrival_date: state.arrival,
+          departure_date: state.departure || undefined,
+          guests: state.customGuests,
+          message: state.message || undefined,
+          mode: 'sur-mesure',
+        })
+        fetch('/api/book', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reservationId: id }),
+        }).catch(() => {})
+        setDone(true)
+      } catch (e) {
+        setError((e as Error).message)
+      } finally {
+        setBusy(false)
+      }
+      return
+    }
+
     const pers = state.wholeHouse
       ? HOUSE_CAPACITY
       : state.mode === 'groupe'
@@ -128,7 +161,10 @@ export default function Reservation() {
               </h2>
               {!done && (
                 <div className="mt-4 flex items-center gap-2">
-                  {STEP_LABELS.map((label, i) => (
+                  {(() => {
+                    const labels =
+                      state.mode === 'sur-mesure' ? CUSTOM_LABELS : STEP_LABELS
+                    return labels.map((label, i) => (
                     <div key={label} className="flex-1 flex items-center gap-2">
                       <div
                         className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
@@ -146,11 +182,12 @@ export default function Reservation() {
                       >
                         {label}
                       </span>
-                      {i < STEP_LABELS.length - 1 && (
+                      {i < labels.length - 1 && (
                         <div className="flex-1 h-0.5 bg-black/20" />
                       )}
                     </div>
-                  ))}
+                    ))
+                  })()}
                 </div>
               )}
             </div>
@@ -162,9 +199,11 @@ export default function Reservation() {
                     Votre demande a bien été envoyée !
                   </h3>
                   <p className="mt-4 text-gray-600">
-                    {state.paymentMethod === 'virement'
-                      ? 'Un email de confirmation vous a été adressé, ainsi qu’un devis avec nos coordonnées bancaires pour le règlement par virement.'
-                      : 'Votre paiement (simulation) a bien été pris en compte et un email de confirmation vous a été adressé.'}
+                    {state.mode === 'sur-mesure'
+                      ? 'Nous avons bien reçu votre demande de séjour sur mesure. Un email de confirmation vous a été adressé ; nous établissons votre devis personnalisé et revenons vers vous rapidement.'
+                      : state.paymentMethod === 'virement'
+                        ? 'Un email de confirmation vous a été adressé, ainsi qu’un devis avec nos coordonnées bancaires pour le règlement par virement.'
+                        : 'Votre paiement (simulation) a bien été pris en compte et un email de confirmation vous a été adressé.'}
                   </p>
                 </div>
               ) : (
@@ -182,22 +221,32 @@ export default function Reservation() {
                       onBack={onBack}
                     />
                   )}
-                  {step === 1 &&
-                    (state.mode === 'groupe' ? (
-                      <StepGroupSelection
-                        state={state}
-                        setState={setState}
-                        onNext={onNext}
-                        onBack={onBack}
-                      />
-                    ) : (
-                      <StepIndividualSelection
-                        state={state}
-                        setState={setState}
-                        onNext={onNext}
-                        onBack={onBack}
-                      />
-                    ))}
+                  {step === 1 && state.mode === 'groupe' && (
+                    <StepGroupSelection
+                      state={state}
+                      setState={setState}
+                      onNext={onNext}
+                      onBack={onBack}
+                    />
+                  )}
+                  {step === 1 && state.mode === 'individuel' && (
+                    <StepIndividualSelection
+                      state={state}
+                      setState={setState}
+                      onNext={onNext}
+                      onBack={onBack}
+                    />
+                  )}
+                  {step === 1 && state.mode === 'sur-mesure' && (
+                    <StepCustom
+                      state={state}
+                      setState={setState}
+                      onNext={onNext}
+                      onBack={onBack}
+                      onSubmit={onSubmit}
+                      busy={busy}
+                    />
+                  )}
                   {step === 2 && (
                     <StepDetails
                       state={state}

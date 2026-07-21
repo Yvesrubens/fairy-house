@@ -73,7 +73,7 @@ export interface ReservationInput {
   message?: string
   event_id?: string
   // Tunnel de réservation
-  mode?: 'groupe' | 'individuel'
+  mode?: 'groupe' | 'individuel' | 'sur-mesure'
   rooms?: { room: string; guests: number }[] | { wholeHouse: true }
   beds?: number
   options?: { linge: boolean; pension: boolean }

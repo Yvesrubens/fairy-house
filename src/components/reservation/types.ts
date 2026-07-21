@@ -2,10 +2,11 @@
 // composants d'étape (Task 6) et par l'orchestrateur src/pages/Reservation.tsx (Task 7).
 
 export interface BookingState {
-  mode: 'groupe' | 'individuel' | null
+  mode: 'groupe' | 'individuel' | 'sur-mesure' | null
   rooms: { room: string; guests: number }[] // groupe (vide si maison complète)
   wholeHouse: boolean // groupe
   beds: number // individuel (1..11)
+  customGuests: number // sur-mesure (nombre de personnes souhaité)
   arrival: string
   departure: string
   options: { linge: boolean; pension: boolean }
