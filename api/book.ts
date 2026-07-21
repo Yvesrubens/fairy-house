@@ -7,7 +7,6 @@ import { buildDevisPdf, eur } from './_lib/devis-pdf'
 import { confirmationEmail } from './_lib/confirmation'
 
 const SUPABASE_URL = process.env.SUPABASE_URL as string
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY as string
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string
 const RESEND_API_KEY = process.env.RESEND_API_KEY as string
 const RESEND_FROM = process.env.RESEND_FROM as string

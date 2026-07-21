@@ -188,6 +188,15 @@ export function MessageSquare(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function CreditCard(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M2 10h20" />
+    </svg>
+  )
+}
+
 export function Bed(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...base} {...props}>
