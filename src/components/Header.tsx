@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Facebook, Instagram, Calendar, Menu, Close } from './icons'
-import { useReservation } from './Reservation'
 
 const NAV = [
   { label: 'Accueil', to: '/' },
@@ -16,7 +15,7 @@ const FACEBOOK = 'https://www.facebook.com/profile.php?id=61590986093696'
 const INSTAGRAM = 'https://www.instagram.com/fairyhouse.collectif/'
 
 export default function Header() {
-  const { open: openReservation } = useReservation()
+  const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -86,7 +85,7 @@ export default function Header() {
               </a>
             </div>
             <button
-              onClick={() => openReservation()}
+              onClick={() => navigate('/reserver')}
               className="hidden md:inline-flex items-center gap-2 bg-fairy-gold hover:bg-black text-black hover:text-fairy-gold px-6 py-3 rounded-full font-semibold transition-all shadow-lg hover:shadow-xl"
             >
               <Calendar className="w-4 h-4" />
@@ -118,7 +117,7 @@ export default function Header() {
               <button
                 onClick={() => {
                   setOpen(false)
-                  openReservation()
+                  navigate('/reserver')
                 }}
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-fairy-gold px-6 py-3 text-center text-sm font-semibold text-black"
               >
