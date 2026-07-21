@@ -31,11 +31,28 @@ async function sendEmail(payload: Record<string, unknown>): Promise<boolean> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
+  try {
+    await run(req, res)
+  } catch (e) {
+    // Filet de sécurité : on ne laisse jamais la fonction planter
+    // (FUNCTION_INVOCATION_FAILED). La réservation est déjà enregistrée côté
+    // client ; on renvoie un message lisible pour le diagnostic.
+    console.error('api/book error', e)
+    res
+      .status(500)
+      .json({ error: 'book_failed', detail: (e as Error)?.message || String(e) })
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function run(req: any, res: any) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Méthode non autorisée' })
     return
   }
-  const { reservationId } = req.body || {}
+  const body =
+    typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {}
+  const { reservationId } = body
   if (!reservationId) {
     res.status(400).json({ error: 'reservationId manquant' })
     return
@@ -76,9 +93,12 @@ export default async function handler(req: any, res: any) {
     text,
   })
 
-  // 2) Mail devis + RIB (si virement)
+  // 2) Mail devis + RIB (si virement) — isolé : un échec PDF/devis ne doit pas
+  //    faire échouer la confirmation ni planter la fonction.
   let okDevis = true
+  let devisError: string | undefined
   if (r.payment_method === 'virement') {
+   try {
     const { data: ref } = await supabase.rpc('next_devis_reference')
     const reference = (ref as string) || r.reference
     const lines = [
@@ -127,6 +147,11 @@ export default async function handler(req: any, res: any) {
       html: devisHtml,
       attachments: [{ filename: `${reference}.pdf`, content: pdfBase64 }],
     })
+   } catch (e) {
+     console.error('api/book devis error', e)
+     okDevis = false
+     devisError = (e as Error)?.message || String(e)
+   }
   }
 
   if (okConfirm) {
@@ -137,5 +162,10 @@ export default async function handler(req: any, res: any) {
   }
 
   // La réservation reste enregistrée quoi qu'il arrive ; on signale juste l'état d'envoi.
-  res.status(200).json({ ok: okConfirm && okDevis, emailConfirm: okConfirm, emailDevis: okDevis })
+  res.status(200).json({
+    ok: okConfirm && okDevis,
+    emailConfirm: okConfirm,
+    emailDevis: okDevis,
+    devisError,
+  })
 }
