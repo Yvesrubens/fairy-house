@@ -36,6 +36,15 @@ const base: Reservation = {
   balance_amount: null,
   balance_due_date: null,
   confirmation_sent_at: null,
+  social_handle: null,
+  emergency_contact: null,
+  diet: null,
+  accommodation_choice: null,
+  shuttle: null,
+  consent_reglement: null,
+  consent_image: null,
+  quote_lines: null,
+  vat_breakdown: null,
   created_at: '2026-06-03T10:00:00Z',
 }
 const now = new Date('2026-06-15T00:00:00Z')
@@ -68,6 +77,14 @@ describe('stats', () => {
       image_url: null,
       capacity: null,
       published: true,
+      event_price_ttc: null,
+      accommodation_tente_ttc: null,
+      accommodation_chambre_ttc: null,
+      shuttle_enabled: null,
+      shuttle_price_ttc: null,
+      split_payment_enabled: null,
+      reglement_texte: null,
+      droits_image_texte: null,
       created_at: '',
     }
     expect(activeEvents([ev, { ...ev, id: 'e2', published: false }], now)).toBe(1)

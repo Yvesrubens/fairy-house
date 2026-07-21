@@ -29,6 +29,18 @@ export interface Reservation {
   balance_amount: number | null
   balance_due_date: string | null
   confirmation_sent_at: string | null
+  // Inscription à un événement
+  social_handle: string | null
+  emergency_contact: string | null
+  diet: string | null
+  accommodation_choice: 'tente' | 'chambre' | 'aucun' | null
+  shuttle: boolean | null
+  consent_reglement: boolean | null
+  consent_image: boolean | null
+  quote_lines:
+    | { designation: string; qty: number; unitPrice: number; vatRate: number }[]
+    | null
+  vat_breakdown: { rate: number; ht: number; vat: number; ttc: number }[] | null
   created_at: string
 }
 
@@ -43,6 +55,15 @@ export interface EventRow {
   image_url: string | null
   capacity: number | null
   published: boolean
+  // Config tarifaire de l'inscription (nullable ; défauts côté code)
+  event_price_ttc: number | null
+  accommodation_tente_ttc: number | null
+  accommodation_chambre_ttc: number | null
+  shuttle_enabled: boolean | null
+  shuttle_price_ttc: number | null
+  split_payment_enabled: boolean | null
+  reglement_texte: string | null
+  droits_image_texte: string | null
   created_at: string
 }
 

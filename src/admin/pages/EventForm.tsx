@@ -98,6 +98,74 @@ export default function EventForm({
         />
         Publié
       </label>
+
+      {/* --- Inscription payante (événement) --- */}
+      <div className="mt-6 space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+        <h3 className="text-sm font-bold text-gray-900">
+          Inscription payante (prix TTC, TVA incluse)
+        </h3>
+        <Field
+          label="Prix de l'inscription TTC (€) — part animation, TVA 20 %"
+          type="number"
+          value={row.event_price_ttc != null ? String(row.event_price_ttc) : ''}
+          onChange={(v) => set('event_price_ttc', v ? Number(v) : null)}
+        />
+        <Field
+          label="Hébergement en tente — prix TTC (€), TVA 10 %"
+          type="number"
+          value={
+            row.accommodation_tente_ttc != null
+              ? String(row.accommodation_tente_ttc)
+              : ''
+          }
+          onChange={(v) => set('accommodation_tente_ttc', v ? Number(v) : null)}
+        />
+        <Field
+          label="Chambre mixte partagée — prix TTC (€), TVA 10 %"
+          type="number"
+          value={
+            row.accommodation_chambre_ttc != null
+              ? String(row.accommodation_chambre_ttc)
+              : ''
+          }
+          onChange={(v) => set('accommodation_chambre_ttc', v ? Number(v) : null)}
+        />
+        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+          <input
+            type="checkbox"
+            checked={row.shuttle_enabled ?? false}
+            onChange={(e) => set('shuttle_enabled', e.target.checked)}
+          />
+          Proposer la navette (gare de Nogent-sur-Vernisson)
+        </label>
+        <Field
+          label="Prix navette A/R TTC (€), TVA 10 %"
+          type="number"
+          value={row.shuttle_price_ttc != null ? String(row.shuttle_price_ttc) : ''}
+          onChange={(v) => set('shuttle_price_ttc', v ? Number(v) : null)}
+        />
+        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+          <input
+            type="checkbox"
+            checked={row.split_payment_enabled ?? false}
+            onChange={(e) => set('split_payment_enabled', e.target.checked)}
+          />
+          Autoriser le paiement en 2 fois
+        </label>
+        <Field
+          label="Texte règlement intérieur (vide = texte par défaut)"
+          textarea
+          value={row.reglement_texte ?? ''}
+          onChange={(v) => set('reglement_texte', v || null)}
+        />
+        <Field
+          label="Texte droits à l'image (vide = texte par défaut)"
+          textarea
+          value={row.droits_image_texte ?? ''}
+          onChange={(v) => set('droits_image_texte', v || null)}
+        />
+      </div>
+
       <div className="flex gap-3">
         <button
           disabled={busy}

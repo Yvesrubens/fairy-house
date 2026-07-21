@@ -101,9 +101,15 @@ async function run(req: any, res: any) {
    try {
     const { data: ref } = await supabase.rpc('next_devis_reference')
     const reference = (ref as string) || r.reference
-    const lines = [
-      { designation: 'Séjour (nuitées)', qty: 1, unitPrice: Number(r.total_ht) || 0 },
-    ]
+    // Réservation événement : lignes + TVA multi-taux stockées à l'inscription.
+    // Sinon (tunnel séjour) : ligne unique + TVA mono-taux.
+    const isEvent = Array.isArray(r.quote_lines) && r.quote_lines.length > 0
+    const lines = isEvent
+      ? (r.quote_lines as { designation: string; qty: number; unitPrice: number }[])
+      : [{ designation: 'Séjour (nuitées)', qty: 1, unitPrice: Number(r.total_ht) || 0 }]
+    const vatBreakdown = isEvent
+      ? (r.vat_breakdown as { rate: number; ht: number; vat: number }[])
+      : undefined
     const vatRate = Number(r.vat_rate) || 10
     const totalHt = Number(r.total_ht) || 0
     const totalTtc = Number(r.total_ttc) || 0
@@ -115,6 +121,7 @@ async function run(req: any, res: any) {
       lines,
       totalHt,
       vatRate,
+      vatBreakdown,
       totalTtc,
       validityDays: 30,
       rib: RIB,

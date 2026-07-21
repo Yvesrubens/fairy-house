@@ -6,6 +6,7 @@ import Home from './pages/Home'
 import LeLieu from './pages/LeLieu'
 import Evenements from './pages/Evenements'
 import EvenementDetail from './pages/EvenementDetail'
+import EventInscription from './pages/EventInscription'
 import Blog from './pages/Blog'
 import Intervenants from './pages/Intervenants'
 import Contact from './pages/Contact'
@@ -39,6 +40,7 @@ function PublicSite() {
         <Route path="/le-lieu" element={<LeLieu />} />
         <Route path="/evenements" element={<Evenements />} />
         <Route path="/evenements/:slug" element={<EvenementDetail />} />
+        <Route path="/evenements/:slug/inscription" element={<EventInscription />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogArticle />} />
         <Route path="/intervenants" element={<Intervenants />} />

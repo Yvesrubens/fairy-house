@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getEventBySlug } from '../lib/api'
 import { formatDate } from '../lib/format'
 import type { EventRow } from '../types/db'
-import { useReservation } from '../components/Reservation'
 import { Calendar, MapPin, Users, ArrowRight } from '../components/icons'
 
 export default function EvenementDetail() {
   const { slug } = useParams<{ slug: string }>()
-  const { open: openReservation } = useReservation()
+  const navigate = useNavigate()
   const [event, setEvent] = useState<EventRow | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
@@ -26,12 +25,8 @@ export default function EvenementDetail() {
   }, [slug])
 
   function reserver() {
-    if (!event) return
-    openReservation({
-      eventId: event.id,
-      eventTitle: event.title,
-      eventDate: event.event_date,
-    })
+    if (!slug) return
+    navigate(`/evenements/${slug}/inscription`)
   }
 
   if (loading) {

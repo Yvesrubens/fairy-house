@@ -34,7 +34,8 @@ export async function buildDevisPdf(opts: {
   clientEmail: string
   lines: Line[]
   totalHt: number
-  vatRate: number
+  vatRate?: number // mono-TVA (tunnel séjour)
+  vatBreakdown?: { rate: number; ht: number; vat: number }[] // multi-TVA (événement)
   totalTtc: number
   validityDays: number
   note?: string
@@ -105,9 +106,19 @@ export async function buildDevisPdf(opts: {
   text('Total HT', tx, y, 10, font, GREY)
   text(eur(opts.totalHt), cols.tot, y, 10)
   y -= 16
-  text(`TVA ${opts.vatRate} %`, tx, y, 10, font, GREY)
-  text(eur(opts.totalTtc - opts.totalHt), cols.tot, y, 10)
-  y -= 20
+  if (opts.vatBreakdown && opts.vatBreakdown.length) {
+    // Détail multi-TVA (événement) : une ligne par taux.
+    for (const g of opts.vatBreakdown) {
+      text(`TVA ${g.rate} %`, tx, y, 10, font, GREY)
+      text(eur(g.vat), cols.tot, y, 10)
+      y -= 16
+    }
+    y -= 4
+  } else {
+    text(`TVA ${opts.vatRate ?? 10} %`, tx, y, 10, font, GREY)
+    text(eur(opts.totalTtc - opts.totalHt), cols.tot, y, 10)
+    y -= 20
+  }
   page.drawRectangle({ x: tx - 8, y: y - 6, width: width - M - tx + 8, height: 24, color: GOLD })
   text('Total TTC', tx, y, 11, bold, rgb(1, 1, 1))
   text(eur(opts.totalTtc), cols.tot, y, 11, bold, rgb(1, 1, 1))

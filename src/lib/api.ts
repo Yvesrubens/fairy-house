@@ -87,6 +87,16 @@ export interface ReservationInput {
   deposit_amount?: number
   balance_amount?: number
   balance_due_date?: string
+  // Inscription à un événement
+  social_handle?: string
+  emergency_contact?: string
+  diet?: string
+  accommodation_choice?: 'tente' | 'chambre' | 'aucun'
+  shuttle?: boolean
+  consent_reglement?: boolean
+  consent_image?: boolean
+  quote_lines?: { designation: string; qty: number; unitPrice: number; vatRate: number }[]
+  vat_breakdown?: { rate: number; ht: number; vat: number; ttc: number }[]
 }
 
 export async function createReservation(
