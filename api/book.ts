@@ -3,8 +3,8 @@
 // devis + RIB. Les montants sont relus/recalculés depuis la base (source de
 // vérité), jamais fournis par le client.
 import { createClient } from '@supabase/supabase-js'
-import { buildDevisPdf, eur } from './_lib/devis-pdf'
-import { confirmationEmail } from './_lib/confirmation'
+import { buildDevisPdf, eur } from './_lib/devis-pdf.js'
+import { confirmationEmail } from './_lib/confirmation.js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL as string
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string

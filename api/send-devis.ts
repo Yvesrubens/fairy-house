@@ -1,7 +1,7 @@
 // Fonction serverless Vercel : génère un devis PDF et l'envoie au client par
 // email (Resend, pièce jointe). Réservée aux admins authentifiés.
 import { createClient } from '@supabase/supabase-js'
-import { buildDevisPdf, eur } from './_lib/devis-pdf'
+import { buildDevisPdf, eur } from './_lib/devis-pdf.js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL as string
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY as string
