@@ -1,0 +1,4 @@
+{
+  "//": "Isole les fonctions serverless Vercel en CommonJS. La racine du projet est en \"type\": \"module\" (requis par Vite), ce qui fait échouer le chargement des fonctions TypeScript transpilées par Vercel (FUNCTION_INVOCATION_FAILED). Ce fichier rétablit CommonJS pour le dossier api/ uniquement.",
+  "type": "commonjs"
+}
