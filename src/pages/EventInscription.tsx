@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getEventBySlug, createReservation } from '../lib/api'
-import { formatDate, formatEuro } from '../lib/format'
+import { formatDate, formatEuro2 } from '../lib/format'
 import { canSplit, splitPlan } from '../lib/booking'
 import {
   computeEventQuote,
@@ -320,7 +320,7 @@ export default function EventInscription() {
                         />
                         <span className="flex-1 text-gray-800">{ACCOMMODATION_LABELS[opt]}</span>
                         {opt !== 'aucun' && (
-                          <span className="text-sm font-semibold text-gray-700">+{formatEuro(price)}</span>
+                          <span className="text-sm font-semibold text-gray-700">+{formatEuro2(price)}</span>
                         )}
                       </label>
                     )
@@ -338,7 +338,7 @@ export default function EventInscription() {
                     className="w-5 h-5 accent-fairy-gold"
                   />
                   <span className="text-gray-700">
-                    Navette depuis la gare de Nogent-sur-Vernisson (A/R) — +{formatEuro(cfg!.shuttlePriceTtc)}
+                    Navette depuis la gare de Nogent-sur-Vernisson (A/R) — +{formatEuro2(cfg!.shuttlePriceTtc)}
                   </span>
                 </label>
               )}
@@ -509,20 +509,20 @@ function PriceSummary({
                 <span className="text-gray-400"> (TVA {l.vatRate} %)</span>
               </td>
               <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                {formatEuro(l.ttc)}
+                {formatEuro2(l.ttc)}
               </td>
             </tr>
           ))}
           {quote.byRate.map((g) => (
             <tr key={g.rate} className="border-b border-gray-50 text-xs text-gray-500">
               <td className="px-4 py-1">dont TVA {g.rate} %</td>
-              <td className="px-4 py-1 text-right">{formatEuro(g.vat)}</td>
+              <td className="px-4 py-1 text-right">{formatEuro2(g.vat)}</td>
             </tr>
           ))}
           <tr className="bg-gray-50">
             <td className="px-4 py-3 font-bold text-gray-900">Total TTC</td>
             <td className="px-4 py-3 text-right font-bold text-gray-900">
-              {formatEuro(quote.totalTtc)}
+              {formatEuro2(quote.totalTtc)}
             </td>
           </tr>
         </tbody>
@@ -530,10 +530,10 @@ function PriceSummary({
       {plan && (
         <div className="p-4 bg-fairy-gold/5 text-sm space-y-1 border-t border-gray-100">
           <p className="text-gray-700">
-            Acompte aujourd’hui : <span className="font-bold">{formatEuro(plan.deposit)}</span>
+            Acompte aujourd’hui : <span className="font-bold">{formatEuro2(plan.deposit)}</span>
           </p>
           <p className="text-gray-700">
-            Solde de <span className="font-bold">{formatEuro(plan.balance)}</span> dû le{' '}
+            Solde de <span className="font-bold">{formatEuro2(plan.balance)}</span> dû le{' '}
             {plan.balanceDueDate}
           </p>
         </div>

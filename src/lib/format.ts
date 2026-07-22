@@ -12,6 +12,16 @@ export function formatEuro(n: number): string {
   return `${grouped}€`
 }
 
+// Montant avec 2 décimales (ex. « 6,36 € ») — pour les prix comportant des
+// centimes (devis TTC, TVA détaillée), là où formatEuro arrondit à l'entier.
+export function formatEuro2(n: number): string {
+  const grouped = n.toLocaleString('fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  return `${grouped} €`
+}
+
 export function toCSV(rows: Record<string, string | number>[]): string {
   if (rows.length === 0) return ''
   const headers = Object.keys(rows[0])
