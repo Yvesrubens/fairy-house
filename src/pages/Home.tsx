@@ -232,9 +232,10 @@ export default function Home() {
               <>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
                   {events.map((e) => (
-                    <article
+                    <Link
                       key={e.id}
-                      className="group bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 flex flex-col"
+                      to={`/evenements/${e.slug}`}
+                      className="group bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col"
                     >
                       {e.image_url && (
                         <div className="relative h-52 overflow-hidden">
@@ -263,7 +264,7 @@ export default function Home() {
                           </p>
                         )}
                       </div>
-                    </article>
+                    </Link>
                   ))}
                 </div>
                 <div className="text-center mt-12">
