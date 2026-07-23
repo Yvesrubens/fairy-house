@@ -17,7 +17,12 @@ import {
 const LINKS: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/admin/dashboard', label: 'Tableau de bord', icon: <DashboardIcon /> },
   { to: '/admin/events', label: 'Événements', icon: <CalendarIcon /> },
-  { to: '/admin/reservations', label: 'Réservations', icon: <ClipboardIcon /> },
+  { to: '/admin/reservations', label: 'Réservations séjour', icon: <ClipboardIcon /> },
+  {
+    to: '/admin/reservations-evenement',
+    label: 'Réservations événement',
+    icon: <ClipboardIcon />,
+  },
   { to: '/admin/messages', label: 'Messages', icon: <EnvelopeIcon /> },
   { to: '/admin/newsletter', label: 'Newsletter', icon: <EnvelopeIcon /> },
   { to: '/admin/articles', label: 'Articles', icon: <DocIcon /> },
@@ -30,7 +35,11 @@ export default function AdminLayout() {
   const nav = useNavigate()
   const location = useLocation()
 
-  const current = LINKS.find((l) => location.pathname.startsWith(l.to))
+  // Correspondance la plus longue d'abord (ex. /reservations-evenement avant
+  // /reservations) pour le fil d'Ariane.
+  const current = [...LINKS]
+    .sort((a, b) => b.to.length - a.to.length)
+    .find((l) => location.pathname.startsWith(l.to))
 
   async function logout() {
     await signOut()

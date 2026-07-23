@@ -73,7 +73,11 @@ export default function App() {
         >
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="reservations" element={<Reservations />} />
+          <Route path="reservations" element={<Reservations scope="sejour" />} />
+          <Route
+            path="reservations-evenement"
+            element={<Reservations scope="evenement" />}
+          />
           <Route path="events" element={<Events />} />
           <Route path="articles" element={<Articles />} />
           <Route path="intervenants" element={<IntervenantsAdmin />} />
