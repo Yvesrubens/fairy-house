@@ -128,7 +128,7 @@ export default function ReservationDetail({
               />
               <Row
                 label="Activités demandées"
-                value={r.activities_requested ? 'Oui' : ''}
+                value={r.activities_requested ? 'Oui' : 'Non'}
               />
               <Row label="Allergies" value={r.allergies} />
             </Card>

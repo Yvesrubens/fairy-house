@@ -84,9 +84,10 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
     )
       return
     try {
-      // Suppression ciblée sur le périmètre affiché (séjour ou événement).
-      await Promise.all(scoped.map((r) => deleteReservation(r.id)))
-      setRows((prev) => prev.filter((r) => !scoped.some((s) => s.id === r.id)))
+      // Suppression ciblée sur les lignes réellement affichées (périmètre +
+      // filtre de statut) pour rester cohérent avec le nombre annoncé.
+      await Promise.all(filtered.map((r) => deleteReservation(r.id)))
+      setRows((prev) => prev.filter((r) => !filtered.some((s) => s.id === r.id)))
       setNotice('Réservations supprimées.')
     } catch (err) {
       alert((err as Error).message)
@@ -228,7 +229,7 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
           </button>
           <button
             onClick={clearAll}
-            disabled={scoped.length === 0}
+            disabled={filtered.length === 0}
             className="rounded-lg border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-40"
           >
             Vider
@@ -390,7 +391,7 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
                     )}
                     {r.confirmation_sent_at ? (
                       <span className="text-xs text-gray-400">
-                        Confirmation envoyée
+                        Confirmation envoyée le {formatDate(r.confirmation_sent_at)}
                       </span>
                     ) : (
                       <button
