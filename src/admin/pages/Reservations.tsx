@@ -3,12 +3,13 @@ import {
   listReservations,
   updateReservationStatus,
   deleteReservation,
-  deleteAllReservations,
 } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
-import { formatDate, formatEuro, toCSV } from '../../lib/format'
+import { formatDate, formatEuro2, toCSV } from '../../lib/format'
 import DevisForm from './DevisForm'
 import ReservationForm from './ReservationForm'
+import ReservationDetail from './ReservationDetail'
+import { ACCOMMODATION_LABEL, MODE_LABEL, paymentSummary } from '../../lib/reservationLabels'
 import type { Reservation, ReservationStatus } from '../../types/db'
 
 const STATUS_LABEL: Record<ReservationStatus, string> = {
@@ -23,8 +24,10 @@ const STATUS_BADGE: Record<ReservationStatus, string> = {
 }
 
 type Filter = 'all' | ReservationStatus
+export type ReservationScope = 'sejour' | 'evenement'
 
-export default function Reservations() {
+export default function Reservations({ scope }: { scope: ReservationScope }) {
+  const isEvent = scope === 'evenement'
   const [rows, setRows] = useState<Reservation[]>([])
   const [filter, setFilter] = useState<Filter>('all')
   const [loading, setLoading] = useState(true)
@@ -37,13 +40,19 @@ export default function Reservations() {
       .finally(() => setLoading(false))
   }, [])
 
+  // Séparation séjour / événement : une inscription événement a un event_id.
+  const scoped = useMemo(
+    () => rows.filter((r) => (isEvent ? Boolean(r.event_id) : !r.event_id)),
+    [rows, isEvent],
+  )
   const filtered = useMemo(
-    () => (filter === 'all' ? rows : rows.filter((r) => r.status === filter)),
-    [rows, filter],
+    () => (filter === 'all' ? scoped : scoped.filter((r) => r.status === filter)),
+    [scoped, filter],
   )
 
   const [sending, setSending] = useState<string | null>(null)
   const [devisFor, setDevisFor] = useState<Reservation | null>(null)
+  const [detailFor, setDetailFor] = useState<Reservation | null>(null)
   const [creating, setCreating] = useState(false)
   const [notice, setNotice] = useState('')
 
@@ -70,14 +79,15 @@ export default function Reservations() {
   async function clearAll() {
     if (
       !confirm(
-        `Vider TOUTES les réservations (${rows.length}) ? Cette action est irréversible.`,
+        `Vider les ${filtered.length} réservations affichées ? Cette action est irréversible.`,
       )
     )
       return
     try {
-      await deleteAllReservations()
-      setRows([])
-      setNotice('Toutes les réservations ont été supprimées.')
+      // Suppression ciblée sur le périmètre affiché (séjour ou événement).
+      await Promise.all(scoped.map((r) => deleteReservation(r.id)))
+      setRows((prev) => prev.filter((r) => !scoped.some((s) => s.id === r.id)))
+      setNotice('Réservations supprimées.')
     } catch (err) {
       alert((err as Error).message)
     }
@@ -114,20 +124,47 @@ export default function Reservations() {
   }
 
   function exportCSV() {
-    const data = filtered.map((r) => ({
-      reference: r.reference,
-      client: r.client_name,
-      email: r.client_email,
-      type: r.type,
-      arrivee: r.arrival_date,
-      montant: r.amount,
-      statut: STATUS_LABEL[r.status],
-    }))
-    const blob = new Blob([toCSV(data)], { type: 'text/csv;charset=utf-8;' })
+    const data = filtered.map((r) =>
+      isEvent
+        ? {
+            reference: r.reference,
+            client: r.client_name,
+            email: r.client_email,
+            telephone: r.client_phone ?? '',
+            evenement: r.type,
+            date: r.arrival_date,
+            hebergement: ACCOMMODATION_LABEL[r.accommodation_choice ?? ''] ?? '',
+            navette: r.shuttle ? 'Oui' : 'Non',
+            regime: r.diet ?? '',
+            paiement: paymentSummary(r),
+            consent_reglement: r.consent_reglement ? 'Oui' : 'Non',
+            consent_image: r.consent_image ? 'Oui' : 'Non',
+            montant: r.amount,
+            statut: STATUS_LABEL[r.status],
+          }
+        : {
+            reference: r.reference,
+            client: r.client_name,
+            email: r.client_email,
+            telephone: r.client_phone ?? '',
+            type: r.type,
+            arrivee: r.arrival_date,
+            depart: r.departure_date ?? '',
+            formule: r.mode ? MODE_LABEL[r.mode] : '',
+            voyageurs: r.guests ?? '',
+            paiement: paymentSummary(r),
+            montant: r.amount,
+            statut: STATUS_LABEL[r.status],
+          },
+    )
+    const blob = new Blob(
+      [toCSV(data as unknown as Record<string, string | number>[])],
+      { type: 'text/csv;charset=utf-8;' },
+    )
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'reservations.csv'
+    a.download = isEvent ? 'inscriptions-evenement.csv' : 'reservations-sejour.csv'
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -135,6 +172,9 @@ export default function Reservations() {
   if (loading) return <p className="text-gray-500">Chargement…</p>
   if (error)
     return <p className="rounded bg-red-50 px-3 py-2 text-red-600">{error}</p>
+
+  const title = isEvent ? 'Réservations événement' : 'Réservations séjour'
+  const colCount = isEvent ? 12 : 11
 
   return (
     <div>
@@ -146,6 +186,12 @@ export default function Reservations() {
             setDevisFor(null)
             setNotice(`Devis ${ref} envoyé au client.`)
           }}
+        />
+      )}
+      {detailFor && (
+        <ReservationDetail
+          reservation={detailFor}
+          onClose={() => setDetailFor(null)}
         />
       )}
       {creating && (
@@ -164,14 +210,16 @@ export default function Reservations() {
         </p>
       )}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Réservations</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
         <div className="flex gap-3">
-          <button
-            onClick={() => setCreating(true)}
-            className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700"
-          >
-            Nouvelle réservation
-          </button>
+          {!isEvent && (
+            <button
+              onClick={() => setCreating(true)}
+              className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700"
+            >
+              Nouvelle réservation
+            </button>
+          )}
           <button
             onClick={exportCSV}
             className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
@@ -180,10 +228,10 @@ export default function Reservations() {
           </button>
           <button
             onClick={clearAll}
-            disabled={rows.length === 0}
+            disabled={scoped.length === 0}
             className="rounded-lg border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-40"
           >
-            Vider les réservations
+            Vider
           </button>
         </div>
       </div>
@@ -206,10 +254,30 @@ export default function Reservations() {
         <table className="w-full text-left text-sm">
           <thead className="border-b text-xs uppercase tracking-wider text-gray-500">
             <tr>
-              <th className="px-6 py-4">N° Réservation</th>
+              <th className="px-6 py-4">N°</th>
               <th className="px-6 py-4">Client</th>
-              <th className="px-6 py-4">Type</th>
-              <th className="px-6 py-4">Date arrivée</th>
+              {isEvent ? (
+                <>
+                  <th className="px-6 py-4">Événement</th>
+                  <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4">Hébergement</th>
+                  <th className="px-6 py-4">Navette</th>
+                  <th className="px-6 py-4">Tél</th>
+                  <th className="px-6 py-4">Régime</th>
+                  <th className="px-6 py-4">Paiement</th>
+                  <th className="px-6 py-4">Consent.</th>
+                </>
+              ) : (
+                <>
+                  <th className="px-6 py-4">Type</th>
+                  <th className="px-6 py-4">Arrivée</th>
+                  <th className="px-6 py-4">Départ</th>
+                  <th className="px-6 py-4">Tél</th>
+                  <th className="px-6 py-4">Formule</th>
+                  <th className="px-6 py-4">Voyageurs</th>
+                  <th className="px-6 py-4">Paiement</th>
+                </>
+              )}
               <th className="px-6 py-4">Montant</th>
               <th className="px-6 py-4">Statut</th>
               <th className="px-6 py-4">Actions</th>
@@ -218,7 +286,10 @@ export default function Reservations() {
           <tbody className="divide-y">
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
+                <td
+                  colSpan={colCount + 1}
+                  className="px-6 py-10 text-center text-gray-500"
+                >
                   Aucune réservation
                 </td>
               </tr>
@@ -229,18 +300,63 @@ export default function Reservations() {
                   {r.reference}
                 </td>
                 <td className="px-6 py-4">
-                  <div className="font-medium text-gray-800">
-                    {r.client_name}
-                  </div>
+                  <div className="font-medium text-gray-800">{r.client_name}</div>
                   <div className="text-gray-500">{r.client_email}</div>
                 </td>
-                <td className="px-6 py-4 text-gray-700">{r.type}</td>
-                <td className="px-6 py-4 text-gray-700">
-                  {formatDate(r.arrival_date)}
-                </td>
-                <td className="px-6 py-4 text-gray-700">
-                  {formatEuro(r.amount)}
-                </td>
+                {isEvent ? (
+                  <>
+                    <td className="px-6 py-4 text-gray-700">{r.type}</td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {formatDate(r.arrival_date)}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {ACCOMMODATION_LABEL[r.accommodation_choice ?? ''] ?? '—'}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {r.shuttle ? 'Oui' : 'Non'}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {r.client_phone ?? '—'}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">{r.diet ?? '—'}</td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {paymentSummary(r) || '—'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-1">
+                        <span
+                          className={`h-2.5 w-2.5 rounded-full ${r.consent_reglement ? 'bg-green-500' : 'bg-gray-300'}`}
+                          title="Règlement"
+                        />
+                        <span
+                          className={`h-2.5 w-2.5 rounded-full ${r.consent_image ? 'bg-green-500' : 'bg-gray-300'}`}
+                          title="Droit à l'image"
+                        />
+                      </div>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="px-6 py-4 text-gray-700">{r.type}</td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {formatDate(r.arrival_date)}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {r.departure_date ? formatDate(r.departure_date) : '—'}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {r.client_phone ?? '—'}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {r.mode ? MODE_LABEL[r.mode] : '—'}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">{r.guests ?? '—'}</td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {paymentSummary(r) || '—'}
+                    </td>
+                  </>
+                )}
+                <td className="px-6 py-4 text-gray-700">{formatEuro2(r.amount)}</td>
                 <td className="px-6 py-4">
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-medium ${STATUS_BADGE[r.status]}`}
@@ -250,6 +366,12 @@ export default function Reservations() {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => setDetailFor(r)}
+                      className="text-sm font-medium text-purple-600 hover:text-purple-700"
+                    >
+                      Détails
+                    </button>
                     {r.status !== 'confirmed' && (
                       <button
                         onClick={() => setStatus(r.id, 'confirmed')}
@@ -268,8 +390,7 @@ export default function Reservations() {
                     )}
                     {r.confirmation_sent_at ? (
                       <span className="text-xs text-gray-400">
-                        Confirmation envoyée le{' '}
-                        {formatDate(r.confirmation_sent_at)}
+                        Confirmation envoyée
                       </span>
                     ) : (
                       <button
