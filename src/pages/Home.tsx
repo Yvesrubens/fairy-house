@@ -56,10 +56,10 @@ const PROJECTS = [
     subtitle: 'Pour vos retraites, EVJF/EVG, cérémonies...',
     points: [
       'Jusqu’à 12 personnes',
-      'Possibilité de faire venir des intervenant.e.s',
+      'Possibilité de faire venir des accompagnant·es',
       'Accompagnement dans l’organisation et proposition de programmes thématiques',
     ],
-    cta: 'Découvrir les intervenant(e)s',
+    cta: 'Découvrir nos accompagnant·es',
     to: '/intervenants',
   },
 ]

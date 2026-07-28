@@ -19,6 +19,13 @@ export default function Evenements() {
       .finally(() => setLoading(false))
   }, [])
 
+  // Séparation à venir / passés : un événement daté avant aujourd'hui sort de
+  // la liste active et rejoint la galerie « Nos événements passés » (sans
+  // possibilité de réservation). Les événements sans date restent « à venir ».
+  const today = new Date().toISOString().slice(0, 10)
+  const upcoming = events.filter((e) => !e.event_date || e.event_date >= today)
+  const past = events.filter((e) => e.event_date && e.event_date < today)
+
   return (
     <main className="flex-1">
       <div className="min-h-screen">
@@ -56,9 +63,9 @@ export default function Evenements() {
           <div className="container mx-auto px-4">
             {loading ? (
               <p className="text-center text-gray-500 py-20">Chargement…</p>
-            ) : events.length > 0 ? (
+            ) : upcoming.length > 0 ? (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-screen-2xl mx-auto">
-                {events.map((e) => (
+                {upcoming.map((e) => (
                   <article
                     key={e.id}
                     className="group bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 flex flex-col"
@@ -145,6 +152,51 @@ export default function Evenements() {
             )}
           </div>
         </section>
+
+        {/* ÉVÉNEMENTS PASSÉS */}
+        {past.length > 0 && (
+          <section className="py-16 bg-white border-t">
+            <div className="container mx-auto px-4">
+              <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center text-gray-900">
+                Nos événements passés
+              </h2>
+              <p className="text-center text-gray-500 mb-10">
+                Un aperçu de ce qui a déjà eu lieu à la Fairy House.
+              </p>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-screen-2xl mx-auto">
+                {past.map((e) => (
+                  <article
+                    key={e.id}
+                    className="bg-white rounded-3xl overflow-hidden shadow-md flex flex-col opacity-80"
+                  >
+                    {e.image_url && (
+                      <div className="relative h-44 overflow-hidden">
+                        <img
+                          src={e.image_url}
+                          alt={e.title}
+                          className="w-full h-full object-cover grayscale"
+                        />
+                      </div>
+                    )}
+                    <div className="p-5 flex flex-col flex-grow">
+                      {e.event_date && (
+                        <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                          {formatDate(e.event_date)}
+                        </p>
+                      )}
+                      <h3 className="mt-1 text-lg font-bold text-gray-700">
+                        {e.title}
+                      </h3>
+                      {e.location && (
+                        <p className="mt-1 text-sm text-gray-500">{e.location}</p>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* CTA */}
         <section className="py-20 bg-gradient-to-br from-gray-900 to-black text-white">

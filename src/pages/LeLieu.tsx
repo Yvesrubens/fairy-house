@@ -40,6 +40,7 @@ const COMFORT = [
     items: [
       'Chambres partagées (de 3 à 5 personnes)',
       '45€ / nuit / personne',
+      'Privatisation à partir de 1200€',
       'Salles de bain communes',
       'Linge de maison en option : 5€ / personne',
     ],

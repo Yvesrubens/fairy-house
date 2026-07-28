@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Facebook, Instagram, Calendar, Menu, Close } from './icons'
 
 const NAV = [
@@ -17,6 +17,7 @@ const INSTAGRAM = 'https://www.instagram.com/fairyhouse.collectif/'
 export default function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+  const { pathname } = useLocation()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -25,19 +26,26 @@ export default function Header() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const linkColor = scrolled ? 'text-ink' : 'text-white'
+  // Pages sans hero sombre (fond clair dès le haut) : le header doit être en
+  // variante « solide » (logo sombre + liens sombres) même sans scroll, sinon
+  // le logo blanc et les liens blancs sont invisibles sur fond clair.
+  const lightPage =
+    pathname === '/reserver' || /^\/evenements\/[^/]+\/inscription$/.test(pathname)
+  const solid = scrolled || lightPage
+
+  const linkColor = solid ? 'text-ink' : 'text-white'
 
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/95 shadow-sm backdrop-blur' : 'bg-transparent'
+        solid ? 'bg-white/95 shadow-sm backdrop-blur' : 'bg-transparent'
       }`}
     >
       <nav className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center group">
             <img
-              src={scrolled ? '/logo-clair-bg.png' : '/logo-fonce-bg.png'}
+              src={solid ? '/logo-clair-bg.png' : '/logo-fonce-bg.png'}
               alt="Fairy House"
               className="h-16 w-auto transition-transform duration-300 group-hover:scale-105"
             />

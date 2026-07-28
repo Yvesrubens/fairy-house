@@ -1,7 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { createMessage } from '../lib/api'
+import { createMessage, listPublishedIntervenants } from '../lib/api'
+import type { Intervenant } from '../types/db'
 import { Mail, MapPin, Send, Facebook, Instagram } from '../components/icons'
+
+const SUBJECT_ACCOMPAGNANT = 'Accompagnant·e'
 
 const FACEBOOK = 'https://www.facebook.com/profile.php?id=61590986093696'
 const INSTAGRAM = 'https://www.instagram.com/fairyhouse.collectif/'
@@ -21,6 +24,14 @@ export default function Contact() {
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [intervenants, setIntervenants] = useState<Intervenant[]>([])
+  const [wantedIntervenant, setWantedIntervenant] = useState('')
+
+  useEffect(() => {
+    listPublishedIntervenants()
+      .then(setIntervenants)
+      .catch(() => setIntervenants([]))
+  }, [])
 
   function set(key: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -31,13 +42,19 @@ export default function Contact() {
     setBusy(true)
     setError('')
     try {
+      // Le choix d'accompagnant·e est joint en tête du message (la table
+      // `messages` n'a pas de colonne dédiée).
+      const body =
+        form.subject === SUBJECT_ACCOMPAGNANT && wantedIntervenant
+          ? `Accompagnant·e souhaité·e : ${wantedIntervenant}\n\n${form.body}`
+          : form.body
       await createMessage({
         first_name: form.first_name,
         last_name: form.last_name,
         email: form.email,
         phone: form.phone || undefined,
         subject: form.subject,
-        body: form.body,
+        body,
       })
       setDone(true)
     } catch (err) {
@@ -158,10 +175,30 @@ export default function Contact() {
                           <option>Réservation</option>
                           <option>Événement</option>
                           <option>Résidence artistique</option>
-                          <option>Intervenant</option>
+                          <option>{SUBJECT_ACCOMPAGNANT}</option>
                           <option>Autre</option>
                         </select>
                       </div>
+                      {form.subject === SUBJECT_ACCOMPAGNANT && (
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Accompagnant·e souhaité·e
+                          </label>
+                          <select
+                            value={wantedIntervenant}
+                            onChange={(e) => setWantedIntervenant(e.target.value)}
+                            className={inputCls}
+                          >
+                            <option value="">Sans préférence</option>
+                            {intervenants.map((i) => (
+                              <option key={i.id} value={i.name}>
+                                {i.name}
+                                {i.domain ? ` — ${i.domain}` : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                           Votre message *
