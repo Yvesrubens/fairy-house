@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { StepProps } from './types'
 import { ROOMS, HOUSE_CAPACITY, nights } from '../../lib/booking'
 import { Calendar, Bed } from '../icons'
+import AvailabilityCalendar from './AvailabilityCalendar'
 
 const fieldCls =
   'w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-fairy-gold focus:outline-none transition-colors'
@@ -116,6 +117,12 @@ export default function StepGroupSelection({
           })}
         </div>
       )}
+
+      <AvailabilityCalendar
+        arrival={state.arrival}
+        departure={state.departure}
+        onSelect={(arrival, departure) => setState({ arrival, departure })}
+      />
 
       <div className="grid md:grid-cols-2 gap-4">
         <div>
