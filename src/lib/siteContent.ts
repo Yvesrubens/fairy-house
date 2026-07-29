@@ -154,7 +154,7 @@ export const PAGES: PageDef[] = [
             key: 'home.res.intro1',
             label: 'Bloc « corps/créativité »',
             type: 'multiline',
-            default: 'À la Fairy House, le corps devient langage. La créativité est un chemin à explorer.',
+            default: 'À la Fairy House, le corps devient langage.\nLa créativité est un chemin à explorer.',
           },
           {
             key: 'home.res.intro2',
@@ -192,7 +192,7 @@ export const PAGES: PageDef[] = [
             key: 'home.contact.text',
             label: 'Texte',
             type: 'multiline',
-            default: 'Retraite, résidence artistique, EVJF/EVG, cérémonie : on adapte la Fairy House à votre projet',
+            default: 'Retraite, résidence artistique, EVJF/EVG, cérémonie :\non adapte la Fairy House à votre projet',
           },
           { key: 'home.contact.cta', label: 'Bouton', type: 'text', default: 'Nous contacter' },
         ],

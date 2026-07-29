@@ -457,7 +457,7 @@ export default function Home() {
               <div className="w-32 h-1.5 bg-gradient-to-r from-transparent via-fairy-gold to-transparent mx-auto mb-12" />
               <div className="max-w-3xl mx-auto space-y-8">
                 <div className="text-xl text-gray-200 leading-relaxed space-y-6">
-                  <p className="text-2xl font-light">{c('home.res.intro1')}</p>
+                  <p className="text-2xl font-light whitespace-pre-line">{c('home.res.intro1')}</p>
                   <p className="text-xl">{c('home.res.intro2')}</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
@@ -507,7 +507,7 @@ export default function Home() {
                 {c('home.contact.title')}
               </h2>
               <div className="w-32 h-1.5 bg-gradient-to-r from-transparent via-fairy-gold to-transparent mx-auto mb-8" />
-              <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed whitespace-pre-line">
                 {c('home.contact.text')}
               </p>
               <Link
