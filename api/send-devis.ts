@@ -28,7 +28,7 @@ export default async function handler(req: any, res: any) {
     return
   }
 
-  const { reservationId, lines, validityDays = 30, note } = req.body || {}
+  const { reservationId, lines, validityDays = 30, note, preview } = req.body || {}
   if (!reservationId || !Array.isArray(lines) || lines.length === 0) {
     res.status(400).json({ error: 'Données du devis invalides' })
     return
@@ -63,11 +63,6 @@ export default async function handler(req: any, res: any) {
     return
   }
 
-  if (!RESEND_API_KEY || !RESEND_FROM) {
-    res.status(500).json({ error: 'Configuration email manquante (RESEND).' })
-    return
-  }
-
   const cleanLines: Line[] = lines.map((l: Line) => ({
     designation: String(l.designation || ''),
     qty: Number(l.qty) || 0,
@@ -77,6 +72,44 @@ export default async function handler(req: any, res: any) {
   const totalHt = cleanLines.reduce((s, l) => s + l.qty * l.unitPrice, 0)
   const totalTtc = Math.round(totalHt * (1 + vatRate / 100) * 100) / 100
 
+  const org = await fetchOrgSettings(supabase)
+  const issuer = {
+    email: org.contactEmail,
+    phone: org.contactPhone,
+    address: org.address,
+    siret: org.siret,
+    tva: org.tva,
+  }
+
+  // Aperçu : renvoyer le PDF sans l'envoyer ni consommer de numéro de devis.
+  if (preview) {
+    const previewPdf = await buildDevisPdf({
+      reference: 'DEVIS (aperçu)',
+      reservationRef: r.reference,
+      clientName: r.client_name,
+      clientEmail: r.client_email,
+      lines: cleanLines,
+      totalHt,
+      vatRate,
+      totalTtc,
+      validityDays,
+      note,
+      rib: org.rib,
+      issuer,
+    })
+    res.status(200).json({
+      ok: true,
+      preview: true,
+      pdf: Buffer.from(previewPdf).toString('base64'),
+    })
+    return
+  }
+
+  if (!RESEND_API_KEY || !RESEND_FROM) {
+    res.status(500).json({ error: 'Configuration email manquante (RESEND).' })
+    return
+  }
+
   // Numéro de devis
   const { data: ref, error: refErr } = await supabase.rpc('next_devis_reference')
   if (refErr || !ref) {
@@ -84,7 +117,6 @@ export default async function handler(req: any, res: any) {
     return
   }
 
-  const org = await fetchOrgSettings(supabase)
   const pdfBytes = await buildDevisPdf({
     reference: ref,
     reservationRef: r.reference,
@@ -97,13 +129,7 @@ export default async function handler(req: any, res: any) {
     validityDays,
     note,
     rib: org.rib,
-    issuer: {
-      email: org.contactEmail,
-      phone: org.contactPhone,
-      address: org.address,
-      siret: org.siret,
-      tva: org.tva,
-    },
+    issuer,
   })
   const pdfBase64 = Buffer.from(pdfBytes).toString('base64')
 

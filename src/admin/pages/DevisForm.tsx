@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { supabase } from '../../lib/supabase'
 import { formatDate } from '../../lib/format'
+import { openPdfBase64 } from '../../lib/pdf'
 import type { Reservation } from '../../types/db'
 
 interface Line {
@@ -41,6 +42,7 @@ export default function DevisForm({
   const [validityDays, setValidityDays] = useState(30)
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
+  const [previewing, setPreviewing] = useState(false)
   const [error, setError] = useState('')
 
   function setLine(i: number, patch: Partial<Line>) {
@@ -59,10 +61,10 @@ export default function DevisForm({
   const eur = (v: number) =>
     v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
 
-  async function submit(e: FormEvent) {
-    e.preventDefault()
-    setBusy(true)
+  async function run(isPreview: boolean) {
     setError('')
+    if (isPreview) setPreviewing(true)
+    else setBusy(true)
     try {
       const { data } = await supabase.auth.getSession()
       const token = data.session?.access_token
@@ -77,16 +79,24 @@ export default function DevisForm({
           lines,
           validityDays,
           note: note || undefined,
+          preview: isPreview,
         }),
       })
       const body = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(body.error || 'Échec de l’envoi du devis')
-      onSent(body.reference)
+      if (!res.ok) throw new Error(body.error || 'Échec de la génération du devis')
+      if (isPreview) openPdfBase64(body.pdf)
+      else onSent(body.reference)
     } catch (err) {
       setError((err as Error).message)
     } finally {
       setBusy(false)
+      setPreviewing(false)
     }
+  }
+
+  function submit(e: FormEvent) {
+    e.preventDefault()
+    run(false)
   }
 
   return (
@@ -213,9 +223,17 @@ export default function DevisForm({
           </label>
         </div>
 
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex flex-wrap gap-3">
           <button
-            disabled={busy}
+            type="button"
+            onClick={() => run(true)}
+            disabled={previewing || busy}
+            className="rounded-lg border border-purple-300 px-6 py-2.5 text-sm font-semibold text-purple-700 hover:bg-purple-50 disabled:opacity-60"
+          >
+            {previewing ? 'Génération…' : 'Prévisualiser le PDF'}
+          </button>
+          <button
+            disabled={busy || previewing}
             className="rounded-lg bg-purple-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-60"
           >
             {busy ? 'Envoi…' : 'Générer et envoyer au client'}
