@@ -8,6 +8,7 @@ import type {
   IntervenantDomain,
   MessageRow,
   NewsletterSubscriber,
+  OrgSettings,
   Reservation,
   ReservationStatus,
 } from '../types/db'
@@ -435,6 +436,25 @@ export async function listAdmins(): Promise<
     .select('id,email,full_name')
     .order('created_at')
   return unwrap(data, error)
+}
+
+// -------------------------------------------- Admin: coordonnées & facturation
+export async function getOrgSettings(): Promise<OrgSettings | null> {
+  const { data, error } = await supabase
+    .from('org_settings')
+    .select('*')
+    .eq('id', 'org')
+    .maybeSingle()
+  return unwrap(data, error)
+}
+
+export async function updateOrgSettings(
+  patch: Partial<Omit<OrgSettings, 'id' | 'updated_at'>>,
+): Promise<void> {
+  const { error } = await supabase
+    .from('org_settings')
+    .upsert({ id: 'org', ...patch, updated_at: new Date().toISOString() })
+  if (error) throw new Error(error.message)
 }
 
 export async function inviteAdmin(email: string): Promise<void> {

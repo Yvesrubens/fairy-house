@@ -1,6 +1,23 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { listAdmins, inviteAdmin } from '../../lib/api'
+import {
+  listAdmins,
+  inviteAdmin,
+  getOrgSettings,
+  updateOrgSettings,
+} from '../../lib/api'
+
+const ORG_FIELDS: { key: string; label: string; placeholder?: string }[] = [
+  { key: 'contact_email', label: 'E-mail de contact', placeholder: 'contact@…' },
+  { key: 'contact_phone', label: 'Téléphone', placeholder: '+33 …' },
+  { key: 'address', label: 'Adresse' },
+  { key: 'siret', label: 'SIRET' },
+  { key: 'tva', label: 'N° TVA' },
+  { key: 'rib_titulaire', label: 'RIB — Titulaire' },
+  { key: 'rib_iban', label: 'RIB — IBAN' },
+  { key: 'rib_bic', label: 'RIB — BIC' },
+]
+type OrgForm = Record<string, string>
 
 export default function Settings() {
   const [admins, setAdmins] = useState<
@@ -10,6 +27,9 @@ export default function Settings() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [org, setOrg] = useState<OrgForm>({})
+  const [orgMsg, setOrgMsg] = useState('')
+  const [orgBusy, setOrgBusy] = useState(false)
 
   async function load() {
     try {
@@ -17,11 +37,35 @@ export default function Settings() {
     } catch (err) {
       setError((err as Error).message)
     }
+    try {
+      const s = await getOrgSettings()
+      if (s) {
+        const f: OrgForm = {}
+        for (const { key } of ORG_FIELDS) f[key] = (s as unknown as Record<string, unknown>)[key]?.toString() ?? ''
+        setOrg(f)
+      }
+    } catch {
+      /* table non provisionnée : on laisse les champs vides */
+    }
   }
 
   useEffect(() => {
     load()
   }, [])
+
+  async function saveOrg(e: FormEvent) {
+    e.preventDefault()
+    setOrgBusy(true)
+    setOrgMsg('')
+    try {
+      await updateOrgSettings(org)
+      setOrgMsg('Coordonnées enregistrées.')
+    } catch (err) {
+      setOrgMsg((err as Error).message)
+    } finally {
+      setOrgBusy(false)
+    }
+  }
 
   async function invite(e: FormEvent) {
     e.preventDefault()
@@ -46,6 +90,44 @@ export default function Settings() {
       <h1 className="text-3xl font-bold text-gray-900">Paramètres</h1>
 
       <section className="mt-8 rounded-2xl border bg-white p-6">
+        <h2 className="text-lg font-bold text-gray-900">
+          Coordonnées & facturation
+        </h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Ces informations apparaissent dans les e-mails, les devis et les
+          factures. Un champ laissé vide utilise la valeur par défaut.
+        </p>
+        {orgMsg && (
+          <p className="mt-4 rounded bg-green-50 px-3 py-2 text-sm text-green-700">
+            {orgMsg}
+          </p>
+        )}
+        <form onSubmit={saveOrg} className="mt-4 grid gap-4 sm:grid-cols-2">
+          {ORG_FIELDS.map((f) => (
+            <label key={f.key} className="block text-sm font-medium text-gray-700">
+              {f.label}
+              <input
+                value={org[f.key] ?? ''}
+                placeholder={f.placeholder}
+                onChange={(e) =>
+                  setOrg((prev) => ({ ...prev, [f.key]: e.target.value }))
+                }
+                className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-purple-500"
+              />
+            </label>
+          ))}
+          <div className="sm:col-span-2">
+            <button
+              disabled={orgBusy}
+              className="rounded-lg bg-purple-600 px-5 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-60"
+            >
+              {orgBusy ? 'Enregistrement…' : 'Enregistrer les coordonnées'}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section className="mt-6 rounded-2xl border bg-white p-6">
         <h2 className="text-lg font-bold text-gray-900">Administrateurs</h2>
         <ul className="mt-4 divide-y">
           {admins.map((a) => (

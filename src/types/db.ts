@@ -120,6 +120,19 @@ export interface IntervenantDomain {
   created_at: string
 }
 
+export interface OrgSettings {
+  id: string
+  contact_email: string | null
+  contact_phone: string | null
+  address: string | null
+  siret: string | null
+  tva: string | null
+  rib_iban: string | null
+  rib_bic: string | null
+  rib_titulaire: string | null
+  updated_at: string
+}
+
 export interface EventCategory {
   id: string
   name: string

@@ -41,8 +41,10 @@ export async function buildDevisPdf(opts: {
   note?: string
   rib?: { iban: string; bic: string; titulaire: string }
   docType?: 'devis' | 'facture'
+  issuer?: { email: string; phone: string; address: string; siret: string; tva: string }
 }): Promise<Uint8Array> {
   const isFacture = opts.docType === 'facture'
+  const issuer = { ...ISSUER, ...(opts.issuer ?? {}) }
   const doc = await PDFDocument.create()
   const page = doc.addPage([595, 842]) // A4
   const font = await doc.embedFont(StandardFonts.Helvetica)
@@ -60,11 +62,11 @@ export async function buildDevisPdf(opts: {
 
   y = 770
   // Émetteur
-  text(ISSUER.name, M, y, 11, bold)
-  text(ISSUER.address, M, y - 14, 9, font, GREY)
-  text(ISSUER.email + '  ' + ISSUER.phone, M, y - 27, 9, font, GREY)
-  text(ISSUER.siret, M, y - 40, 9, font, GREY)
-  text(ISSUER.tva, M, y - 53, 9, font, GREY)
+  text(issuer.name, M, y, 11, bold)
+  text(issuer.address, M, y - 14, 9, font, GREY)
+  text(issuer.email + '  ' + issuer.phone, M, y - 27, 9, font, GREY)
+  text(issuer.siret, M, y - 40, 9, font, GREY)
+  text(issuer.tva, M, y - 53, 9, font, GREY)
 
   // Bloc document (droite) : DEVIS ou FACTURE
   text(isFacture ? 'FACTURE' : 'DEVIS', width - M - 140, y, 16, bold, GOLD)
@@ -155,7 +157,7 @@ export async function buildDevisPdf(opts: {
   }
 
   // Pied
-  text(`${ISSUER.name} — ${ISSUER.address}`, M, 40, 8, font, GREY)
+  text(`${issuer.name} — ${issuer.address}`, M, 40, 8, font, GREY)
 
   return doc.save()
 }

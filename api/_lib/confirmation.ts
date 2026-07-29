@@ -17,7 +17,11 @@ const ACCOMMODATION_LABELS: Record<string, string> = {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function confirmationEmail(r: any): { html: string; text: string } {
+export function confirmationEmail(
+  r: any,
+  contact?: { email: string; phone: string; address: string },
+): { html: string; text: string } {
+  const c = { ...CONTACT, ...(contact ?? {}) }
   const isEvent = Boolean(r.event_id)
   const amountLine =
     Number(r.amount) > 0
@@ -63,9 +67,9 @@ export function confirmationEmail(r: any): { html: string; text: string } {
         Pour toute question, nous restons à votre disposition :
       </p>
       <p style="line-height:1.6;color:#333;font-size:14px">
-        ✉️ ${CONTACT.email}<br/>
-        ☎️ ${CONTACT.phone}<br/>
-        📍 ${CONTACT.address}
+        ✉️ ${c.email}<br/>
+        ☎️ ${c.phone}<br/>
+        📍 ${c.address}
       </p>
       <p style="margin-top:24px;color:#333">Avec toute notre douceur,<br/><strong>L'équipe Fairy House</strong></p>
     </div>
@@ -92,8 +96,8 @@ ${isEvent ? "Nous confirmons votre inscription à l'événement." : 'Nous confir
 
 ${textRecap}
 ${Number(r.amount) > 0 ? `Montant : ${Number(r.amount).toLocaleString('fr-FR')} €\n` : ''}
-Contact : ${CONTACT.email} · ${CONTACT.phone}
-${CONTACT.address}
+Contact : ${c.email} · ${c.phone}
+${c.address}
 
 L'équipe Fairy House`
 

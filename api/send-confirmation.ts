@@ -2,6 +2,7 @@
 // réservation via Resend. Réservée aux admins authentifiés.
 import { createClient } from '@supabase/supabase-js'
 import { confirmationEmail } from './_lib/confirmation.js'
+import { fetchOrgSettings } from './_lib/org-settings.js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL as string
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY as string
@@ -64,7 +65,12 @@ export default async function handler(req: any, res: any) {
     return
   }
 
-  const { html, text } = confirmationEmail(r)
+  const org = await fetchOrgSettings(supabase)
+  const { html, text } = confirmationEmail(r, {
+    email: org.contactEmail,
+    phone: org.contactPhone,
+    address: org.address,
+  })
 
   // Envoi via Resend
   const send = await fetch('https://api.resend.com/emails', {

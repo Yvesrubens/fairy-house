@@ -3,16 +3,12 @@
 // send-devis.ts (Q2 du recette).
 import { createClient } from '@supabase/supabase-js'
 import { buildDevisPdf, eur } from './_lib/devis-pdf.js'
+import { fetchOrgSettings } from './_lib/org-settings.js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL as string
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY as string
 const RESEND_API_KEY = process.env.RESEND_API_KEY as string
 const RESEND_FROM = process.env.RESEND_FROM as string
-
-const ISSUER = {
-  email: 'contact@fairyhousecollectif.com',
-  phone: '+33 1 23 45 67 89',
-}
 
 interface Line {
   designation: string
@@ -90,6 +86,7 @@ export default async function handler(req: any, res: any) {
     return
   }
 
+  const org = await fetchOrgSettings(supabase)
   const pdfBytes = await buildDevisPdf({
     reference: ref,
     reservationRef: r.reference,
@@ -102,6 +99,14 @@ export default async function handler(req: any, res: any) {
     validityDays: dueDays,
     note,
     docType: 'facture',
+    rib: org.rib,
+    issuer: {
+      email: org.contactEmail,
+      phone: org.contactPhone,
+      address: org.address,
+      siret: org.siret,
+      tva: org.tva,
+    },
   })
   const pdfBase64 = Buffer.from(pdfBytes).toString('base64')
 
@@ -119,7 +124,7 @@ export default async function handler(req: any, res: any) {
       <p style="font-size:16px"><strong>Total TTC : ${eur(totalTtc)}</strong></p>
       ${note ? `<p style="color:#555">${note}</p>` : ''}
       <p style="line-height:1.6;color:#333">
-        Pour toute question : ${ISSUER.email} · ${ISSUER.phone}
+        Pour toute question : ${org.contactEmail} · ${org.contactPhone}
       </p>
       <p style="margin-top:20px">Avec toute notre douceur,<br/><strong>L'équipe Fairy House</strong></p>
     </div>

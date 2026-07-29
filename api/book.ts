@@ -5,17 +5,12 @@
 import { createClient } from '@supabase/supabase-js'
 import { buildDevisPdf, eur } from './_lib/devis-pdf.js'
 import { confirmationEmail } from './_lib/confirmation.js'
+import { fetchOrgSettings } from './_lib/org-settings.js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL as string
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string
 const RESEND_API_KEY = process.env.RESEND_API_KEY as string
 const RESEND_FROM = process.env.RESEND_FROM as string
-
-const RIB = {
-  iban: process.env.FH_RIB_IBAN || 'IBAN : à compléter',
-  bic: process.env.FH_RIB_BIC || 'BIC : à compléter',
-  titulaire: process.env.FH_RIB_TITULAIRE || 'Fairy House',
-}
 
 async function sendEmail(payload: Record<string, unknown>): Promise<boolean> {
   const send = await fetch('https://api.resend.com/emails', {
@@ -69,6 +64,7 @@ async function run(req: any, res: any) {
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+  const org = await fetchOrgSettings(supabase)
   const { data: r, error } = await supabase
     .from('reservations')
     .select('*')
@@ -85,7 +81,11 @@ async function run(req: any, res: any) {
   }
 
   // 1) Mail de confirmation (toujours)
-  const { html, text } = confirmationEmail(r)
+  const { html, text } = confirmationEmail(r, {
+    email: org.contactEmail,
+    phone: org.contactPhone,
+    address: org.address,
+  })
   const okConfirm = await sendEmail({
     to: [r.client_email],
     subject: `Confirmation de votre demande — Fairy House (${r.reference})`,
@@ -124,7 +124,14 @@ async function run(req: any, res: any) {
       vatBreakdown,
       totalTtc,
       validityDays: 30,
-      rib: RIB,
+      rib: org.rib,
+      issuer: {
+        email: org.contactEmail,
+        phone: org.contactPhone,
+        address: org.address,
+        siret: org.siret,
+        tva: org.tva,
+      },
     })
     const pdfBase64 = Buffer.from(pdf).toString('base64')
     const planNote =
@@ -143,7 +150,7 @@ async function run(req: any, res: any) {
         ${planNote}
         <div style="background:#f7f5ef;border:1px solid #e0dcd1;border-radius:12px;padding:16px;margin:16px 0">
           <p style="margin:0 0 8px;font-weight:600;color:#c79c37">Coordonnées bancaires</p>
-          <p style="margin:0;color:#333">Titulaire : ${RIB.titulaire}<br/>IBAN : ${RIB.iban}<br/>BIC : ${RIB.bic}</p>
+          <p style="margin:0;color:#333">Titulaire : ${org.rib.titulaire}<br/>IBAN : ${org.rib.iban}<br/>BIC : ${org.rib.bic}</p>
         </div>
         <p style="margin-top:20px">Avec toute notre douceur,<br/><strong>L'équipe Fairy House</strong></p>
       </div>
