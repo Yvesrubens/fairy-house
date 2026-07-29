@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase'
 import * as XLSX from 'xlsx'
 import { formatDate, formatEuro2, toCSV } from '../../lib/format'
 import DevisForm from './DevisForm'
+import FactureForm from './FactureForm'
 import ReservationForm from './ReservationForm'
 import ReservationDetail from './ReservationDetail'
 import { ACCOMMODATION_LABEL, MODE_LABEL, paymentSummary } from '../../lib/reservationLabels'
@@ -53,6 +54,7 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
 
   const [sending, setSending] = useState<string | null>(null)
   const [devisFor, setDevisFor] = useState<Reservation | null>(null)
+  const [factureFor, setFactureFor] = useState<Reservation | null>(null)
   const [detailFor, setDetailFor] = useState<Reservation | null>(null)
   const [creating, setCreating] = useState(false)
   const [notice, setNotice] = useState('')
@@ -202,6 +204,16 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
           onSent={(ref) => {
             setDevisFor(null)
             setNotice(`Devis ${ref} envoyé au client.`)
+          }}
+        />
+      )}
+      {factureFor && (
+        <FactureForm
+          reservation={factureFor}
+          onCancel={() => setFactureFor(null)}
+          onSent={(ref) => {
+            setFactureFor(null)
+            setNotice(`Facture ${ref} envoyée au client.`)
           }}
         />
       )}
@@ -429,6 +441,12 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
                       className="text-sm font-medium text-gold hover:opacity-80"
                     >
                       Créer un devis
+                    </button>
+                    <button
+                      onClick={() => setFactureFor(r)}
+                      className="text-sm font-medium text-gold hover:opacity-80"
+                    >
+                      Facturer
                     </button>
                     <button
                       onClick={() => removeOne(r.id, r.reference)}

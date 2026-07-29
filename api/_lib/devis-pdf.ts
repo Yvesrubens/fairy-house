@@ -40,7 +40,9 @@ export async function buildDevisPdf(opts: {
   validityDays: number
   note?: string
   rib?: { iban: string; bic: string; titulaire: string }
+  docType?: 'devis' | 'facture'
 }): Promise<Uint8Array> {
+  const isFacture = opts.docType === 'facture'
   const doc = await PDFDocument.create()
   const page = doc.addPage([595, 842]) // A4
   const font = await doc.embedFont(StandardFonts.Helvetica)
@@ -64,12 +66,19 @@ export async function buildDevisPdf(opts: {
   text(ISSUER.siret, M, y - 40, 9, font, GREY)
   text(ISSUER.tva, M, y - 53, 9, font, GREY)
 
-  // Bloc devis (droite)
-  text('DEVIS', width - M - 140, y, 16, bold, GOLD)
+  // Bloc document (droite) : DEVIS ou FACTURE
+  text(isFacture ? 'FACTURE' : 'DEVIS', width - M - 140, y, 16, bold, GOLD)
   text('N° ' + opts.reference, width - M - 140, y - 20, 10, bold)
   const today = new Date()
   text('Date : ' + fmtDate(today.toISOString()), width - M - 140, y - 34, 9, font, GREY)
-  text(`Valable ${opts.validityDays} jours`, width - M - 140, y - 47, 9, font, GREY)
+  text(
+    isFacture ? `À régler sous ${opts.validityDays} jours` : `Valable ${opts.validityDays} jours`,
+    width - M - 140,
+    y - 47,
+    9,
+    font,
+    GREY,
+  )
 
   // Client
   y = 690
@@ -131,9 +140,11 @@ export async function buildDevisPdf(opts: {
     y -= 24
   }
 
-  // Bon pour accord
-  text('Bon pour accord (date et signature) :', M, 120, 9, font, GREY)
-  page.drawRectangle({ x: M, y: 60, width: 220, height: 50, borderColor: rgb(0.8, 0.8, 0.8), borderWidth: 1, color: rgb(1, 1, 1) })
+  // Bon pour accord (devis uniquement ; une facture n'en a pas besoin)
+  if (!isFacture) {
+    text('Bon pour accord (date et signature) :', M, 120, 9, font, GREY)
+    page.drawRectangle({ x: M, y: 60, width: 220, height: 50, borderColor: rgb(0.8, 0.8, 0.8), borderWidth: 1, color: rgb(1, 1, 1) })
+  }
 
   // RIB (paiement par virement)
   if (opts.rib) {
