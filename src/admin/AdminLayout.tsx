@@ -29,6 +29,7 @@ const LINKS: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/admin/articles', label: 'Articles', icon: <DocIcon /> },
   { to: '/admin/intervenants', label: 'Intervenants', icon: <UsersIcon /> },
   { to: '/admin/settings', label: 'Paramètres', icon: <GearIcon /> },
+  { to: '/admin/contenu', label: 'Contenu du site', icon: <DocIcon /> },
 ]
 
 export default function AdminLayout() {
