@@ -11,6 +11,7 @@ import type {
   OrgSettings,
   Reservation,
   ReservationStatus,
+  SiteContentRow,
 } from '../types/db'
 
 function unwrap<T>(data: T | null, error: { message: string } | null): T {
@@ -464,5 +465,24 @@ export async function inviteAdmin(email: string): Promise<void> {
     email,
     options: { shouldCreateUser: true },
   })
+  if (error) throw new Error(error.message)
+}
+
+// ------------------------------------------------- Contenu des pages (CMS)
+export async function listSiteContent(): Promise<SiteContentRow[]> {
+  const { data, error } = await supabase.from('site_content').select('*')
+  return unwrap(data, error)
+}
+
+export async function upsertSiteContent(
+  entries: { key: string; value: string }[],
+): Promise<void> {
+  if (entries.length === 0) return
+  const rows = entries.map((e) => ({
+    key: e.key,
+    value: e.value,
+    updated_at: new Date().toISOString(),
+  }))
+  const { error } = await supabase.from('site_content').upsert(rows)
   if (error) throw new Error(error.message)
 }

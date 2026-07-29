@@ -147,3 +147,9 @@ export interface BedBlock {
   label: string | null
   created_at: string
 }
+
+export interface SiteContentRow {
+  key: string
+  value: string | null
+  updated_at: string
+}
