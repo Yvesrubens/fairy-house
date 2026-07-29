@@ -52,6 +52,7 @@ export interface EventRow {
   content: string | null
   event_date: string | null
   event_end_date: string | null
+  category: string | null
   location: string | null
   image_url: string | null
   capacity: number | null
@@ -114,6 +115,12 @@ export interface MessageRow {
 }
 
 export interface IntervenantDomain {
+  id: string
+  name: string
+  created_at: string
+}
+
+export interface EventCategory {
   id: string
   name: string
   created_at: string

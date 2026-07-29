@@ -3,6 +3,7 @@ import type {
   Article,
   BedBlock,
   EventRow,
+  EventCategory,
   Intervenant,
   IntervenantDomain,
   MessageRow,
@@ -341,6 +342,36 @@ export async function upsertEvent(row: Partial<EventRow>): Promise<void> {
 
 export async function deleteEvent(id: string): Promise<void> {
   const { error } = await supabase.from('events').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+// ------------------------------------------- Catégories d'événements (F8)
+export async function listEventCategories(): Promise<EventCategory[]> {
+  const { data, error } = await supabase
+    .from('event_categories')
+    .select('*')
+    .order('name', { ascending: true })
+  return unwrap(data, error)
+}
+
+export async function addEventCategory(name: string): Promise<void> {
+  const { error } = await supabase.from('event_categories').insert({ name })
+  if (error) throw new Error(error.message)
+}
+
+export async function updateEventCategory(id: string, name: string): Promise<void> {
+  const { error } = await supabase
+    .from('event_categories')
+    .update({ name })
+    .eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteEventCategory(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('event_categories')
+    .delete()
+    .eq('id', id)
   if (error) throw new Error(error.message)
 }
 

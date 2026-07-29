@@ -26,6 +26,16 @@ export default function Evenements() {
   const upcoming = events.filter((e) => !e.event_date || e.event_date >= today)
   const past = events.filter((e) => e.event_date && e.event_date < today)
 
+  // F8 : filtres dynamiques par catégorie (uniquement celles réellement
+  // présentes parmi les événements à venir).
+  const [activeCat, setActiveCat] = useState('')
+  const categories = [
+    ...new Set(upcoming.map((e) => e.category).filter(Boolean)),
+  ] as string[]
+  const visible = activeCat
+    ? upcoming.filter((e) => e.category === activeCat)
+    : upcoming
+
   return (
     <main className="flex-1">
       <div className="min-h-screen">
@@ -47,16 +57,38 @@ export default function Evenements() {
         </section>
 
         {/* FILTRES */}
-        <section className="py-8 bg-white border-b sticky top-0 z-10 shadow-sm">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center gap-4 overflow-x-auto">
-              <Filter className="w-5 h-5 text-gray-500 flex-shrink-0" />
-              <button className="px-6 py-2 rounded-full font-semibold whitespace-nowrap transition-all bg-fairy-gold text-white">
-                Tous les événements
-              </button>
+        {categories.length > 0 && (
+          <section className="py-8 bg-white border-b sticky top-0 z-10 shadow-sm">
+            <div className="container mx-auto px-4">
+              <div className="flex items-center gap-3 overflow-x-auto">
+                <Filter className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                <button
+                  onClick={() => setActiveCat('')}
+                  className={`px-6 py-2 rounded-full font-semibold whitespace-nowrap transition-all ${
+                    activeCat === ''
+                      ? 'bg-fairy-gold text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Tous les événements
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCat(cat)}
+                    className={`px-6 py-2 rounded-full font-semibold whitespace-nowrap transition-all ${
+                      activeCat === cat
+                        ? 'bg-fairy-gold text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* LISTE */}
         <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
@@ -65,7 +97,7 @@ export default function Evenements() {
               <p className="text-center text-gray-500 py-20">Chargement…</p>
             ) : upcoming.length > 0 ? (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-screen-2xl mx-auto">
-                {upcoming.map((e) => (
+                {visible.map((e) => (
                   <article
                     key={e.id}
                     className="group bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 flex flex-col"

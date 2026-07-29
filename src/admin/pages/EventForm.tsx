@@ -1,11 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import Field from '../components/Field'
 import ImageUpload from '../components/ImageUpload'
 import RichTextEditor from '../components/RichTextEditor'
-import { upsertEvent } from '../../lib/api'
+import ManagedSelect from '../components/ManagedSelect'
+import {
+  upsertEvent,
+  listEventCategories,
+  addEventCategory,
+  updateEventCategory,
+  deleteEventCategory,
+} from '../../lib/api'
 import { slugify } from '../../lib/format'
-import type { EventRow } from '../../types/db'
+import type { EventRow, EventCategory } from '../../types/db'
 
 export default function EventForm({
   initial,
@@ -19,10 +26,23 @@ export default function EventForm({
   const [row, setRow] = useState<Partial<EventRow>>(initial)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [categories, setCategories] = useState<EventCategory[]>([])
 
   function set<K extends keyof EventRow>(key: K, value: EventRow[K]) {
     setRow((prev) => ({ ...prev, [key]: value }))
   }
+
+  async function reloadCategories() {
+    try {
+      setCategories(await listEventCategories())
+    } catch (err) {
+      setError((err as Error).message)
+    }
+  }
+
+  useEffect(() => {
+    reloadCategories()
+  }, [])
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -74,6 +94,25 @@ export default function EventForm({
         label="Lieu"
         value={row.location ?? ''}
         onChange={(v) => set('location', v)}
+      />
+      <ManagedSelect
+        label="Catégorie (pour les filtres côté site)"
+        value={row.category ?? ''}
+        onChange={(v) => set('category', v || null)}
+        items={categories}
+        onAdd={async (name) => {
+          await addEventCategory(name)
+          await reloadCategories()
+        }}
+        onRename={async (id, name) => {
+          await updateEventCategory(id, name)
+          await reloadCategories()
+        }}
+        onDelete={async (id) => {
+          await deleteEventCategory(id)
+          await reloadCategories()
+        }}
+        placeholder="Nouvelle catégorie"
       />
       <Field
         label="Nombre de places (quota)"

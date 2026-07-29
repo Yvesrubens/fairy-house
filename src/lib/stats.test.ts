@@ -74,6 +74,7 @@ describe('stats', () => {
       content: null,
       event_date: '2026-06-20',
       event_end_date: null,
+      category: null,
       location: null,
       image_url: null,
       capacity: null,
