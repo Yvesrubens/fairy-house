@@ -12,57 +12,10 @@ import {
 import { listPublishedEvents } from '../lib/api'
 import { formatDate } from '../lib/format'
 import type { EventRow } from '../types/db'
+import { useSiteContent } from '../lib/useSiteContent'
 
 // Nombre maximum d'événements affichés dans la section Programmation
 const MAX_EVENEMENTS_ACCUEIL = 3
-
-const ROOMS = [
-  {
-    name: 'Chambre Litha',
-    img: '/photo/Chambre_Litha.jpg',
-    subtitle: 'Espace intime, familial pour 2 à 3 personnes',
-    features: ['Lit double', 'Vue sur jardin'],
-  },
-  {
-    name: 'Chambre Mabon',
-    img: '/photo/Chambre_Mabbon.jpg',
-    subtitle: 'Dortoir partagé pour 5 personnes',
-    features: ['Vue sur jardin'],
-  },
-  {
-    name: 'Chambre Imbolc',
-    img: '/photo/Chambre_Imbolc.jpg',
-    subtitle: 'Dortoir 4 personnes',
-    features: ['Vue sur jardin'],
-  },
-]
-
-const PROJECTS = [
-  {
-    title: 'Privatisation simple',
-    img: '/photo/Vue_d_ensemble.jpg',
-    subtitle: 'Pour vos vacances, séminaires, retraites...',
-    points: [
-      'Jusqu’à 12 personnes',
-      'Maison privatisée',
-      'Jardin arboré et bassin à carpes pour se détendre',
-    ],
-    cta: 'Réserver',
-    to: '/reserver',
-  },
-  {
-    title: 'Organisation d’un séjour sur mesure',
-    img: '/photo/Chill_Room.jpg',
-    subtitle: 'Pour vos retraites, EVJF/EVG, cérémonies...',
-    points: [
-      'Jusqu’à 12 personnes',
-      'Possibilité de faire venir des accompagnant·es',
-      'Accompagnement dans l’organisation et proposition de programmes thématiques',
-    ],
-    cta: 'Découvrir nos accompagnant·es',
-    to: '/intervenants',
-  },
-]
 
 // Positions fixes des points lumineux animés (section Résidences)
 const SPARKLE_DOTS = [
@@ -75,8 +28,49 @@ const SPARKLE_DOTS = [
 
 export default function Home() {
   const navigate = useNavigate()
+  const { c, cList } = useSiteContent()
   const [events, setEvents] = useState<EventRow[]>([])
   const [eventsLoading, setEventsLoading] = useState(true)
+
+  const ROOMS = [
+    {
+      name: c('home.room1.name'),
+      img: c('home.room1.image'),
+      subtitle: c('home.room1.subtitle'),
+      features: cList('home.room1.features'),
+    },
+    {
+      name: c('home.room2.name'),
+      img: c('home.room2.image'),
+      subtitle: c('home.room2.subtitle'),
+      features: cList('home.room2.features'),
+    },
+    {
+      name: c('home.room3.name'),
+      img: c('home.room3.image'),
+      subtitle: c('home.room3.subtitle'),
+      features: cList('home.room3.features'),
+    },
+  ]
+
+  const PROJECTS = [
+    {
+      title: c('home.proj1.title'),
+      img: c('home.proj1.image'),
+      subtitle: c('home.proj1.subtitle'),
+      points: cList('home.proj1.points'),
+      cta: c('home.proj1.cta'),
+      to: '/reserver',
+    },
+    {
+      title: c('home.proj2.title'),
+      img: c('home.proj2.image'),
+      subtitle: c('home.proj2.subtitle'),
+      points: cList('home.proj2.points'),
+      cta: c('home.proj2.cta'),
+      to: '/intervenants',
+    },
+  ]
 
   useEffect(() => {
     listPublishedEvents()
@@ -97,7 +91,7 @@ export default function Home() {
         <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 w-full h-full">
             <img
-              src="/photo/Vue_coucher_de_soleil.jpg"
+              src={c('home.hero.image')}
               alt="Fairy House"
               className="w-full h-full object-cover"
             />
@@ -107,19 +101,19 @@ export default function Home() {
           <div className="relative z-10 container mx-auto px-4 text-center text-white">
             <div className="max-w-4xl mx-auto">
               <h1 className="text-4xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight animate-fade-in-up">
-                FAIRY HOUSE
+                {c('home.hero.title')}
               </h1>
               <p
                 className="text-xl md:text-3xl font-light mb-4 animate-fade-in"
                 style={{ animationDelay: '0.1s' }}
               >
-                Bienvenue au Sanctuaire de vos Inspirations !
+                {c('home.hero.subtitle1')}
               </p>
               <p
                 className="text-base md:text-2xl font-light mb-12 max-w-3xl mx-auto animate-fade-in-up"
                 style={{ animationDelay: '0.2s' }}
               >
-                Un lieu pour se révéler, créer, oser et ressentir
+                {c('home.hero.subtitle2')}
               </p>
               <div
                 className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up"
@@ -129,13 +123,13 @@ export default function Home() {
                   to="/le-lieu"
                   className="px-8 py-4 bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold rounded-full font-semibold transition-all text-center"
                 >
-                  Entrez dans la Fairy House
+                  {c('home.hero.cta1')}
                 </Link>
                 <Link
                   to="/evenements"
                   className="px-8 py-4 bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold rounded-full font-semibold transition-all"
                 >
-                  Découvrir nos expériences
+                  {c('home.hero.cta2')}
                 </Link>
               </div>
             </div>
@@ -149,7 +143,7 @@ export default function Home() {
         <section className="relative py-32 overflow-hidden">
           <div className="absolute inset-0">
             <img
-              src="/photo/PXL_20260101_081856561.jpg"
+              src={c('home.vision.image')}
               alt=""
               className="w-full h-full object-cover"
             />
@@ -161,39 +155,28 @@ export default function Home() {
                 <div className="inline-flex items-center gap-2 bg-fairy-gold/20 backdrop-blur-sm px-6 py-2 rounded-full mb-6">
                   <Heart className="w-5 h-5 text-fairy-gold" />
                   <span className="text-fairy-gold font-semibold uppercase tracking-wider text-sm">
-                    Notre Vision
+                    {c('home.vision.badge')}
                   </span>
                 </div>
                 <h2 className="text-2xl md:text-5xl font-bold mb-6 text-white leading-tight">
-                  Un sanctuaire vivant, refuge pour les âmes créatives, sensibles et
-                  indomptées.
+                  {c('home.vision.title')}
                 </h2>
                 <div className="w-32 h-1.5 bg-gradient-to-r from-transparent via-fairy-gold to-transparent mx-auto mb-8" />
               </div>
               <div className="max-w-4xl mx-auto mb-12">
                 <div className="bg-amber-50/95 backdrop-blur-md rounded-3xl p-6 md:p-12 border border-amber-100/50">
                   <div className="space-y-3 text-center">
-                    <p className="text-xl leading-snug text-gray-800 font-light italic">
-                      La Fairy House n'est pas un lieu de consommation.
-                    </p>
-                    <p className="text-xl leading-snug text-gray-800 font-light italic">
-                      C'est un espace de passage.
-                    </p>
-                    <p className="text-xl leading-snug text-gray-800 font-light italic">
-                      Un endroit où l'on dépose les rôles, les attentes, les armures
-                      sociales.
-                    </p>
-                    <p className="text-xl leading-snug text-gray-800 font-light italic">
-                      Ici, on explore le corps, la présence, la créativité et le feu
-                      intérieur.
-                    </p>
+                    {cList('home.vision.lines').map((line) => (
+                      <p key={line} className="text-xl leading-snug text-gray-800 font-light italic">
+                        {line}
+                      </p>
+                    ))}
                     <div className="pt-3">
-                      <p className="text-xl leading-snug text-gray-900 font-semibold">
-                        L'art et l'intime ne sont plus séparés.
-                      </p>
-                      <p className="text-xl leading-snug text-gray-900 font-semibold">
-                        Ils se répondent.
-                      </p>
+                      {cList('home.vision.emphasis').map((line) => (
+                        <p key={line} className="text-xl leading-snug text-gray-900 font-semibold">
+                          {line}
+                        </p>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -203,7 +186,7 @@ export default function Home() {
                   to="/le-lieu"
                   className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-black hover:from-white hover:to-white rounded-full font-bold text-lg transition-all shadow-2xl hover:shadow-fairy-gold/50 hover:scale-105"
                 >
-                  Découvrir la Fairy House
+                  {c('home.vision.cta')}
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               </div>
@@ -218,11 +201,11 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 bg-fairy-gold/10 px-6 py-2 rounded-full mb-6">
                 <Sparkles className="w-5 h-5 text-fairy-gold" />
                 <span className="text-fairy-gold font-semibold uppercase tracking-wider text-sm">
-                  Programmation
+                  {c('home.prog.badge')}
                 </span>
               </div>
               <h2 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900">
-                Au programme à la Fairy House
+                {c('home.prog.title')}
               </h2>
               <div className="w-32 h-1.5 bg-gradient-to-r from-transparent via-fairy-gold to-transparent mx-auto mb-6" />
             </div>
@@ -272,7 +255,7 @@ export default function Home() {
                     to="/evenements"
                     className="inline-flex items-center gap-2 px-8 py-4 bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold rounded-full font-bold transition-all"
                   >
-                    Voir tous les événements
+                    {c('home.prog.cta')}
                     <ArrowRight className="w-5 h-5" />
                   </Link>
                 </div>
@@ -295,26 +278,19 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 bg-fairy-gold/10 px-6 py-2 rounded-full mb-6">
                 <HomeIcon className="w-5 h-5 text-fairy-gold" />
                 <span className="text-fairy-gold font-semibold uppercase tracking-wider text-sm">
-                  Hébergements
+                  {c('home.heb.badge')}
                 </span>
               </div>
               <h2 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900">
-                Votre séjour à la Fairy House
+                {c('home.heb.title')}
               </h2>
               <div className="w-32 h-1.5 bg-gradient-to-r from-transparent via-fairy-gold to-transparent mx-auto mb-6" />
               <div className="max-w-3xl mx-auto space-y-4">
-                <p className="text-xl text-gray-700 leading-relaxed">
-                  Fairy House, un lieu de révélation, d'incarnation et de liberté.
-                </p>
-                <p className="text-xl text-gray-700 leading-relaxed">
-                  Ici on vous invite à prendre le temps de vous ressourcer, de prendre
-                  soin de vous tant mentalement, émotionnellement ou physiquement, et de
-                  poser la prochaine pierre vers la réalisation de vos rêves.
-                </p>
-                <p className="text-xl text-gray-700 leading-relaxed">
-                  Et si cela vous paraît ambitieux, c'est peut-être le moment de justement
-                  prendre ce temps pour vous. De vous écouter, avec patience et douceur.
-                </p>
+                {cList('home.heb.intro').map((p) => (
+                  <p key={p} className="text-xl text-gray-700 leading-relaxed">
+                    {p}
+                  </p>
+                ))}
               </div>
             </div>
             <div className="grid md:grid-cols-3 gap-10 max-w-7xl mx-auto">
@@ -366,7 +342,7 @@ export default function Home() {
         <section className="relative py-32 overflow-hidden bg-white">
           <div className="absolute inset-0 opacity-5">
             <img
-              src="/photo/PXL_20260320_085850183.jpg"
+              src={c('home.proj.image')}
               alt=""
               className="w-full h-full object-cover"
             />
@@ -376,22 +352,19 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 bg-fairy-gold/10 px-6 py-2 rounded-full mb-6">
                 <Leaf className="w-5 h-5 text-fairy-gold" />
                 <span className="text-fairy-gold font-semibold uppercase tracking-wider text-sm">
-                  Vos Projets
+                  {c('home.proj.badge')}
                 </span>
               </div>
               <h2 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900">
-                Votre expérience sur mesure
+                {c('home.proj.title')}
               </h2>
               <div className="w-32 h-1.5 bg-gradient-to-r from-transparent via-fairy-gold to-transparent mx-auto mb-6" />
               <div className="max-w-3xl mx-auto space-y-4">
-                <p className="text-xl text-gray-700 leading-relaxed">
-                  Vous souhaitez organiser un EVJF/EVG, une retraite, une résidence
-                  artistique, une cérémonie ou juste des vacances entre ami.e.s ?
-                </p>
-                <p className="text-xl text-gray-700 leading-relaxed">
-                  La Fairy House vous est ouverte et l'équipe est à votre disposition pour
-                  vous aider à organiser un séjour inoubliable.
-                </p>
+                {cList('home.proj.intro').map((p) => (
+                  <p key={p} className="text-xl text-gray-700 leading-relaxed">
+                    {p}
+                  </p>
+                ))}
               </div>
             </div>
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -451,7 +424,7 @@ export default function Home() {
         {/* RÉSIDENCES */}
         <section className="relative min-h-[600px] flex items-center justify-center overflow-hidden">
           <img
-            src="/photo/Ostara_1.jpg"
+            src={c('home.res.image')}
             alt="Résidences"
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -470,37 +443,29 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-2 rounded-full mb-8">
                 <Sparkles className="w-5 h-5 text-fairy-gold" />
                 <span className="text-fairy-gold font-semibold uppercase tracking-wider text-sm">
-                  Résidences
+                  {c('home.res.badge')}
                 </span>
               </div>
               <h2 className="text-2xl md:text-5xl font-bold mb-8 leading-tight">
-                Un espace imaginé comme une entité,
-                <br />
-                un cocon vivant
+                {cList('home.res.title').map((line, i, arr) => (
+                  <span key={line}>
+                    {line}
+                    {i < arr.length - 1 && <br />}
+                  </span>
+                ))}
               </h2>
               <div className="w-32 h-1.5 bg-gradient-to-r from-transparent via-fairy-gold to-transparent mx-auto mb-12" />
               <div className="max-w-3xl mx-auto space-y-8">
                 <div className="text-xl text-gray-200 leading-relaxed space-y-6">
-                  <p className="text-2xl font-light">
-                    À la Fairy House, le corps devient langage.
-                    <br />
-                    La créativité est un chemin à explorer.
-                  </p>
-                  <p className="text-xl">
-                    Et vous êtes à la barre de votre vie, de vos décisions.
-                  </p>
+                  <p className="text-2xl font-light">{c('home.res.intro1')}</p>
+                  <p className="text-xl">{c('home.res.intro2')}</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
                   <p className="font-semibold text-white text-xl mb-6 text-center">
-                    La Fairy House est un refuge pour :
+                    {c('home.res.refuge_title')}
                   </p>
                   <ul className="space-y-4 text-lg text-gray-200 max-w-md mx-auto text-center">
-                    {[
-                      'se reconnecter à son corps',
-                      'libérer sa créativité',
-                      'reprendre sa place',
-                      'se révéler à son propre rythme',
-                    ].map((b) => (
+                    {cList('home.res.refuge_items').map((b) => (
                       <li key={b} className="flex items-center justify-center gap-3">
                         <span className="text-fairy-gold text-2xl">•</span>
                         <span>{b}</span>
@@ -509,10 +474,7 @@ export default function Home() {
                   </ul>
                 </div>
                 <p className="text-xl text-gray-200 leading-relaxed">
-                  Ici, chacun·e avance à son propre rythme. À travers diverses activités
-                  proposées, en communauté ou sur réservation, nous vous invitons à mêler
-                  pratique artistique et approche thérapeutique pour ouvrir des espaces de
-                  transformation douce et profonde.
+                  {c('home.res.outro')}
                 </p>
               </div>
               <div className="mt-12">
@@ -520,7 +482,7 @@ export default function Home() {
                   to="/evenements"
                   className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-black hover:from-white hover:to-white rounded-full font-bold text-lg transition-all shadow-2xl hover:shadow-fairy-gold/50 hover:scale-105"
                 >
-                  Découvrir notre programmation
+                  {c('home.res.cta')}
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               </div>
@@ -538,23 +500,21 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-sm px-6 py-2 rounded-full mb-8">
                 <Heart className="w-5 h-5 text-fairy-gold" />
                 <span className="text-fairy-gold font-semibold uppercase tracking-wider text-sm">
-                  Contactez-nous
+                  {c('home.contact.title')}
                 </span>
               </div>
               <h2 className="text-3xl md:text-5xl font-bold mb-8 leading-tight">
-                Contactez-nous
+                {c('home.contact.title')}
               </h2>
               <div className="w-32 h-1.5 bg-gradient-to-r from-transparent via-fairy-gold to-transparent mx-auto mb-8" />
               <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
-                Retraite, résidence artistique, EVJF/EVG, cérémonie :
-                <br />
-                on adapte la Fairy House à votre projet
+                {c('home.contact.text')}
               </p>
               <Link
                 to="/contact"
                 className="inline-flex items-center gap-3 px-12 py-6 bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-black hover:from-white hover:to-white rounded-full font-bold text-xl transition-all shadow-2xl hover:shadow-fairy-gold/50 hover:scale-105"
               >
-                Nous contacter
+                {c('home.contact.cta')}
                 <ArrowRight className="w-6 h-6" />
               </Link>
             </div>
