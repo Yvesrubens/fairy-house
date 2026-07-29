@@ -5,6 +5,7 @@ import {
   deleteReservation,
 } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
+import * as XLSX from 'xlsx'
 import { formatDate, formatEuro2, toCSV } from '../../lib/format'
 import DevisForm from './DevisForm'
 import ReservationForm from './ReservationForm'
@@ -124,8 +125,8 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
     }
   }
 
-  function exportCSV() {
-    const data = filtered.map((r) =>
+  function buildExportRows() {
+    return filtered.map((r) =>
       isEvent
         ? {
             reference: r.reference,
@@ -158,6 +159,10 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
             statut: STATUS_LABEL[r.status],
           },
     )
+  }
+
+  function exportCSV() {
+    const data = buildExportRows()
     const blob = new Blob(
       [toCSV(data as unknown as Record<string, string | number>[])],
       { type: 'text/csv;charset=utf-8;' },
@@ -168,6 +173,17 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
     a.download = isEvent ? 'inscriptions-evenement.csv' : 'reservations-sejour.csv'
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  function exportXLSX() {
+    const data = buildExportRows()
+    const ws = XLSX.utils.json_to_sheet(data)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, isEvent ? 'Événement' : 'Séjour')
+    XLSX.writeFile(
+      wb,
+      isEvent ? 'inscriptions-evenement.xlsx' : 'reservations-sejour.xlsx',
+    )
   }
 
   if (loading) return <p className="text-gray-500">Chargement…</p>
@@ -226,6 +242,12 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
             className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
           >
             Exporter CSV
+          </button>
+          <button
+            onClick={exportXLSX}
+            className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+          >
+            Exporter Excel
           </button>
           <button
             onClick={clearAll}

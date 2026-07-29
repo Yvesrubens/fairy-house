@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import Field from '../components/Field'
 import ImageUpload from '../components/ImageUpload'
+import RichTextEditor from '../components/RichTextEditor'
 import { upsertEvent } from '../../lib/api'
 import { slugify } from '../../lib/format'
 import type { EventRow } from '../../types/db'
@@ -86,12 +87,15 @@ export default function EventForm({
         value={row.description ?? ''}
         onChange={(v) => set('description', v)}
       />
-      <Field
-        label="Contenu"
-        textarea
-        value={row.content ?? ''}
-        onChange={(v) => set('content', v)}
-      />
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700">
+          Contenu (mise en forme : gras, italique, souligné, listes)
+        </label>
+        <RichTextEditor
+          value={row.content ?? ''}
+          onChange={(html) => set('content', html)}
+        />
+      </div>
       <ImageUpload
         value={row.image_url ?? null}
         onChange={(url) => set('image_url', url)}

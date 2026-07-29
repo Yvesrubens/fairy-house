@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import DOMPurify from 'dompurify'
 import { getEventBySlug } from '../lib/api'
 import { formatDate } from '../lib/format'
 import type { EventRow } from '../types/db'
@@ -144,10 +145,21 @@ export default function EvenementDetail() {
                   <p className="font-medium text-gray-800">{event.description}</p>
                 )}
                 {event.content &&
-                  event.content
-                    .split('\n')
-                    .filter((p) => p.trim())
-                    .map((p, i) => <p key={i}>{p}</p>)}
+                  (/<[a-z][\s\S]*>/i.test(event.content) ? (
+                    // Contenu enrichi (HTML) : assaini avant rendu.
+                    <div
+                      className="space-y-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6"
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(event.content),
+                      }}
+                    />
+                  ) : (
+                    // Ancien contenu texte simple : découpage en paragraphes.
+                    event.content
+                      .split('\n')
+                      .filter((p) => p.trim())
+                      .map((p, i) => <p key={i}>{p}</p>)
+                  ))}
               </div>
 
               {/* CTA réserver */}
