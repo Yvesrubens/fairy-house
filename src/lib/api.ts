@@ -153,10 +153,14 @@ export async function subscribeNewsletter(
   email: string,
   source?: string,
 ): Promise<void> {
+  // Insert simple (ne requiert que la policy INSERT). Un email déjà inscrit
+  // déclenche une violation d'unicité (23505) que l'on considère comme un
+  // succès — on évite ainsi l'upsert, dont le chemin ON CONFLICT exigerait une
+  // policy UPDATE.
   const { error } = await supabase
     .from('newsletter_subscribers')
-    .upsert({ email, source }, { onConflict: 'email', ignoreDuplicates: true })
-  if (error) throw new Error(error.message)
+    .insert({ email, source })
+  if (error && error.code !== '23505') throw new Error(error.message)
 }
 
 export async function listNewsletterSubscribers(): Promise<
