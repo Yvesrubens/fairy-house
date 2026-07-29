@@ -9,66 +9,7 @@ import {
   Car,
   Phone,
 } from '../components/icons'
-
-const SPACES = [
-  {
-    name: 'Se Reposer',
-    img: '/photo/Chambre_Mabbon.jpg',
-    text: 'Des chambres lumineuses et apaisantes, pensées comme des refuges. Des espaces simples et confortables, où le silence, le repos et la lenteur retrouvent leur place.',
-  },
-  {
-    name: 'Créer',
-    img: '/photo/Exterieur_pique_nique.png',
-    text: "Des espaces ouverts à la créativité et à l'expression. Tables partagées, lumière naturelle, matériaux simples… tout invite à écrire, danser, dessiner, fabriquer, expérimenter. Un lieu où les idées prennent forme sans pression de résultat.",
-  },
-  {
-    name: 'Se retrouver',
-    img: '/photo/PXL_20260314_221152313.jpg',
-    text: "Des pièces de vie chaleureuses, pensées pour les échanges, les discussions et les moments partagés. Des espaces où l'on cuisine, où l'on rit, où l'on se raconte. Un refuge pour tisser du lien en douceur.",
-  },
-  {
-    name: 'Respirer',
-    img: '/photo/Bassin.jpg',
-    text: "À l'extérieur, la nature comme prolongement de la maison. Jardin, arbres, air libre, silence vivant… Un espace pour marcher, s'isoler, contempler, ou simplement être.",
-  },
-]
-
-const COMFORT = [
-  {
-    title: 'Séjour',
-    Icon: Bed,
-    items: [
-      'Chambres partagées (de 3 à 5 personnes)',
-      '45€ / nuit / personne',
-      'Privatisation à partir de 1200€',
-      'Salles de bain communes',
-      'Linge de maison en option : 5€ / personne',
-    ],
-  },
-  {
-    title: 'Repas',
-    Icon: Utensils,
-    items: [
-      'Petit déjeuner inclus',
-      'Repas partagés : 8€/repas ou 15€/jour',
-      'Repas en autonomie possible',
-      'Courses livrées : forfait 10€ (sur réservation)',
-      'Cuisine équipée à disposition',
-    ],
-  },
-  {
-    title: 'Vie sur place',
-    Icon: Wifi,
-    items: [
-      'Wifi disponible (fibre)',
-      'Salle multi-activité avec miroirs',
-      'Espace de travail calme',
-      'Salle de détente : flipper, jukebox, ludothèque, rétroprojecteur...',
-      'Bibliothèques thématiques',
-      'Grand jardin avec un bassin aux carpes',
-    ],
-  },
-]
+import { useSiteContent } from '../lib/useSiteContent'
 
 function FlipCard({ space }: { space: { name: string; img: string; text: string } }) {
   const [flipped, setFlipped] = useState(false)
@@ -109,6 +50,52 @@ function FlipCard({ space }: { space: { name: string; img: string; text: string 
 
 export default function LeLieu() {
   const navigate = useNavigate()
+  const { c, cList } = useSiteContent()
+
+  const SPACES = [
+    {
+      name: c('lelieu.space1.name'),
+      img: c('lelieu.space1.image'),
+      text: c('lelieu.space1.text'),
+    },
+    {
+      name: c('lelieu.space2.name'),
+      img: c('lelieu.space2.image'),
+      text: c('lelieu.space2.text'),
+    },
+    {
+      name: c('lelieu.space3.name'),
+      img: c('lelieu.space3.image'),
+      text: c('lelieu.space3.text'),
+    },
+    {
+      name: c('lelieu.space4.name'),
+      img: c('lelieu.space4.image'),
+      text: c('lelieu.space4.text'),
+    },
+  ]
+
+  const COMFORT = [
+    {
+      title: c('lelieu.confort.sejour_title'),
+      Icon: Bed,
+      items: cList('lelieu.confort.sejour_items'),
+    },
+    {
+      title: c('lelieu.confort.repas_title'),
+      Icon: Utensils,
+      items: cList('lelieu.confort.repas_items'),
+    },
+    {
+      title: c('lelieu.confort.vie_title'),
+      Icon: Wifi,
+      items: cList('lelieu.confort.vie_items'),
+    },
+  ]
+
+  const adresseLines = cList('lelieu.venir.adresse')
+  const navetteLines = cList('lelieu.venir.navette')
+
   return (
     <main className="flex-1">
       <div className="min-h-screen">
@@ -116,16 +103,18 @@ export default function LeLieu() {
         <section className="relative h-[70vh] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0">
             <img
-              src="/photo/Vue_coucher_de_soleil.jpg"
+              src={c('lelieu.hero.image')}
               alt="Fairy House"
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
           </div>
           <div className="relative z-10 container mx-auto px-4 text-center text-white">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6">Fairy House</h1>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
+              {c('lelieu.hero.title')}
+            </h1>
             <p className="text-xl md:text-3xl font-light">
-              Un lieu pour se déposer, créer et se transformer
+              {c('lelieu.hero.subtitle')}
             </p>
           </div>
         </section>
@@ -135,8 +124,7 @@ export default function LeLieu() {
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
               <p className="text-2xl text-gray-700 leading-relaxed">
-                Ici, on prend le temps de se ressourcer, de prendre soin de soi, et
-                d'avancer pas à pas vers la réalisation de ses rêves.
+                {c('lelieu.intro.text')}
               </p>
             </div>
           </div>
@@ -149,18 +137,15 @@ export default function LeLieu() {
               <div className="inline-flex items-center gap-2 bg-fairy-gold/10 px-6 py-2 rounded-full mb-6">
                 <HomeIcon className="w-5 h-5 text-fairy-gold" />
                 <span className="text-fairy-gold font-semibold uppercase tracking-wider text-sm">
-                  Habiter la maison
+                  {c('lelieu.habiter.badge')}
                 </span>
               </div>
               <h2 className="text-3xl md:text-5xl font-bold mb-8 text-gray-900">
-                Habiter la maison
+                {c('lelieu.habiter.title')}
               </h2>
               <div className="w-32 h-1.5 bg-gradient-to-r from-transparent via-fairy-gold to-transparent mx-auto mb-8" />
               <p className="text-xl text-gray-700 leading-relaxed">
-                La Fairy House a été pensée comme un lieu vivant, accueillant et modulable,
-                où chacun peut trouver sa manière d'être, de créer et de se déposer. Ici,
-                les espaces ne sont pas figés : ils accompagnent les temps de repos, de
-                création, de partage et d'introspection.
+                {c('lelieu.habiter.text')}
               </p>
             </div>
             <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -176,7 +161,7 @@ export default function LeLieu() {
           <div className="container mx-auto px-4">
             <div className="max-w-5xl mx-auto">
               <h2 className="text-2xl md:text-4xl font-bold mb-12 text-center text-gray-900">
-                Le confort du lieu : l'essentiel à savoir
+                {c('lelieu.confort.title')}
               </h2>
               <div className="grid md:grid-cols-2 gap-12">
                 {COMFORT.map(({ title, Icon, items }) => (
@@ -207,18 +192,16 @@ export default function LeLieu() {
                     <div className="w-12 h-12 bg-fairy-gold/10 rounded-xl flex items-center justify-center">
                       <MapPin className="w-6 h-6 text-fairy-gold" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900">Les Plus</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {c('lelieu.confort.plus_title')}
+                    </h3>
                   </div>
                   <div className="space-y-4 text-gray-700">
-                    <p className="leading-relaxed">
-                      La Fairy House est un espace autonome dédié aux retraites et aux
-                      séjours.
-                    </p>
-                    <p className="leading-relaxed">
-                      Une présence bienveillante vit à proximité, dans une autre maison sur
-                      le terrain, disponible si besoin tout en respectant l'intimité du
-                      lieu.
-                    </p>
+                    {cList('lelieu.confort.plus_items').map((p) => (
+                      <p key={p} className="leading-relaxed">
+                        {p}
+                      </p>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -230,16 +213,16 @@ export default function LeLieu() {
         <section className="py-20 bg-fairy-black text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-2xl md:text-4xl font-bold mb-6">
-              Prêt·e à découvrir Fairy House ?
+              {c('lelieu.cta.title')}
             </h2>
             <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Réservez dès maintenant votre séjour dans notre havre de paix
+              {c('lelieu.cta.text')}
             </p>
             <button
               onClick={() => navigate('/reserver')}
               className="inline-flex items-center justify-center gap-2 font-semibold transition-all duration-300 rounded-full bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-white shadow-lg hover:shadow-2xl hover:scale-105 animate-glow px-10 py-5 text-xl"
             >
-              <span>Réserver maintenant</span>
+              <span>{c('lelieu.cta.button')}</span>
             </button>
           </div>
         </section>
@@ -249,7 +232,7 @@ export default function LeLieu() {
           <div className="container mx-auto px-4">
             <div className="max-w-5xl mx-auto">
               <h2 className="text-2xl md:text-4xl font-bold mb-12 text-center text-fairy-black">
-                Comment venir ?
+                {c('lelieu.venir.title')}
               </h2>
               <div className="grid md:grid-cols-2 gap-12">
                 <div className="space-y-6">
@@ -260,11 +243,12 @@ export default function LeLieu() {
                     <div>
                       <h3 className="font-bold text-lg mb-2">Adresse</h3>
                       <p className="text-gray-600">
-                        2 Le Grand Leu
-                        <br />
-                        45230 La Chapelle sur Aveyron
-                        <br />
-                        France
+                        {adresseLines.map((line, i) => (
+                          <span key={i}>
+                            {line}
+                            {i < adresseLines.length - 1 && <br />}
+                          </span>
+                        ))}
                       </p>
                     </div>
                   </div>
@@ -275,11 +259,12 @@ export default function LeLieu() {
                     <div>
                       <h3 className="font-bold text-lg mb-2">Navette</h3>
                       <p className="text-gray-600">
-                        Depuis Montargis : 25 min
-                        <br />
-                        Depuis Nogent : 15 min
-                        <br />
-                        2 trajets/jour sur réservation
+                        {navetteLines.map((line, i) => (
+                          <span key={i}>
+                            {line}
+                            {i < navetteLines.length - 1 && <br />}
+                          </span>
+                        ))}
                       </p>
                     </div>
                   </div>
@@ -291,17 +276,17 @@ export default function LeLieu() {
                       <h3 className="font-bold text-lg mb-2">Contact</h3>
                       <p className="text-gray-600">
                         <a
-                          href="tel:+33671398807"
+                          href={`tel:${c('lelieu.venir.phone').replace(/\s/g, '')}`}
                           className="hover:text-fairy-gold transition-colors"
                         >
-                          +33 6 71 39 88 07
+                          {c('lelieu.venir.phone')}
                         </a>
                         <br />
                         <a
-                          href="mailto:fairyhouse.collectif@gmail.com"
+                          href={`mailto:${c('lelieu.venir.email')}`}
                           className="hover:text-fairy-gold transition-colors"
                         >
-                          fairyhouse.collectif@gmail.com
+                          {c('lelieu.venir.email')}
                         </a>
                       </p>
                     </div>
