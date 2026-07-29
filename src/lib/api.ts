@@ -3,6 +3,8 @@ import type {
   Article,
   EventRow,
   Intervenant,
+  IntervenantDomain,
+  MessageRow,
   NewsletterSubscriber,
   Reservation,
   ReservationStatus,
@@ -154,6 +156,58 @@ export interface MessageInput {
 
 export async function createMessage(input: MessageInput): Promise<void> {
   const { error } = await supabase.from('messages').insert(input)
+  if (error) throw new Error(error.message)
+}
+
+// ------------------------------------------------------- Admin: messages
+export async function listMessages(): Promise<MessageRow[]> {
+  const { data, error } = await supabase
+    .from('messages')
+    .select('*')
+    .order('created_at', { ascending: false })
+  return unwrap(data, error)
+}
+
+export async function updateMessage(
+  id: string,
+  patch: Partial<Pick<MessageRow, 'read' | 'treated' | 'archived'>>,
+): Promise<void> {
+  const { error } = await supabase.from('messages').update(patch).eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteMessage(id: string): Promise<void> {
+  const { error } = await supabase.from('messages').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+// --------------------------------------------- Admin: domaines accompagnant·es
+export async function listDomains(): Promise<IntervenantDomain[]> {
+  const { data, error } = await supabase
+    .from('intervenant_domains')
+    .select('*')
+    .order('name', { ascending: true })
+  return unwrap(data, error)
+}
+
+export async function addDomain(name: string): Promise<void> {
+  const { error } = await supabase.from('intervenant_domains').insert({ name })
+  if (error) throw new Error(error.message)
+}
+
+export async function updateDomain(id: string, name: string): Promise<void> {
+  const { error } = await supabase
+    .from('intervenant_domains')
+    .update({ name })
+    .eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteDomain(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('intervenant_domains')
+    .delete()
+    .eq('id', id)
   if (error) throw new Error(error.message)
 }
 

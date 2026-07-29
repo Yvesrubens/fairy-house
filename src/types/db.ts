@@ -51,6 +51,7 @@ export interface EventRow {
   description: string | null
   content: string | null
   event_date: string | null
+  event_end_date: string | null
   location: string | null
   image_url: string | null
   capacity: number | null
@@ -107,5 +108,13 @@ export interface MessageRow {
   subject: string | null
   body: string
   read: boolean
+  treated: boolean
+  archived: boolean
+  created_at: string
+}
+
+export interface IntervenantDomain {
+  id: string
+  name: string
   created_at: string
 }

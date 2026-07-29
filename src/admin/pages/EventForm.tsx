@@ -58,10 +58,16 @@ export default function EventForm({
         required
       />
       <Field
-        label="Date"
+        label="Date de début (arrivée)"
         type="date"
         value={row.event_date ?? ''}
         onChange={(v) => set('event_date', v)}
+      />
+      <Field
+        label="Date de fin (départ)"
+        type="date"
+        value={row.event_end_date ?? ''}
+        onChange={(v) => set('event_end_date', v || null)}
       />
       <Field
         label="Lieu"
