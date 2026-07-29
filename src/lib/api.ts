@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import type {
   Article,
+  BedBlock,
   EventRow,
   Intervenant,
   IntervenantDomain,
@@ -114,6 +115,36 @@ export async function createReservation(
     .insert({ ...input, id, reference: ref, amount: input.total_ttc ?? 0 })
   if (error) throw new Error(error.message)
   return { id, reference: ref as string }
+}
+
+// ------------------------------------------------------- Disponibilités
+/** Vrai si la demande tient dans les lits restants (RPC SECURITY DEFINER). */
+export async function checkAvailability(
+  arrival: string,
+  departure: string | undefined,
+  beds: number,
+  wholeHouse: boolean,
+): Promise<boolean> {
+  const { data, error } = await supabase.rpc('check_availability', {
+    p_arrival: arrival,
+    p_departure: departure ?? null,
+    p_beds: beds,
+    p_whole_house: wholeHouse,
+  })
+  if (error) throw new Error(error.message)
+  return Boolean(data)
+}
+
+/** Lits restants par date sur une plage (pour le calendrier). */
+export async function availabilityCalendar(
+  from: string,
+  to: string,
+): Promise<{ day: string; remaining: number }[]> {
+  const { data, error } = await supabase.rpc('availability_calendar', {
+    p_from: from,
+    p_to: to,
+  })
+  return unwrap(data, error)
 }
 
 // ------------------------------------------------------------ Newsletter
@@ -259,6 +290,30 @@ export async function createReservationManual(
 
 export async function deleteReservation(id: string): Promise<void> {
   const { error } = await supabase.from('reservations').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+// --------------------------------------------------- Admin: blocages de lits
+export async function listBedBlocks(): Promise<BedBlock[]> {
+  const { data, error } = await supabase
+    .from('bed_blocks')
+    .select('*')
+    .order('start_date', { ascending: false })
+  return unwrap(data, error)
+}
+
+export async function createBedBlock(input: {
+  start_date: string
+  end_date: string
+  beds: number
+  label?: string
+}): Promise<void> {
+  const { error } = await supabase.from('bed_blocks').insert(input)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteBedBlock(id: string): Promise<void> {
+  const { error } = await supabase.from('bed_blocks').delete().eq('id', id)
   if (error) throw new Error(error.message)
 }
 

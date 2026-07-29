@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { createReservation } from '../lib/api'
+import { createReservation, checkAvailability } from '../lib/api'
 import { Mail, Phone, Calendar, Users, MessageSquare } from './icons'
 
 export interface ReservationContext {
@@ -65,6 +65,27 @@ export default function ReservationForm({ ctx, onCancel }: Props) {
     setBusy(true)
     setError('')
     try {
+      // B2 : pour une demande de séjour, refuse si les dates sont déjà prises
+      // (une privatisation confirmée bloque tout). Les événements sont exclus
+      // (gérés par le quota de l'événement).
+      if (!isEvent) {
+        const wholeHouse = form.accommodation === 'Privatisation'
+        const available = await checkAvailability(
+          form.checkIn,
+          form.checkOut || undefined,
+          form.guests ? Number(form.guests) : 1,
+          wholeHouse,
+        )
+        if (!available) {
+          setError(
+            wholeHouse
+              ? 'Ces dates ne sont plus disponibles pour une privatisation.'
+              : 'Il ne reste plus assez de lits disponibles sur ces dates.',
+          )
+          setBusy(false)
+          return
+        }
+      }
       await createReservation({
         client_name: form.name,
         client_email: form.email,

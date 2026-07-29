@@ -26,6 +26,7 @@ import Events from './admin/pages/Events'
 import Articles from './admin/pages/Articles'
 import IntervenantsAdmin from './admin/pages/Intervenants'
 import Messages from './admin/pages/Messages'
+import BedBlocks from './admin/pages/BedBlocks'
 import Newsletter from './admin/pages/Newsletter'
 import Settings from './admin/pages/Settings'
 
@@ -82,6 +83,7 @@ export default function App() {
           <Route path="articles" element={<Articles />} />
           <Route path="intervenants" element={<IntervenantsAdmin />} />
           <Route path="messages" element={<Messages />} />
+          <Route path="blocage-lits" element={<BedBlocks />} />
           <Route path="newsletter" element={<Newsletter />} />
           <Route path="settings" element={<Settings />} />
         </Route>

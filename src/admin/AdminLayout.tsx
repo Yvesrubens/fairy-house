@@ -23,6 +23,7 @@ const LINKS: { to: string; label: string; icon: ReactNode }[] = [
     label: 'Réservations événement',
     icon: <ClipboardIcon />,
   },
+  { to: '/admin/blocage-lits', label: 'Blocage lits', icon: <CalendarIcon /> },
   { to: '/admin/messages', label: 'Messages', icon: <EnvelopeIcon /> },
   { to: '/admin/newsletter', label: 'Newsletter', icon: <EnvelopeIcon /> },
   { to: '/admin/articles', label: 'Articles', icon: <DocIcon /> },

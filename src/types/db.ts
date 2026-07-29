@@ -118,3 +118,12 @@ export interface IntervenantDomain {
   name: string
   created_at: string
 }
+
+export interface BedBlock {
+  id: string
+  start_date: string
+  end_date: string
+  beds: number
+  label: string | null
+  created_at: string
+}

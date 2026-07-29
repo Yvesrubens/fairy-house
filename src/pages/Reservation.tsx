@@ -7,8 +7,16 @@ import StepIndividualSelection from '../components/reservation/StepIndividualSel
 import StepDetails from '../components/reservation/StepDetails'
 import StepPayment from '../components/reservation/StepPayment'
 import StepCustom from '../components/reservation/StepCustom'
-import { createReservation } from '../lib/api'
+import { createReservation, checkAvailability } from '../lib/api'
 import { HOUSE_CAPACITY, canSplit, computeQuote, nights, splitPlan } from '../lib/booking'
+
+// F2 : un lit seul (parcours individuel) ne peut être réservé plus de 2 mois à
+// l'avance. Renvoie la date maximale autorisée au format YYYY-MM-DD.
+function maxIndividualDate(): string {
+  const d = new Date()
+  d.setMonth(d.getMonth() + 2)
+  return d.toISOString().slice(0, 10)
+}
 
 const INITIAL_STATE: BookingState = {
   mode: null,
@@ -92,6 +100,13 @@ export default function Reservation() {
     ]
       .filter(Boolean)
       .join(', ')
+    // F2 : lit seul limité à 2 mois à l'avance (la privatisation reste libre).
+    if (state.mode === 'individuel' && state.arrival > maxIndividualDate()) {
+      setError(
+        'La réservation d’un lit seul n’est possible que dans un délai de 2 mois. Pour une date plus lointaine, optez pour la privatisation complète.',
+      )
+      return
+    }
     const n = nights(state.arrival, state.departure)
     const quote = computeQuote(pers, n, state.options)
     const today = new Date().toISOString().slice(0, 10)
@@ -107,6 +122,23 @@ export default function Reservation() {
         : `Séjour individuel — ${bedsSummary} — ${pers} personne${pers > 1 ? 's' : ''}`
     try {
       setBusy(true)
+      // B1/B2 : refuse la demande si les dates ne sont plus disponibles pour le
+      // nombre de lits voulu (une privatisation confirmée bloque tout).
+      const available = await checkAvailability(
+        state.arrival,
+        state.departure || undefined,
+        pers,
+        state.wholeHouse,
+      )
+      if (!available) {
+        setError(
+          state.wholeHouse
+            ? 'Ces dates ne sont plus disponibles pour une privatisation (des lits ou une autre réservation sont déjà pris).'
+            : 'Il ne reste plus assez de lits disponibles sur ces dates. Essayez d’autres dates ou réduisez le nombre de personnes.',
+        )
+        setBusy(false)
+        return
+      }
       const { id } = await createReservation({
         client_name: `${state.firstName} ${state.lastName}`.trim(),
         client_email: state.email,
