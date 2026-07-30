@@ -5,6 +5,7 @@ import {
   DOUBLE_BEDS,
   nights,
   computeQuote,
+  PRICE_PER_PERSON_NIGHT,
   LINGE_PER_PERSON,
   PENSION_PER_PERSON_NIGHT,
 } from '../../lib/booking'
@@ -103,16 +104,27 @@ export default function StepIndividualSelection({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 rounded-xl bg-fairy-gold/10 px-4 py-3">
-        <Users className="w-5 h-5 text-fairy-gold" />
-        <p className="text-sm text-gray-700">
-          Capacité des lits choisis :{' '}
-          <strong>
-            {bedCapacity} personne{bedCapacity > 1 ? 's' : ''}
-          </strong>{' '}
-          — la réservation est facturée sur cette base (1 lit simple = 1 pers.,
-          1 lit double = 2 pers.).
-        </p>
+      <div className="flex items-start gap-2 rounded-xl bg-fairy-gold/10 px-4 py-3">
+        <Users className="mt-0.5 w-5 h-5 flex-shrink-0 text-fairy-gold" />
+        <div className="text-sm text-gray-700">
+          <p>
+            Capacité des lits choisis :{' '}
+            <strong>
+              {bedCapacity} personne{bedCapacity > 1 ? 's' : ''}
+            </strong>{' '}
+            — la réservation est facturée sur cette base (1 lit simple = 1 pers.,
+            1 lit double = 2 pers.).
+          </p>
+          <p className="mt-1 text-gray-600">
+            Lit simple : <strong>{formatEuro2(PRICE_PER_PERSON_NIGHT)}</strong> / nuit
+            {' · '}
+            Lit double : <strong>{formatEuro2(PRICE_PER_PERSON_NIGHT * 2)}</strong> / nuit
+            {' '}
+            <span className="text-gray-400">
+              ({formatEuro2(PRICE_PER_PERSON_NIGHT)} / personne / nuit)
+            </span>
+          </p>
+        </div>
       </div>
 
       <AvailabilityCalendar
