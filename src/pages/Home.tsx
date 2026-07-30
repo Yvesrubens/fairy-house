@@ -10,7 +10,8 @@ import {
   ArrowRight,
 } from '../components/icons'
 import { listPublishedEvents } from '../lib/api'
-import { formatDate } from '../lib/format'
+import { formatDate, formatEuro2 } from '../lib/format'
+import { eventFromPrice } from '../lib/eventPricing'
 import type { EventRow } from '../types/db'
 import { useSiteContent } from '../lib/useSiteContent'
 
@@ -233,11 +234,17 @@ export default function Home() {
                         {e.event_date && (
                           <p className="text-sm font-semibold uppercase tracking-wider text-fairy-gold">
                             {formatDate(e.event_date)}
+                            {e.event_end_date && ` → ${formatDate(e.event_end_date)}`}
                           </p>
                         )}
                         <h3 className="mt-2 text-xl font-bold text-gray-900 group-hover:text-fairy-gold transition-colors">
                           {e.title}
                         </h3>
+                        {eventFromPrice(e) > 0 && (
+                          <p className="mt-1 text-sm font-semibold text-gray-800">
+                            à partir de {formatEuro2(eventFromPrice(e))}
+                          </p>
+                        )}
                         {e.location && (
                           <p className="mt-1 text-sm text-gray-500">{e.location}</p>
                         )}

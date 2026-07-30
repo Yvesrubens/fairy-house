@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import DOMPurify from 'dompurify'
 import { getEventBySlug } from '../lib/api'
 import { formatDate, formatEuro2 } from '../lib/format'
+import { eventFromPrice } from '../lib/eventPricing'
 import type { EventRow } from '../types/db'
 import { Calendar, Users, ArrowRight } from '../components/icons'
 
@@ -58,14 +59,8 @@ export default function EvenementDetail() {
     )
   }
 
-  // Prix « à partir de » = prix de l'événement + l'hébergement (1 lit) le moins
-  // cher parmi ceux configurés.
-  const eventBase = event.event_price_ttc ?? 0
-  const accPrices = [
-    event.accommodation_tente_ttc,
-    event.accommodation_chambre_ttc,
-  ].filter((p): p is number => p != null && p > 0)
-  const fromPrice = eventBase + (accPrices.length ? Math.min(...accPrices) : 0)
+  // Prix « à partir de » (prix de l'événement + 1 lit le moins cher).
+  const fromPrice = eventFromPrice(event)
 
   return (
     <main className="flex-1">

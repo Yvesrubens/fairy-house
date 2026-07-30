@@ -59,6 +59,23 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100
 }
 
+/**
+ * Prix « à partir de » d'un événement = prix de l'événement + l'hébergement
+ * (1 lit) le moins cher parmi ceux configurés. Renvoie 0 si aucun prix.
+ * Utilisé sur les cartes (accueil, liste) et la page de détail.
+ */
+export function eventFromPrice(e: {
+  event_price_ttc: number | null
+  accommodation_tente_ttc: number | null
+  accommodation_chambre_ttc: number | null
+}): number {
+  const base = e.event_price_ttc ?? 0
+  const acc = [e.accommodation_tente_ttc, e.accommodation_chambre_ttc].filter(
+    (p): p is number => p != null && p > 0,
+  )
+  return round2(base + (acc.length ? Math.min(...acc) : 0))
+}
+
 /** Construit une ligne à partir d'un montant TTC : rétro-calcul HT + TVA. */
 function line(label: string, ttc: number, vatRate: number): EventQuoteLine {
   const t = round2(ttc)

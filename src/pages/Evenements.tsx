@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listPublishedEvents } from '../lib/api'
-import { formatDate } from '../lib/format'
+import { formatDate, formatEuro2 } from '../lib/format'
+import { eventFromPrice } from '../lib/eventPricing'
 import type { EventRow } from '../types/db'
 import { Filter } from '../components/icons'
 import NewsletterForm from '../components/NewsletterForm'
@@ -115,6 +116,7 @@ export default function Evenements() {
                       {e.event_date && (
                         <p className="text-sm font-semibold uppercase tracking-wider text-fairy-gold">
                           {formatDate(e.event_date)}
+                          {e.event_end_date && ` → ${formatDate(e.event_end_date)}`}
                         </p>
                       )}
                       <Link to={`/evenements/${e.slug}`}>
@@ -122,8 +124,10 @@ export default function Evenements() {
                           {e.title}
                         </h3>
                       </Link>
-                      {e.location && (
-                        <p className="mt-1 text-sm text-gray-500">{e.location}</p>
+                      {eventFromPrice(e) > 0 && (
+                        <p className="mt-1 text-sm font-semibold text-gray-800">
+                          à partir de {formatEuro2(eventFromPrice(e))}
+                        </p>
                       )}
                       {e.description && (
                         <p className="mt-3 leading-relaxed text-gray-600 line-clamp-3">
