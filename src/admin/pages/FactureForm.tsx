@@ -64,7 +64,7 @@ export default function FactureForm({
   const eur = (v: number) =>
     v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
 
-  async function run(isPreview: boolean) {
+  async function run(isPreview: boolean, win?: Window | null) {
     setError('')
     if (isPreview) setPreviewing(true)
     else setBusy(true)
@@ -88,9 +88,10 @@ export default function FactureForm({
       const body = await res.json().catch(() => ({}))
       if (!res.ok)
         throw new Error(body.error || 'Échec de la génération de la facture')
-      if (isPreview) openPdfBase64(body.pdf)
+      if (isPreview) openPdfBase64(body.pdf, win)
       else onSent(body.reference)
     } catch (err) {
+      if (win) win.close()
       setError((err as Error).message)
     } finally {
       setBusy(false)
@@ -230,7 +231,7 @@ export default function FactureForm({
         <div className="mt-8 flex flex-wrap gap-3">
           <button
             type="button"
-            onClick={() => run(true)}
+            onClick={() => run(true, window.open('', '_blank'))}
             disabled={previewing || busy}
             className="rounded-lg border border-purple-300 px-6 py-2.5 text-sm font-semibold text-purple-700 hover:bg-purple-50 disabled:opacity-60"
           >

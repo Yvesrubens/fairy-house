@@ -9,9 +9,11 @@ interface Line {
   designation: string
   qty: number
   unitPrice: number
+  vatRate: number
 }
 
-const VAT = 20
+// Taux de TVA proposés : 10 % (hébergement/restauration) / 20 % (prestations).
+const VAT_RATES = [10, 20]
 
 function nights(r: Reservation): number {
   if (!r.departure_date) return 1
@@ -37,6 +39,7 @@ export default function DevisForm({
       )}${reservation.departure_date ? ' au ' + formatDate(reservation.departure_date) : ''}`,
       qty: n,
       unitPrice: reservation.amount > 0 ? Math.round((reservation.amount / n) * 100) / 100 : 0,
+      vatRate: 10,
     },
   ])
   const [validityDays, setValidityDays] = useState(30)
@@ -49,19 +52,27 @@ export default function DevisForm({
     setLines((prev) => prev.map((l, idx) => (idx === i ? { ...l, ...patch } : l)))
   }
   function addLine() {
-    setLines((prev) => [...prev, { designation: '', qty: 1, unitPrice: 0 }])
+    setLines((prev) => [...prev, { designation: '', qty: 1, unitPrice: 0, vatRate: 20 }])
   }
   function removeLine(i: number) {
     setLines((prev) => prev.filter((_, idx) => idx !== i))
   }
 
-  const totalHt = lines.reduce((s, l) => s + l.qty * l.unitPrice, 0)
-  const tva = Math.round(totalHt * (VAT / 100) * 100) / 100
-  const totalTtc = Math.round((totalHt + tva) * 100) / 100
+  const round2 = (v: number) => Math.round(v * 100) / 100
+  const totalHt = round2(lines.reduce((s, l) => s + l.qty * l.unitPrice, 0))
+  // TVA détaillée par taux.
+  const vatByRate = VAT_RATES.map((rate) => {
+    const ht = lines
+      .filter((l) => l.vatRate === rate)
+      .reduce((s, l) => s + l.qty * l.unitPrice, 0)
+    return { rate, ht: round2(ht), vat: round2((ht * rate) / 100) }
+  }).filter((g) => g.ht > 0)
+  const totalTva = round2(vatByRate.reduce((s, g) => s + g.vat, 0))
+  const totalTtc = round2(totalHt + totalTva)
   const eur = (v: number) =>
     v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
 
-  async function run(isPreview: boolean) {
+  async function run(isPreview: boolean, win?: Window | null) {
     setError('')
     if (isPreview) setPreviewing(true)
     else setBusy(true)
@@ -84,9 +95,10 @@ export default function DevisForm({
       })
       const body = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(body.error || 'Échec de la génération du devis')
-      if (isPreview) openPdfBase64(body.pdf)
+      if (isPreview) openPdfBase64(body.pdf, win)
       else onSent(body.reference)
     } catch (err) {
+      if (win) win.close()
       setError((err as Error).message)
     } finally {
       setBusy(false)
@@ -129,17 +141,18 @@ export default function DevisForm({
 
         {/* Lignes */}
         <div className="mt-6 space-y-3">
-          <div className="grid grid-cols-[1fr_70px_100px_100px_32px] gap-2 text-xs font-medium uppercase text-gray-400">
+          <div className="grid grid-cols-[1fr_56px_84px_70px_84px_28px] gap-2 text-xs font-medium uppercase text-gray-400">
             <span>Désignation</span>
             <span>Qté</span>
             <span>PU HT</span>
+            <span>TVA</span>
             <span className="text-right">Total HT</span>
             <span />
           </div>
           {lines.map((l, i) => (
             <div
               key={i}
-              className="grid grid-cols-[1fr_70px_100px_100px_32px] items-center gap-2"
+              className="grid grid-cols-[1fr_56px_84px_70px_84px_28px] items-center gap-2"
             >
               <input
                 value={l.designation}
@@ -163,6 +176,17 @@ export default function DevisForm({
                 onChange={(e) => setLine(i, { unitPrice: Number(e.target.value) })}
                 className="rounded-lg border px-2 py-2 text-sm outline-none focus:border-purple-500"
               />
+              <select
+                value={l.vatRate}
+                onChange={(e) => setLine(i, { vatRate: Number(e.target.value) })}
+                className="rounded-lg border px-1 py-2 text-sm outline-none focus:border-purple-500"
+              >
+                {VAT_RATES.map((r) => (
+                  <option key={r} value={r}>
+                    {r}%
+                  </option>
+                ))}
+              </select>
               <span className="text-right text-sm font-medium">
                 {eur(l.qty * l.unitPrice)}
               </span>
@@ -191,10 +215,12 @@ export default function DevisForm({
             <span>Total HT</span>
             <span>{eur(totalHt)}</span>
           </div>
-          <div className="flex justify-between text-gray-600">
-            <span>TVA {VAT} %</span>
-            <span>{eur(tva)}</span>
-          </div>
+          {vatByRate.map((g) => (
+            <div key={g.rate} className="flex justify-between text-gray-600">
+              <span>TVA {g.rate} %</span>
+              <span>{eur(g.vat)}</span>
+            </div>
+          ))}
           <div className="flex justify-between rounded-lg bg-purple-50 px-3 py-2 font-bold text-purple-700">
             <span>Total TTC</span>
             <span>{eur(totalTtc)}</span>
@@ -226,7 +252,7 @@ export default function DevisForm({
         <div className="mt-8 flex flex-wrap gap-3">
           <button
             type="button"
-            onClick={() => run(true)}
+            onClick={() => run(true, window.open('', '_blank'))}
             disabled={previewing || busy}
             className="rounded-lg border border-purple-300 px-6 py-2.5 text-sm font-semibold text-purple-700 hover:bg-purple-50 disabled:opacity-60"
           >

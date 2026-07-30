@@ -13,7 +13,10 @@ interface Line {
   designation: string
   qty: number
   unitPrice: number
+  vatRate?: number
 }
+
+const round2 = (v: number) => Math.round(v * 100) / 100
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
@@ -67,10 +70,23 @@ export default async function handler(req: any, res: any) {
     designation: String(l.designation || ''),
     qty: Number(l.qty) || 0,
     unitPrice: Number(l.unitPrice) || 0,
+    vatRate: Number(l.vatRate) || 20,
   }))
-  const vatRate = 20
-  const totalHt = cleanLines.reduce((s, l) => s + l.qty * l.unitPrice, 0)
-  const totalTtc = Math.round(totalHt * (1 + vatRate / 100) * 100) / 100
+  const totalHt = round2(cleanLines.reduce((s, l) => s + l.qty * l.unitPrice, 0))
+  // TVA détaillée par taux (10 % / 20 %).
+  const rates = [...new Set(cleanLines.map((l) => l.vatRate || 20))]
+  const vatBreakdown = rates
+    .map((rate) => {
+      const ht = cleanLines
+        .filter((l) => (l.vatRate || 20) === rate)
+        .reduce((s, l) => s + l.qty * l.unitPrice, 0)
+      return { rate, ht: round2(ht), vat: round2((ht * rate) / 100) }
+    })
+    .filter((g) => g.ht > 0)
+  const totalTtc = round2(totalHt + vatBreakdown.reduce((s, g) => s + g.vat, 0))
+  // Taux « principal » (part HT la plus élevée) pour la colonne legacy vat_rate.
+  const mainRate =
+    vatBreakdown.slice().sort((a, b) => b.ht - a.ht)[0]?.rate ?? 20
 
   const org = await fetchOrgSettings(supabase)
   const issuer = {
@@ -90,7 +106,7 @@ export default async function handler(req: any, res: any) {
       clientEmail: r.client_email,
       lines: cleanLines,
       totalHt,
-      vatRate,
+      vatBreakdown,
       totalTtc,
       validityDays,
       note,
@@ -181,7 +197,7 @@ export default async function handler(req: any, res: any) {
     client_email: r.client_email,
     lines: cleanLines,
     total_ht: totalHt,
-    vat_rate: vatRate,
+    vat_rate: mainRate,
     total_ttc: totalTtc,
     validity_days: validityDays,
     sent_at: new Date().toISOString(),
