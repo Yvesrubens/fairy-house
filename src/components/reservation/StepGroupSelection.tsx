@@ -5,6 +5,7 @@ import {
   HOUSE_CAPACITY,
   nights,
   computeQuote,
+  PRICE_PER_PERSON_NIGHT,
   LINGE_PER_PERSON,
   PENSION_PER_PERSON_NIGHT,
 } from '../../lib/booking'
@@ -131,6 +132,18 @@ export default function StepGroupSelection({
           })}
         </div>
       )}
+
+      <div className="flex items-start gap-2 rounded-xl bg-fairy-gold/10 px-4 py-3">
+        <Bed className="mt-0.5 w-5 h-5 flex-shrink-0 text-fairy-gold" />
+        <p className="text-sm text-gray-700">
+          Tarif : <strong>{formatEuro2(PRICE_PER_PERSON_NIGHT)} / personne / nuit</strong>{' '}
+          — la réservation est facturée selon le nombre de personnes
+          {state.wholeHouse
+            ? ` (maison complète : ${HOUSE_CAPACITY} personnes)`
+            : ''}
+          .
+        </p>
+      </div>
 
       <AvailabilityCalendar
         arrival={state.arrival}
