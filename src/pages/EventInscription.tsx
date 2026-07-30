@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getEventBySlug, createReservation } from '../lib/api'
+import {
+  getEventBySlug,
+  createReservation,
+  createCheckoutSession,
+} from '../lib/api'
 import { formatDate, formatEuro2 } from '../lib/format'
 import { canSplit, splitPlan } from '../lib/booking'
 import {
@@ -22,18 +26,10 @@ const fieldCls =
 function today(): string {
   return new Date().toISOString().slice(0, 10)
 }
-function formatCardNumber(v: string): string {
-  return v.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim()
-}
-function formatExpiry(v: string): string {
-  const d = v.replace(/\D/g, '').slice(0, 4)
-  return d.length <= 2 ? d : `${d.slice(0, 2)}/${d.slice(2)}`
-}
 
 const METHODS = [
   { key: 'virement', label: 'Virement' },
-  { key: 'cb', label: 'CB' },
-  { key: 'paypal', label: 'PayPal' },
+  { key: 'cb', label: 'Carte bancaire' },
 ] as const
 
 export default function EventInscription() {
@@ -63,14 +59,9 @@ export default function EventInscription() {
   const [consentReglement, setConsentReglement] = useState(false)
   const [consentImage, setConsentImage] = useState(false)
   // Paiement
-  const [paymentMethod, setPaymentMethod] = useState<
-    'virement' | 'cb' | 'paypal' | null
-  >(null)
-  const [cardName, setCardName] = useState('')
-  const [cardNumber, setCardNumber] = useState('')
-  const [cardExpiry, setCardExpiry] = useState('')
-  const [cardCvc, setCardCvc] = useState('')
-  const [paypalConfirmed, setPaypalConfirmed] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<'virement' | 'cb' | null>(
+    null,
+  )
 
   useEffect(() => {
     if (!slug) return
@@ -80,6 +71,13 @@ export default function EventInscription() {
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
   }, [slug])
+
+  // Retour depuis Stripe Checkout (paiement carte réussi).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('paid') === '1') {
+      setDone(true)
+    }
+  }, [])
 
   const cfg: EventPricingConfig | null = useMemo(
     () =>
@@ -111,16 +109,8 @@ export default function EventInscription() {
       : null
 
   const isFree = (quote?.totalTtc ?? 0) <= 0
-  const cardComplete =
-    cardName.trim() !== '' &&
-    cardNumber.replace(/\s/g, '').length >= 13 &&
-    cardExpiry.length === 5 &&
-    cardCvc.length >= 3
   const paymentReady =
-    isFree ||
-    paymentMethod === 'virement' ||
-    (paymentMethod === 'cb' && cardComplete) ||
-    (paymentMethod === 'paypal' && paypalConfirmed)
+    isFree || paymentMethod === 'virement' || paymentMethod === 'cb'
 
   function goToPayment() {
     if (!firstName.trim() || !lastName.trim()) {
@@ -179,7 +169,19 @@ export default function EventInscription() {
         balance_amount: plan?.balance,
         balance_due_date: plan?.balanceDueDate,
       })
-      // Emails (non bloquant pour l'affichage du succès).
+      // Carte : redirection vers Stripe Checkout (confirmation via webhook).
+      if (!isFree && paymentMethod === 'cb') {
+        const origin = window.location.origin
+        const { url } = await createCheckoutSession({
+          reservationId: id,
+          successUrl: `${origin}/evenements/${slug}/inscription?paid=1`,
+          cancelUrl: `${origin}/evenements/${slug}/inscription`,
+          label: `Événement — ${event.title}`,
+        })
+        window.location.href = url
+        return
+      }
+      // Virement / gratuit : e-mail immédiat (non bloquant pour l'affichage).
       fetch('/api/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -401,7 +403,7 @@ export default function EventInscription() {
                     <CreditCard className="w-4 h-4 inline mr-1" />
                     Moyen de paiement
                   </label>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     {METHODS.map((m) => (
                       <button
                         key={m.key}
@@ -414,9 +416,6 @@ export default function EventInscription() {
                         }`}
                       >
                         {m.label}
-                        {m.key !== 'virement' && (
-                          <span className="block text-xs font-normal text-gray-500">Simulation</span>
-                        )}
                       </button>
                     ))}
                   </div>
@@ -424,34 +423,10 @@ export default function EventInscription() {
               )}
 
               {paymentMethod === 'cb' && !isFree && (
-                <div className="space-y-4 p-4 border-2 border-gray-200 rounded-xl">
-                  <p className="text-xs text-gray-500">
-                    Paiement simulé — aucune donnée bancaire n’est transmise ni stockée.
-                  </p>
-                  <input className={fieldCls} placeholder="Nom du titulaire" value={cardName} onChange={(e) => setCardName(e.target.value)} autoComplete="off" />
-                  <input className={fieldCls} inputMode="numeric" placeholder="1234 5678 9012 3456" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} autoComplete="off" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <input className={fieldCls} inputMode="numeric" placeholder="MM/AA" value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} autoComplete="off" />
-                    <input className={fieldCls} inputMode="numeric" placeholder="CVC" value={cardCvc} onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 4))} autoComplete="off" />
-                  </div>
-                </div>
-              )}
-
-              {paymentMethod === 'paypal' && !isFree && (
-                <div className="space-y-3 p-4 border-2 border-gray-200 rounded-xl text-center">
-                  <p className="text-xs text-gray-500">Paiement simulé — aucune connexion réelle à PayPal.</p>
-                  {paypalConfirmed ? (
-                    <p className="font-semibold text-green-600">✓ Connecté à PayPal (simulation)</p>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setPaypalConfirmed(true)}
-                      className="px-6 py-3 rounded-full font-bold bg-[#ffc439] text-[#003087] hover:brightness-95 transition-all"
-                    >
-                      Continuer avec PayPal
-                    </button>
-                  )}
-                </div>
+                <p className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                  Vous serez redirigé·e vers notre prestataire de paiement
+                  sécurisé (Stripe) pour régler par carte.
+                </p>
               )}
 
               <div className="flex gap-4 pt-2">
@@ -469,9 +444,9 @@ export default function EventInscription() {
                   className="flex-1 px-6 py-4 bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-black hover:from-black hover:to-black hover:text-fairy-gold rounded-full font-bold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {busy
-                    ? 'Envoi…'
-                    : paymentMethod === 'cb' || paymentMethod === 'paypal'
-                      ? 'Payer (simulation)'
+                    ? 'Redirection…'
+                    : !isFree && paymentMethod === 'cb'
+                      ? 'Payer par carte'
                       : 'Valider mon inscription'}
                 </button>
               </div>
