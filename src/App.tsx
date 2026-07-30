@@ -30,6 +30,7 @@ import BedBlocks from './admin/pages/BedBlocks'
 import Newsletter from './admin/pages/Newsletter'
 import Settings from './admin/pages/Settings'
 import SiteContent from './admin/pages/SiteContent'
+import Factures from './admin/pages/Factures'
 
 function PublicSite() {
   return (
@@ -86,6 +87,7 @@ export default function App() {
           <Route path="messages" element={<Messages />} />
           <Route path="blocage-lits" element={<BedBlocks />} />
           <Route path="newsletter" element={<Newsletter />} />
+          <Route path="factures" element={<Factures />} />
           <Route path="settings" element={<Settings />} />
           <Route path="contenu" element={<SiteContent />} />
         </Route>

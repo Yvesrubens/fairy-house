@@ -28,6 +28,7 @@ const LINKS: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/admin/newsletter', label: 'Newsletter', icon: <EnvelopeIcon /> },
   { to: '/admin/articles', label: 'Articles', icon: <DocIcon /> },
   { to: '/admin/intervenants', label: 'Intervenants', icon: <UsersIcon /> },
+  { to: '/admin/factures', label: 'Factures', icon: <DocIcon /> },
   { to: '/admin/settings', label: 'Paramètres', icon: <GearIcon /> },
   { to: '/admin/contenu', label: 'Contenu du site', icon: <DocIcon /> },
 ]

@@ -144,6 +144,20 @@ export interface EventCategory {
   created_at: string
 }
 
+export interface FactureRow {
+  id: string
+  reference: string
+  reservation_id: string | null
+  client_name: string | null
+  client_email: string | null
+  lines: { designation: string; qty: number; unitPrice: number; vatRate?: number }[]
+  total_ht: number
+  vat_rate: number
+  total_ttc: number
+  issued_at: string | null
+  created_at: string
+}
+
 export interface BedBlock {
   id: string
   start_date: string

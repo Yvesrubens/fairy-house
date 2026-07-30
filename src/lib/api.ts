@@ -4,6 +4,7 @@ import type {
   BedBlock,
   EventRow,
   EventCategory,
+  FactureRow,
   Intervenant,
   IntervenantDomain,
   MessageRow,
@@ -471,6 +472,23 @@ export async function listAdmins(): Promise<
     .select('id,email,full_name')
     .order('created_at')
   return unwrap(data, error)
+}
+
+// ------------------------------------------------------- Admin: factures
+export async function listFactures(): Promise<FactureRow[]> {
+  const { data, error } = await supabase
+    .from('factures')
+    .select('*')
+    .order('created_at', { ascending: false })
+  return unwrap(data, error)
+}
+
+export async function updateFacture(
+  id: string,
+  patch: Partial<Pick<FactureRow, 'lines' | 'total_ht' | 'vat_rate' | 'total_ttc'>>,
+): Promise<void> {
+  const { error } = await supabase.from('factures').update(patch).eq('id', id)
+  if (error) throw new Error(error.message)
 }
 
 // -------------------------------------------- Admin: coordonnées & facturation
