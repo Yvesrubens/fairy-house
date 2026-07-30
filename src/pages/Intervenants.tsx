@@ -46,7 +46,10 @@ function PersonCard({ person }: { person: Intervenant }) {
           </p>
           <div className="mt-5 pt-5 border-t border-white/10 space-y-3">
             {person.price && (
-              <p className="text-2xl font-bold text-fairy-gold">{person.price}</p>
+              <p className="text-2xl font-bold text-fairy-gold">
+                <span className="text-sm font-medium text-gray-400">à partir de </span>
+                {person.price}
+              </p>
             )}
             {person.website && (
               <a

@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import type { StepProps } from './types'
-import { SIMPLE_BEDS, DOUBLE_BEDS, nights } from '../../lib/booking'
+import {
+  SIMPLE_BEDS,
+  DOUBLE_BEDS,
+  nights,
+  computeQuote,
+  LINGE_PER_PERSON,
+  PENSION_PER_PERSON_NIGHT,
+} from '../../lib/booking'
+import { formatEuro2 } from '../../lib/format'
 import { Calendar, Bed, Users } from '../icons'
 import AvailabilityCalendar from './AvailabilityCalendar'
 
@@ -26,6 +34,8 @@ export default function StepIndividualSelection({
   const [error, setError] = useState('')
 
   const bedCapacity = state.simpleBeds + state.doubleBeds * 2
+  const nightsCount = nights(state.arrival, state.departure)
+  const liveQuote = computeQuote(bedCapacity, nightsCount, state.options)
 
   // Les lits pilotent le nombre de personnes facturées (= capacité). On garde
   // `individualGuests` synchronisé pour le devis et l'enregistrement.
@@ -152,7 +162,12 @@ export default function StepIndividualSelection({
             }
             className="w-5 h-5 accent-fairy-gold"
           />
-          <span className="text-gray-700">Linge de maison</span>
+          <span className="text-gray-700">
+            Linge de maison{' '}
+            <span className="text-gray-500">
+              (+{formatEuro2(LINGE_PER_PERSON)} / personne)
+            </span>
+          </span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -165,9 +180,26 @@ export default function StepIndividualSelection({
             }
             className="w-5 h-5 accent-fairy-gold"
           />
-          <span className="text-gray-700">Pension complète</span>
+          <span className="text-gray-700">
+            Pension complète{' '}
+            <span className="text-gray-500">
+              (+{formatEuro2(PENSION_PER_PERSON_NIGHT)} / personne / nuit)
+            </span>
+          </span>
         </label>
       </div>
+
+      {bedCapacity > 0 && nightsCount >= 1 && (
+        <div className="flex items-center justify-between rounded-xl bg-fairy-gold/10 px-4 py-3">
+          <span className="text-sm text-gray-700">
+            Total estimé ({bedCapacity} personne{bedCapacity > 1 ? 's' : ''} ·{' '}
+            {nightsCount} nuit{nightsCount > 1 ? 's' : ''})
+          </span>
+          <span className="text-xl font-bold text-gray-900">
+            {formatEuro2(liveQuote.totalTtc)}
+          </span>
+        </div>
+      )}
 
       <div className="flex gap-4 pt-4">
         <button

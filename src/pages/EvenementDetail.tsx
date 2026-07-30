@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import DOMPurify from 'dompurify'
 import { getEventBySlug } from '../lib/api'
-import { formatDate } from '../lib/format'
+import { formatDate, formatEuro2 } from '../lib/format'
 import type { EventRow } from '../types/db'
-import { Calendar, MapPin, Users, ArrowRight } from '../components/icons'
+import { Calendar, Users, ArrowRight } from '../components/icons'
 
 export default function EvenementDetail() {
   const { slug } = useParams<{ slug: string }>()
@@ -58,6 +58,15 @@ export default function EvenementDetail() {
     )
   }
 
+  // Prix « à partir de » = prix de l'événement + l'hébergement (1 lit) le moins
+  // cher parmi ceux configurés.
+  const eventBase = event.event_price_ttc ?? 0
+  const accPrices = [
+    event.accommodation_tente_ttc,
+    event.accommodation_chambre_ttc,
+  ].filter((p): p is number => p != null && p > 0)
+  const fromPrice = eventBase + (accPrices.length ? Math.min(...accPrices) : 0)
+
   return (
     <main className="flex-1">
       <div className="min-h-screen">
@@ -105,22 +114,26 @@ export default function EvenementDetail() {
                     <Calendar className="w-5 h-5 text-fairy-gold flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-xs uppercase tracking-wide text-gray-400">
-                        Date
+                        Dates
                       </p>
                       <p className="font-medium text-gray-800">
                         {formatDate(event.event_date)}
+                        {event.event_end_date &&
+                          ` → ${formatDate(event.event_end_date)}`}
                       </p>
                     </div>
                   </div>
                 )}
-                {event.location && (
+                {fromPrice > 0 && (
                   <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-fairy-gold flex-shrink-0 mt-0.5" />
+                    <Users className="w-5 h-5 text-fairy-gold flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-xs uppercase tracking-wide text-gray-400">
-                        Lieu
+                        Tarif
                       </p>
-                      <p className="font-medium text-gray-800">{event.location}</p>
+                      <p className="font-medium text-gray-800">
+                        à partir de {formatEuro2(fromPrice)}
+                      </p>
                     </div>
                   </div>
                 )}

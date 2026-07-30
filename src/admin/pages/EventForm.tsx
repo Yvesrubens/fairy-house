@@ -90,11 +90,6 @@ export default function EventForm({
         value={row.event_end_date ?? ''}
         onChange={(v) => set('event_end_date', v || null)}
       />
-      <Field
-        label="Lieu"
-        value={row.location ?? ''}
-        onChange={(v) => set('location', v)}
-      />
       <ManagedSelect
         label="Catégorie (pour les filtres côté site)"
         value={row.category ?? ''}

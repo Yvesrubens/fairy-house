@@ -4,11 +4,9 @@ import { listPublishedEvents } from '../lib/api'
 import { formatDate } from '../lib/format'
 import type { EventRow } from '../types/db'
 import { Filter } from '../components/icons'
-import { useReservation } from '../components/Reservation'
 import NewsletterForm from '../components/NewsletterForm'
 
 export default function Evenements() {
-  const { open: openReservation } = useReservation()
   const [events, setEvents] = useState<EventRow[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -139,18 +137,12 @@ export default function Evenements() {
                         >
                           Voir le détail
                         </Link>
-                        <button
-                          onClick={() =>
-                            openReservation({
-                              eventId: e.id,
-                              eventTitle: e.title,
-                              eventDate: e.event_date,
-                            })
-                          }
-                          className="px-5 py-2.5 rounded-full font-bold bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold transition-all"
+                        <Link
+                          to={`/evenements/${e.slug}/inscription`}
+                          className="text-center px-5 py-2.5 rounded-full font-bold bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold transition-all"
                         >
                           Réserver ma place
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   </article>
