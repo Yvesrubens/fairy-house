@@ -48,6 +48,9 @@ const base: Reservation = {
   billing_name: null,
   billing_email: null,
   billing_address: null,
+  payment_status: 'unpaid',
+  stripe_session_id: null,
+  stripe_payment_intent: null,
   created_at: '2026-06-03T10:00:00Z',
 }
 const now = new Date('2026-06-15T00:00:00Z')

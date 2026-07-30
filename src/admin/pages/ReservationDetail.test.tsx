@@ -17,6 +17,7 @@ const base: Reservation = {
   accommodation_choice: null, shuttle: null, consent_reglement: null,
   consent_image: null, quote_lines: null, vat_breakdown: null,
   billing_name: null, billing_email: null, billing_address: null,
+  payment_status: 'unpaid', stripe_session_id: null, stripe_payment_intent: null,
   created_at: '2026-07-01T10:00:00Z',
 }
 

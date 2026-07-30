@@ -45,6 +45,10 @@ export interface Reservation {
   billing_name: string | null
   billing_email: string | null
   billing_address: string | null
+  // Paiement carte (Stripe)
+  payment_status: 'unpaid' | 'paid'
+  stripe_session_id: string | null
+  stripe_payment_intent: string | null
   created_at: string
 }
 

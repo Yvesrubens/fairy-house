@@ -121,6 +121,23 @@ export async function createReservation(
   return { id, reference: ref as string }
 }
 
+/** Crée une session Stripe Checkout pour une réservation et renvoie l'URL. */
+export async function createCheckoutSession(input: {
+  reservationId: string
+  successUrl: string
+  cancelUrl: string
+  label: string
+}): Promise<{ url: string }> {
+  const res = await fetch('/api/create-checkout-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok || !body.url) throw new Error(body.error || 'Paiement indisponible')
+  return { url: body.url as string }
+}
+
 // ------------------------------------------------------- Disponibilités
 /** Vrai si la demande tient dans les lits restants (RPC SECURITY DEFINER). */
 export async function checkAvailability(
