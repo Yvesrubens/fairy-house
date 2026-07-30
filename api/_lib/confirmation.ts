@@ -1,7 +1,7 @@
 const CONTACT = {
-  email: 'contact@fairyhousecollectif.com',
-  phone: '+33 1 23 45 67 89',
-  address: 'Le Grand Leu, 45230 La Chapelle sur Aveyron',
+  email: 'fairyhouse.collectif@gmail.com',
+  phone: '+33 6 71 39 88 07',
+  address: '2 Le Grand Leu, 45230 La Chapelle sur Aveyron',
 }
 
 function fmtDate(iso: string | null): string {

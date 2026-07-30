@@ -12,11 +12,11 @@ export interface OrgSettings {
 }
 
 export const DEFAULT_ORG: OrgSettings = {
-  contactEmail: 'contact@fairyhousecollectif.com',
-  contactPhone: '+33 1 23 45 67 89',
-  address: 'Le Grand Leu, 45230 La Chapelle sur Aveyron',
-  siret: process.env.FH_SIRET || 'SIRET : à compléter',
-  tva: process.env.FH_TVA || 'N° TVA : à compléter',
+  contactEmail: 'fairyhouse.collectif@gmail.com',
+  contactPhone: '+33 6 71 39 88 07',
+  address: '2 Le Grand Leu, 45230 La Chapelle sur Aveyron',
+  siret: process.env.FH_SIRET || 'SIREN : transmis séparément',
+  tva: process.env.FH_TVA || 'TVA en cours d’attribution',
   rib: {
     iban: process.env.FH_RIB_IBAN || 'IBAN : à compléter',
     bic: process.env.FH_RIB_BIC || 'BIC : à compléter',

@@ -47,10 +47,22 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
     () => rows.filter((r) => (isEvent ? Boolean(r.event_id) : !r.event_id)),
     [rows, isEvent],
   )
-  const filtered = useMemo(
-    () => (filter === 'all' ? scoped : scoped.filter((r) => r.status === filter)),
-    [scoped, filter],
-  )
+  // Filtre par événement (périmètre événement uniquement) : liste des events
+  // présents parmi les inscriptions, et sélection multiple (vide = tous).
+  const [eventFilter, setEventFilter] = useState<Set<string>>(new Set())
+  const eventOptions = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const r of scoped) if (r.event_id) map.set(r.event_id, r.type)
+    return [...map.entries()].map(([id, label]) => ({ id, label }))
+  }, [scoped])
+
+  const filtered = useMemo(() => {
+    let list = filter === 'all' ? scoped : scoped.filter((r) => r.status === filter)
+    if (isEvent && eventFilter.size > 0) {
+      list = list.filter((r) => r.event_id && eventFilter.has(r.event_id))
+    }
+    return list
+  }, [scoped, filter, isEvent, eventFilter])
 
   const [sending, setSending] = useState<string | null>(null)
   const [devisFor, setDevisFor] = useState<Reservation | null>(null)
@@ -135,16 +147,21 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
             client: r.client_name,
             email: r.client_email,
             telephone: r.client_phone ?? '',
+            reseau_social: r.social_handle ?? '',
+            contact_urgence: r.emergency_contact ?? '',
             evenement: r.type,
             date: r.arrival_date,
             hebergement: ACCOMMODATION_LABEL[r.accommodation_choice ?? ''] ?? '',
             navette: r.shuttle ? 'Oui' : 'Non',
             regime: r.diet ?? '',
+            allergies: r.allergies ?? '',
             paiement: paymentSummary(r),
             consent_reglement: r.consent_reglement ? 'Oui' : 'Non',
             consent_image: r.consent_image ? 'Oui' : 'Non',
             montant: r.amount,
             statut: STATUS_LABEL[r.status],
+            message: r.message ?? '',
+            date_demande: formatDate(r.created_at),
           }
         : {
             reference: r.reference,
@@ -271,18 +288,58 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
         </div>
       </div>
 
-      <div className="mt-6 flex items-center gap-3 rounded-2xl border bg-white px-5 py-4">
-        <span className="text-sm font-medium text-gray-600">Statut :</span>
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value as Filter)}
-          className="rounded-lg border px-3 py-1.5 text-sm outline-none focus:border-purple-500"
-        >
-          <option value="all">Toutes</option>
-          <option value="pending">En attente</option>
-          <option value="confirmed">Confirmée</option>
-          <option value="cancelled">Annulée</option>
-        </select>
+      <div className="mt-6 flex flex-col gap-3 rounded-2xl border bg-white px-5 py-4">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-600">Statut :</span>
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as Filter)}
+            className="rounded-lg border px-3 py-1.5 text-sm outline-none focus:border-purple-500"
+          >
+            <option value="all">Toutes</option>
+            <option value="pending">En attente</option>
+            <option value="confirmed">Confirmée</option>
+            <option value="cancelled">Annulée</option>
+          </select>
+        </div>
+        {isEvent && eventOptions.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 border-t pt-3">
+            <span className="text-sm font-medium text-gray-600">Événement :</span>
+            <button
+              onClick={() => setEventFilter(new Set())}
+              className={`rounded-full px-3 py-1 text-xs font-medium ${
+                eventFilter.size === 0
+                  ? 'bg-purple-600 text-white'
+                  : 'border text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              Tous
+            </button>
+            {eventOptions.map((o) => {
+              const active = eventFilter.has(o.id)
+              return (
+                <button
+                  key={o.id}
+                  onClick={() =>
+                    setEventFilter((prev) => {
+                      const next = new Set(prev)
+                      if (next.has(o.id)) next.delete(o.id)
+                      else next.add(o.id)
+                      return next
+                    })
+                  }
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    active
+                      ? 'bg-purple-600 text-white'
+                      : 'border text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {o.label}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <div className="mt-6 overflow-x-auto rounded-2xl border bg-white">

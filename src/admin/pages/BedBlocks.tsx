@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { listBedBlocks, createBedBlock, deleteBedBlock } from '../../lib/api'
+import {
+  listBedBlocks,
+  createBedBlock,
+  updateBedBlock,
+  deleteBedBlock,
+} from '../../lib/api'
 import { formatDate } from '../../lib/format'
 import type { BedBlock } from '../../types/db'
 
@@ -11,12 +16,28 @@ export default function BedBlocks() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState({
     start_date: '',
     end_date: '',
     beds: '1',
     label: '',
   })
+
+  function resetForm() {
+    setForm({ start_date: '', end_date: '', beds: '1', label: '' })
+    setEditingId(null)
+  }
+
+  function edit(b: BedBlock) {
+    setEditingId(b.id)
+    setForm({
+      start_date: b.start_date,
+      end_date: b.end_date,
+      beds: String(b.beds),
+      label: b.label ?? '',
+    })
+  }
 
   async function load() {
     setLoading(true)
@@ -42,13 +63,15 @@ export default function BedBlocks() {
     setBusy(true)
     setError('')
     try {
-      await createBedBlock({
+      const payload = {
         start_date: form.start_date,
         end_date: form.end_date,
         beds: Number(form.beds) || 1,
         label: form.label || undefined,
-      })
-      setForm({ start_date: '', end_date: '', beds: '1', label: '' })
+      }
+      if (editingId) await updateBedBlock(editingId, payload)
+      else await createBedBlock(payload)
+      resetForm()
       await load()
     } catch (err) {
       setError((err as Error).message)
@@ -131,12 +154,23 @@ export default function BedBlocks() {
             className={inputCls}
           />
         </label>
-        <button
-          disabled={busy}
-          className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-60"
-        >
-          {busy ? 'Ajout…' : 'Bloquer'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            disabled={busy}
+            className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-60"
+          >
+            {busy ? 'Enregistrement…' : editingId ? 'Modifier' : 'Bloquer'}
+          </button>
+          {editingId && (
+            <button
+              type="button"
+              onClick={resetForm}
+              className="rounded-lg border px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+            >
+              Annuler
+            </button>
+          )}
+        </div>
       </form>
 
       <div className="mt-6 overflow-x-auto rounded-2xl border bg-white">
@@ -172,12 +206,20 @@ export default function BedBlocks() {
                 <td className="px-6 py-4 text-gray-700">{b.beds}</td>
                 <td className="px-6 py-4 text-gray-700">{b.label ?? '—'}</td>
                 <td className="px-6 py-4">
-                  <button
-                    onClick={() => remove(b.id)}
-                    className="text-sm font-medium text-rose-500 hover:text-rose-600"
-                  >
-                    Supprimer
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => edit(b)}
+                      className="text-sm font-medium text-purple-600 hover:text-purple-700"
+                    >
+                      Éditer
+                    </button>
+                    <button
+                      onClick={() => remove(b.id)}
+                      className="text-sm font-medium text-rose-500 hover:text-rose-600"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

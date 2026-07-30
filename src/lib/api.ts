@@ -319,6 +319,14 @@ export async function createBedBlock(input: {
   if (error) throw new Error(error.message)
 }
 
+export async function updateBedBlock(
+  id: string,
+  input: { start_date: string; end_date: string; beds: number; label?: string },
+): Promise<void> {
+  const { error } = await supabase.from('bed_blocks').update(input).eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
 export async function deleteBedBlock(id: string): Promise<void> {
   const { error } = await supabase.from('bed_blocks').delete().eq('id', id)
   if (error) throw new Error(error.message)
