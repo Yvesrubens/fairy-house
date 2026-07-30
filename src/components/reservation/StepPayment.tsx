@@ -170,6 +170,23 @@ export default function StepPayment({
         </div>
       </div>
 
+      {/* Paiement en 2 fois (virement uniquement, si arrivée à +30 j) */}
+      {state.paymentMethod === 'virement' && canSplit(state.arrival, today) && (
+        <label className="flex items-center gap-3 cursor-pointer rounded-xl border-2 border-gray-200 p-4">
+          <input
+            type="checkbox"
+            checked={state.paymentPlan === 'split'}
+            onChange={(e) =>
+              setState({ paymentPlan: e.target.checked ? 'split' : 'once' })
+            }
+            className="w-5 h-5 accent-fairy-gold"
+          />
+          <span className="text-sm text-gray-700">
+            Payer en 2 fois : 50 % à la réservation, solde 30 jours avant l'arrivée.
+          </span>
+        </label>
+      )}
+
       {/* Simulation CB : champs de carte (non transmis) */}
       {state.paymentMethod === 'cb' && (
         <div className="space-y-4 p-4 border-2 border-gray-200 rounded-xl">

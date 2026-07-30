@@ -102,8 +102,9 @@ export default function EventInscription() {
   )
 
   const eventDate = event?.event_date ?? today()
-  const splitAvailable =
-    Boolean(cfg?.splitEnabled) && canSplit(eventDate, today())
+  // Paiement en 2 fois proposé pour tout événement dont la date est à plus de
+  // 30 jours (plus de verrou par événement).
+  const splitAvailable = canSplit(eventDate, today())
   const plan =
     quote && paymentPlan === 'split' && splitAvailable
       ? splitPlan(quote.totalTtc, eventDate)

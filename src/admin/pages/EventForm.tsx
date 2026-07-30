@@ -188,14 +188,10 @@ export default function EventForm({
           value={row.shuttle_price_ttc != null ? String(row.shuttle_price_ttc) : ''}
           onChange={(v) => set('shuttle_price_ttc', v ? Number(v) : null)}
         />
-        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-          <input
-            type="checkbox"
-            checked={row.split_payment_enabled ?? false}
-            onChange={(e) => set('split_payment_enabled', e.target.checked)}
-          />
-          Autoriser le paiement en 2 fois
-        </label>
+        <p className="text-xs text-gray-500">
+          Le paiement en 2 fois est proposé automatiquement pour tout événement
+          dont la date est à plus de 30 jours.
+        </p>
         <Field
           label="Texte règlement intérieur (vide = texte par défaut)"
           textarea
