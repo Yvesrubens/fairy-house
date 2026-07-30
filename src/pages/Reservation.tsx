@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Calendar } from '../components/icons'
 import type { BookingState } from '../components/reservation/types'
 import StepStayType from '../components/reservation/StepStayType'
@@ -7,7 +7,11 @@ import StepIndividualSelection from '../components/reservation/StepIndividualSel
 import StepDetails from '../components/reservation/StepDetails'
 import StepPayment from '../components/reservation/StepPayment'
 import StepCustom from '../components/reservation/StepCustom'
-import { createReservation, checkAvailability } from '../lib/api'
+import {
+  createReservation,
+  checkAvailability,
+  createCheckoutSession,
+} from '../lib/api'
 import { HOUSE_CAPACITY, canSplit, computeQuote, nights, splitPlan } from '../lib/booking'
 
 // F2 : un lit seul (parcours individuel) ne peut être réservé plus de 2 mois à
@@ -49,6 +53,13 @@ export default function Reservation() {
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+
+  // Retour depuis Stripe Checkout (paiement carte réussi).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('paid') === '1') {
+      setDone(true)
+    }
+  }, [])
 
   const setState = (patch: Partial<BookingState>) =>
     setStateRaw((s) => ({ ...s, ...patch }))
@@ -168,7 +179,20 @@ export default function Reservation() {
         balance_amount: split?.balance,
         balance_due_date: split?.balanceDueDate,
       })
-      // Déclenche les mails (non bloquant pour l'affichage du succès)
+      // Carte : redirection vers Stripe Checkout (la confirmation/e-mail se fait
+      // via le webhook après paiement).
+      if (state.paymentMethod === 'cb') {
+        const origin = window.location.origin
+        const { url } = await createCheckoutSession({
+          reservationId: id,
+          successUrl: `${origin}/reserver?paid=1`,
+          cancelUrl: `${origin}/reserver`,
+          label: typeLabel,
+        })
+        window.location.href = url
+        return
+      }
+      // Virement : e-mail immédiat (devis + RIB). Non bloquant pour l'affichage.
       fetch('/api/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
