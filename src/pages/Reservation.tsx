@@ -100,12 +100,12 @@ export default function Reservation() {
     ]
       .filter(Boolean)
       .join(', ')
-    // Règle : seule la privatisation de la MAISON ENTIÈRE est réservable à toute
-    // date. Toute réservation partielle (un lit, une ou plusieurs chambres) est
-    // limitée à 2 mois à l'avance.
-    if (!state.wholeHouse && state.arrival > maxIndividualDate()) {
+    // Règle : la réservation de lit(s) (parcours « Séjour Individuel ») n'est
+    // possible que dans un délai de 2 mois. La maison entière et les séjours de
+    // groupe restent réservables à toute date.
+    if (state.mode === 'individuel' && state.arrival > maxIndividualDate()) {
       setError(
-        'Au-delà de 2 mois, seule la privatisation de la maison entière est réservable. Pour cette date, choisissez « Maison complète », ou rapprochez la date pour réserver un lit / des chambres.',
+        'La réservation d’un lit n’est possible que dans un délai de 2 mois. Pour une date plus lointaine, optez pour la privatisation (chambres ou maison complète).',
       )
       return
     }
