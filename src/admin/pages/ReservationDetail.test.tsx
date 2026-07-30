@@ -16,6 +16,7 @@ const base: Reservation = {
   social_handle: null, emergency_contact: null, diet: null,
   accommodation_choice: null, shuttle: null, consent_reglement: null,
   consent_image: null, quote_lines: null, vat_breakdown: null,
+  billing_name: null, billing_email: null, billing_address: null,
   created_at: '2026-07-01T10:00:00Z',
 }
 

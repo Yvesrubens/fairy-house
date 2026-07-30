@@ -269,6 +269,32 @@ export async function updateReservationStatus(
   if (error) throw new Error(error.message)
 }
 
+// Champs de réservation modifiables en back-office (dont facturation).
+export type ReservationEditable = Partial<
+  Pick<
+    Reservation,
+    | 'client_name'
+    | 'client_email'
+    | 'client_phone'
+    | 'arrival_date'
+    | 'departure_date'
+    | 'guests'
+    | 'amount'
+    | 'message'
+    | 'billing_name'
+    | 'billing_email'
+    | 'billing_address'
+  >
+>
+
+export async function updateReservation(
+  id: string,
+  patch: ReservationEditable,
+): Promise<void> {
+  const { error } = await supabase.from('reservations').update(patch).eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
 export interface ManualReservationInput {
   client_name: string
   client_email: string

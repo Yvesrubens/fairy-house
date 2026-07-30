@@ -41,6 +41,10 @@ export interface Reservation {
     | { designation: string; qty: number; unitPrice: number; vatRate: number }[]
     | null
   vat_breakdown: { rate: number; ht: number; vat: number; ttc: number }[] | null
+  // Contact / adresse de facturation distincts (optionnels)
+  billing_name: string | null
+  billing_email: string | null
+  billing_address: string | null
   created_at: string
 }
 
@@ -130,6 +134,7 @@ export interface OrgSettings {
   rib_iban: string | null
   rib_bic: string | null
   rib_titulaire: string | null
+  total_beds: number | null
   updated_at: string
 }
 

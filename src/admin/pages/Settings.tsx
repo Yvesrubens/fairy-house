@@ -40,8 +40,10 @@ export default function Settings() {
     try {
       const s = await getOrgSettings()
       if (s) {
+        const raw = s as unknown as Record<string, unknown>
         const f: OrgForm = {}
-        for (const { key } of ORG_FIELDS) f[key] = (s as unknown as Record<string, unknown>)[key]?.toString() ?? ''
+        for (const { key } of ORG_FIELDS) f[key] = raw[key]?.toString() ?? ''
+        f['total_beds'] = raw['total_beds']?.toString() ?? ''
         setOrg(f)
       }
     } catch {
@@ -58,7 +60,12 @@ export default function Settings() {
     setOrgBusy(true)
     setOrgMsg('')
     try {
-      await updateOrgSettings(org)
+      const patch: Record<string, string | number | null> = {}
+      for (const { key } of ORG_FIELDS) patch[key] = org[key] ?? ''
+      patch['total_beds'] = org['total_beds'] ? Number(org['total_beds']) : 11
+      await updateOrgSettings(
+        patch as Parameters<typeof updateOrgSettings>[0],
+      )
       setOrgMsg('Coordonnées enregistrées.')
     } catch (err) {
       setOrgMsg((err as Error).message)
@@ -116,6 +123,22 @@ export default function Settings() {
               />
             </label>
           ))}
+          <label className="block text-sm font-medium text-gray-700">
+            Nombre de lits de la maison
+            <input
+              type="number"
+              min={1}
+              value={org['total_beds'] ?? ''}
+              placeholder="11"
+              onChange={(e) =>
+                setOrg((prev) => ({ ...prev, total_beds: e.target.value }))
+              }
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-purple-500"
+            />
+            <span className="mt-1 block text-xs text-gray-400">
+              Utilisé pour le calcul des disponibilités.
+            </span>
+          </label>
           <div className="sm:col-span-2">
             <button
               disabled={orgBusy}

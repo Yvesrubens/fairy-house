@@ -89,6 +89,10 @@ export default async function handler(req: any, res: any) {
     vatBreakdown.slice().sort((a, b) => b.ht - a.ht)[0]?.rate ?? 20
 
   const org = await fetchOrgSettings(supabase)
+  // Point 9 : si un contact de facturation distinct est renseigné, le devis lui
+  // est adressé (nom + email), sinon on garde le client.
+  const billName = r.billing_name || r.client_name
+  const billTo = r.billing_email || r.client_email
   const issuer = {
     email: org.contactEmail,
     phone: org.contactPhone,
@@ -102,8 +106,8 @@ export default async function handler(req: any, res: any) {
     const previewPdf = await buildDevisPdf({
       reference: 'DEVIS (aperçu)',
       reservationRef: r.reference,
-      clientName: r.client_name,
-      clientEmail: r.client_email,
+      clientName: billName,
+      clientEmail: billTo,
       lines: cleanLines,
       totalHt,
       vatBreakdown,
@@ -136,8 +140,8 @@ export default async function handler(req: any, res: any) {
   const pdfBytes = await buildDevisPdf({
     reference: ref,
     reservationRef: r.reference,
-    clientName: r.client_name,
-    clientEmail: r.client_email,
+    clientName: billName,
+    clientEmail: billTo,
     lines: cleanLines,
     totalHt,
     vatRate,
@@ -155,7 +159,7 @@ export default async function handler(req: any, res: any) {
       <h1 style="margin:0;color:#fff;font-size:22px;letter-spacing:2px">FAIRY HOUSE</h1>
     </div>
     <div style="padding:24px">
-      <p>Bonjour ${r.client_name},</p>
+      <p>Bonjour ${billName},</p>
       <p style="line-height:1.6;color:#333">
         Veuillez trouver ci-joint votre devis <strong>${ref}</strong> pour votre
         séjour à la Fairy House. Il est valable ${validityDays} jours.
@@ -177,7 +181,7 @@ export default async function handler(req: any, res: any) {
     },
     body: JSON.stringify({
       from: RESEND_FROM,
-      to: [r.client_email],
+      to: [billTo],
       subject: `Votre devis Fairy House — ${ref}`,
       html,
       attachments: [{ filename: `${ref}.pdf`, content: pdfBase64 }],

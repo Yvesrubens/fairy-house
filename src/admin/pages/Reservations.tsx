@@ -10,6 +10,7 @@ import { formatDate, formatEuro2, toCSV } from '../../lib/format'
 import DevisForm from './DevisForm'
 import FactureForm from './FactureForm'
 import ReservationForm from './ReservationForm'
+import ReservationEdit from './ReservationEdit'
 import ReservationDetail from './ReservationDetail'
 import { ACCOMMODATION_LABEL, MODE_LABEL, paymentSummary } from '../../lib/reservationLabels'
 import type { Reservation, ReservationStatus } from '../../types/db'
@@ -67,6 +68,7 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
   const [sending, setSending] = useState<string | null>(null)
   const [devisFor, setDevisFor] = useState<Reservation | null>(null)
   const [factureFor, setFactureFor] = useState<Reservation | null>(null)
+  const [editingRes, setEditingRes] = useState<Reservation | null>(null)
   const [detailFor, setDetailFor] = useState<Reservation | null>(null)
   const [creating, setCreating] = useState(false)
   const [notice, setNotice] = useState('')
@@ -231,6 +233,17 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
           onSent={(ref) => {
             setFactureFor(null)
             setNotice(`Facture ${ref} envoyée au client.`)
+          }}
+        />
+      )}
+      {editingRes && (
+        <ReservationEdit
+          reservation={editingRes}
+          onCancel={() => setEditingRes(null)}
+          onSaved={async () => {
+            setEditingRes(null)
+            await reload()
+            setNotice('Réservation mise à jour.')
           }}
         />
       )}
@@ -463,6 +476,12 @@ export default function Reservations({ scope }: { scope: ReservationScope }) {
                       className="text-sm font-medium text-purple-600 hover:text-purple-700"
                     >
                       Détails
+                    </button>
+                    <button
+                      onClick={() => setEditingRes(r)}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                    >
+                      Modifier
                     </button>
                     {r.status !== 'confirmed' && (
                       <button

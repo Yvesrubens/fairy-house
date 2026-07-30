@@ -45,6 +45,9 @@ const base: Reservation = {
   consent_image: null,
   quote_lines: null,
   vat_breakdown: null,
+  billing_name: null,
+  billing_email: null,
+  billing_address: null,
   created_at: '2026-06-03T10:00:00Z',
 }
 const now = new Date('2026-06-15T00:00:00Z')

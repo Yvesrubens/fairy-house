@@ -74,6 +74,9 @@ export default async function handler(req: any, res: any) {
   const totalTtc = Math.round(totalHt * (1 + vatRate / 100) * 100) / 100
 
   const org = await fetchOrgSettings(supabase)
+  // Point 9 : contact de facturation distinct si renseigné.
+  const billName = r.billing_name || r.client_name
+  const billTo = r.billing_email || r.client_email
   const issuer = {
     email: org.contactEmail,
     phone: org.contactPhone,
@@ -87,8 +90,8 @@ export default async function handler(req: any, res: any) {
     const previewPdf = await buildDevisPdf({
       reference: 'FACTURE (aperçu)',
       reservationRef: r.reference,
-      clientName: r.client_name,
-      clientEmail: r.client_email,
+      clientName: billName,
+      clientEmail: billTo,
       lines: cleanLines,
       totalHt,
       vatRate,
@@ -123,8 +126,8 @@ export default async function handler(req: any, res: any) {
   const pdfBytes = await buildDevisPdf({
     reference: ref,
     reservationRef: r.reference,
-    clientName: r.client_name,
-    clientEmail: r.client_email,
+    clientName: billName,
+    clientEmail: billTo,
     lines: cleanLines,
     totalHt,
     vatRate,
@@ -143,7 +146,7 @@ export default async function handler(req: any, res: any) {
       <h1 style="margin:0;color:#fff;font-size:22px;letter-spacing:2px">FAIRY HOUSE</h1>
     </div>
     <div style="padding:24px">
-      <p>Bonjour ${r.client_name},</p>
+      <p>Bonjour ${billName},</p>
       <p style="line-height:1.6;color:#333">
         Veuillez trouver ci-joint votre facture <strong>${ref}</strong> pour votre
         séjour à la Fairy House.
@@ -165,7 +168,7 @@ export default async function handler(req: any, res: any) {
     },
     body: JSON.stringify({
       from: RESEND_FROM,
-      to: [r.client_email],
+      to: [billTo],
       subject: `Votre facture Fairy House — ${ref}`,
       html,
       attachments: [{ filename: `${ref}.pdf`, content: pdfBase64 }],
