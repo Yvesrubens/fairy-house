@@ -67,7 +67,19 @@ export default function EventInscription() {
     if (!slug) return
     setLoading(true)
     getEventBySlug(slug)
-      .then((e) => (e ? setEvent(e) : setNotFound(true)))
+      .then((e) => {
+        if (!e) {
+          setNotFound(true)
+          return
+        }
+        // Événement externe : le formulaire interne n'est pas accessible → on
+        // redirige vers le lien partenaire (ou la fiche à défaut).
+        if (e.reservation_type === 'externe') {
+          window.location.href = e.external_url || `/evenements/${slug}`
+          return
+        }
+        setEvent(e)
+      })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
   }, [slug])

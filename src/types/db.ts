@@ -65,6 +65,10 @@ export interface EventRow {
   image_url: string | null
   capacity: number | null
   published: boolean
+  // Réservation interne (formulaire du site) ou externe (lien partenaire)
+  reservation_type: 'interne' | 'externe'
+  external_url: string | null
+  partner_name: string | null
   // Config tarifaire de l'inscription (nullable ; défauts côté code)
   event_price_ttc: number | null
   accommodation_tente_ttc: number | null

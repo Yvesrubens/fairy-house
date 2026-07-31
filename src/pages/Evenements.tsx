@@ -141,12 +141,25 @@ export default function Evenements() {
                         >
                           Voir le détail
                         </Link>
-                        <Link
-                          to={`/evenements/${e.slug}/inscription`}
-                          className="text-center px-5 py-2.5 rounded-full font-bold bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold transition-all"
-                        >
-                          Réserver ma place
-                        </Link>
+                        {e.reservation_type === 'externe' ? (
+                          <a
+                            href={e.external_url ?? '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-center px-5 py-2.5 rounded-full font-bold bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold transition-all"
+                          >
+                            {e.partner_name
+                              ? `Réserver via ${e.partner_name}`
+                              : 'Réserver'}
+                          </a>
+                        ) : (
+                          <Link
+                            to={`/evenements/${e.slug}/inscription`}
+                            className="text-center px-5 py-2.5 rounded-full font-bold bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold transition-all"
+                          >
+                            Réserver ma place
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </article>

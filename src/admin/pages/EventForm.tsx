@@ -143,6 +143,48 @@ export default function EventForm({
         Publié
       </label>
 
+      {/* --- Type de réservation : interne (site) ou externe (partenaire) --- */}
+      <div className="mt-6 space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            Type de réservation
+          </label>
+          <select
+            value={row.reservation_type ?? 'interne'}
+            onChange={(e) =>
+              set('reservation_type', e.target.value as 'interne' | 'externe')
+            }
+            className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-purple-500"
+          >
+            <option value="interne">
+              Interne — formulaire de réservation du site
+            </option>
+            <option value="externe">
+              Externe — lien vers un partenaire (paiement géré par le tiers)
+            </option>
+          </select>
+        </div>
+        {(row.reservation_type ?? 'interne') === 'externe' && (
+          <>
+            <Field
+              label="Lien de réservation externe"
+              value={row.external_url ?? ''}
+              onChange={(v) => set('external_url', v || null)}
+            />
+            <Field
+              label="Nom du partenaire (pour le bouton « Réserver via … »)"
+              value={row.partner_name ?? ''}
+              onChange={(v) => set('partner_name', v || null)}
+            />
+            <p className="text-xs text-gray-500">
+              Le bouton « Réserver » de cet événement ouvrira ce lien dans un
+              nouvel onglet. Le formulaire du site est désactivé et les places
+              ne sont pas décomptées de vos lits.
+            </p>
+          </>
+        )}
+      </div>
+
       {/* --- Inscription payante (événement) --- */}
       <div className="mt-6 space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
         <h3 className="text-sm font-bold text-gray-900">

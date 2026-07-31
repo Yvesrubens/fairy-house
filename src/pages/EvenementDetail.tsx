@@ -175,17 +175,39 @@ export default function EvenementDetail() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-3">
                   Réserver ma place
                 </h2>
-                <p className="text-gray-600 mb-6">
-                  Envoyez votre demande de réservation pour cet événement. Nous
-                  revenons vers vous sous 48h pour confirmer.
-                </p>
-                <button
-                  onClick={reserver}
-                  className="inline-flex items-center gap-2 px-10 py-4 bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold rounded-full font-bold text-lg transition-all shadow-lg"
-                >
-                  Réserver ma place
-                  <ArrowRight className="w-5 h-5" />
-                </button>
+                {event.reservation_type === 'externe' ? (
+                  <>
+                    <p className="text-gray-600 mb-6">
+                      Les réservations de cet événement sont gérées par notre
+                      partenaire{event.partner_name ? ` ${event.partner_name}` : ''}.
+                    </p>
+                    <a
+                      href={event.external_url ?? '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-10 py-4 bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold rounded-full font-bold text-lg transition-all shadow-lg"
+                    >
+                      {event.partner_name
+                        ? `Réserver via ${event.partner_name}`
+                        : 'Réserver'}
+                      <ArrowRight className="w-5 h-5" />
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-gray-600 mb-6">
+                      Envoyez votre demande de réservation pour cet événement.
+                      Nous revenons vers vous sous 48h pour confirmer.
+                    </p>
+                    <button
+                      onClick={reserver}
+                      className="inline-flex items-center gap-2 px-10 py-4 bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold rounded-full font-bold text-lg transition-all shadow-lg"
+                    >
+                      Réserver ma place
+                      <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
