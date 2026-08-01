@@ -30,7 +30,7 @@ function today(): string {
 
 const METHODS = [
   { key: 'virement', label: 'Virement' },
-  { key: 'cb', label: 'Carte bancaire' },
+  { key: 'cb', label: 'Carte / PayPal' },
 ] as const
 
 export default function EventInscription() {
@@ -483,7 +483,7 @@ export default function EventInscription() {
               {paymentMethod === 'cb' && !isFree && (
                 <p className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
                   Vous serez redirigé·e vers notre prestataire de paiement
-                  sécurisé (Stripe) pour régler par carte.
+                  sécurisé (Stripe) pour régler par carte ou PayPal.
                 </p>
               )}
 
@@ -504,7 +504,7 @@ export default function EventInscription() {
                   {busy
                     ? 'Redirection…'
                     : !isFree && paymentMethod === 'cb'
-                      ? 'Payer par carte'
+                      ? 'Payer en ligne'
                       : 'Valider mon inscription'}
                 </button>
               </div>
