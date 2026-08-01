@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import DataTable from '../components/DataTable'
 import type { Column } from '../components/DataTable'
 import EventForm from './EventForm'
+import ManualEventReservation from './ManualEventReservation'
 import { listAllEvents, deleteEvent } from '../../lib/api'
 import { formatDate } from '../../lib/format'
 import type { EventRow } from '../../types/db'
@@ -11,6 +12,8 @@ export default function Events() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [editing, setEditing] = useState<Partial<EventRow> | null>(null)
+  const [manualFor, setManualFor] = useState<EventRow | null>(null)
+  const [notice, setNotice] = useState('')
 
   async function load() {
     setLoading(true)
@@ -61,6 +64,16 @@ export default function Events() {
 
   return (
     <div>
+      {manualFor && (
+        <ManualEventReservation
+          event={manualFor}
+          onCancel={() => setManualFor(null)}
+          onSaved={() => {
+            setManualFor(null)
+            setNotice('Inscription manuelle enregistrée.')
+          }}
+        />
+      )}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Événements</h1>
         <button
@@ -70,6 +83,11 @@ export default function Events() {
           Nouvel événement
         </button>
       </div>
+      {notice && (
+        <p className="mt-4 rounded bg-green-50 px-3 py-2 text-sm text-green-700">
+          {notice}
+        </p>
+      )}
       {error && (
         <p className="mt-4 rounded bg-red-50 px-3 py-2 text-red-600">{error}</p>
       )}
@@ -88,6 +106,12 @@ export default function Events() {
                   className="text-sm font-medium text-purple-600 hover:text-purple-700"
                 >
                   Modifier
+                </button>
+                <button
+                  onClick={() => setManualFor(r)}
+                  className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                >
+                  Inscription manuelle
                 </button>
                 <button
                   onClick={() => remove(r.id)}

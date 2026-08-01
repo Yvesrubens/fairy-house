@@ -199,6 +199,9 @@ function FactureEdit({
       vatRate: l.vatRate ?? 20,
     })),
   )
+  const [clientName, setClientName] = useState(facture.client_name ?? '')
+  const [clientEmail, setClientEmail] = useState(facture.client_email ?? '')
+  const [clientAddress, setClientAddress] = useState(facture.client_address ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -223,6 +226,9 @@ function FactureEdit({
         total_ht: totalHt,
         total_ttc: totalTtc,
         vat_rate: mainRate,
+        client_name: clientName,
+        client_email: clientEmail,
+        client_address: clientAddress || null,
       })
       onSaved()
     } catch (e) {
@@ -252,7 +258,38 @@ function FactureEdit({
             {error}
           </p>
         )}
-        <div className="mt-6 space-y-3">
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Nom du client
+            <input
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-purple-500"
+            />
+          </label>
+          <label className="block text-sm font-medium text-gray-700">
+            E-mail du client
+            <input
+              type="email"
+              value={clientEmail}
+              onChange={(e) => setClientEmail(e.target.value)}
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-purple-500"
+            />
+          </label>
+          <label className="block text-sm font-medium text-gray-700 sm:col-span-2">
+            Adresse du client
+            <textarea
+              rows={2}
+              value={clientAddress}
+              onChange={(e) => setClientAddress(e.target.value)}
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-purple-500"
+            />
+          </label>
+        </div>
+
+        <p className="mt-5 text-sm font-semibold text-gray-700">Lignes</p>
+        <div className="mt-2 space-y-3">
           {lines.map((l, i) => (
             <div
               key={i}

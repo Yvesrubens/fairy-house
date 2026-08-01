@@ -158,6 +158,7 @@ export interface FactureRow {
   reservation_id: string | null
   client_name: string | null
   client_email: string | null
+  client_address: string | null
   lines: { designation: string; qty: number; unitPrice: number; vatRate?: number }[]
   total_ht: number
   vat_rate: number

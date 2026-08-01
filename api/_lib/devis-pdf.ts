@@ -32,6 +32,7 @@ export async function buildDevisPdf(opts: {
   reservationRef: string
   clientName: string
   clientEmail: string
+  clientAddress?: string
   lines: Line[]
   totalHt: number
   vatRate?: number // mono-TVA (tunnel séjour)
@@ -87,7 +88,13 @@ export async function buildDevisPdf(opts: {
   text('Destinataire', M, y, 9, bold, GREY)
   text(opts.clientName, M, y - 15, 11, bold)
   text(opts.clientEmail, M, y - 29, 9, font, GREY)
-  text('Réservation : ' + opts.reservationRef, M, y - 43, 9, font, GREY)
+  let cy = y - 43
+  if (opts.clientAddress) {
+    const addr = opts.clientAddress.replace(/\s*\n\s*/g, ', ').trim()
+    text(addr.length > 70 ? addr.slice(0, 69) + '…' : addr, M, cy, 9, font, GREY)
+    cy -= 14
+  }
+  text('Réservation : ' + opts.reservationRef, M, cy, 9, font, GREY)
 
   // Tableau en-tête
   y = 620

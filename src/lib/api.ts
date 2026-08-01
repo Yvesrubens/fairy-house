@@ -335,6 +335,7 @@ export interface ManualReservationInput {
   amount?: number
   status?: ReservationStatus
   message?: string
+  event_id?: string
 }
 
 export async function createReservationManual(
@@ -513,7 +514,18 @@ export async function listFactures(): Promise<FactureRow[]> {
 
 export async function updateFacture(
   id: string,
-  patch: Partial<Pick<FactureRow, 'lines' | 'total_ht' | 'vat_rate' | 'total_ttc'>>,
+  patch: Partial<
+    Pick<
+      FactureRow,
+      | 'lines'
+      | 'total_ht'
+      | 'vat_rate'
+      | 'total_ttc'
+      | 'client_name'
+      | 'client_email'
+      | 'client_address'
+    >
+  >,
 ): Promise<void> {
   const { error } = await supabase.from('factures').update(patch).eq('id', id)
   if (error) throw new Error(error.message)

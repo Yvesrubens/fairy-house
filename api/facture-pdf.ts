@@ -82,6 +82,7 @@ export default async function handler(req: any, res: any) {
     reservationRef: f.reference,
     clientName: f.client_name || '',
     clientEmail: f.client_email || '',
+    clientAddress: f.client_address || undefined,
     lines: lines.map((l) => ({
       designation: l.designation,
       qty: l.qty,
