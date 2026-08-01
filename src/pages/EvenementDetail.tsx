@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import DOMPurify from 'dompurify'
-import { getEventBySlug } from '../lib/api'
+import { getEventBySlug, eventsSeatsTaken } from '../lib/api'
 import { formatDate, formatEuro2 } from '../lib/format'
 import { eventFromPrice } from '../lib/eventPricing'
 import type { EventRow } from '../types/db'
@@ -11,6 +11,7 @@ export default function EvenementDetail() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const [event, setEvent] = useState<EventRow | null>(null)
+  const [seatsTaken, setSeatsTaken] = useState(0)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -19,8 +20,12 @@ export default function EvenementDetail() {
     setLoading(true)
     getEventBySlug(slug)
       .then((e) => {
-        if (e) setEvent(e)
-        else setNotFound(true)
+        if (e) {
+          setEvent(e)
+          eventsSeatsTaken()
+            .then((m) => setSeatsTaken(m[e.id] ?? 0))
+            .catch(() => setSeatsTaken(0))
+        } else setNotFound(true)
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
@@ -61,6 +66,12 @@ export default function EvenementDetail() {
 
   // Prix « à partir de » (prix de l'événement + 1 lit le moins cher).
   const fromPrice = eventFromPrice(event)
+
+  // Quota atteint (événement interne uniquement).
+  const full =
+    event.reservation_type !== 'externe' &&
+    event.capacity != null &&
+    seatsTaken >= event.capacity
 
   return (
     <main className="flex-1">
@@ -192,6 +203,16 @@ export default function EvenementDetail() {
                         : 'Réserver'}
                       <ArrowRight className="w-5 h-5" />
                     </a>
+                  </>
+                ) : full ? (
+                  <>
+                    <p className="text-gray-600 mb-6">
+                      Cet événement affiche complet. Toutes les places ont été
+                      réservées.
+                    </p>
+                    <span className="inline-flex items-center gap-2 px-10 py-4 bg-gray-200 text-gray-500 rounded-full font-bold text-lg cursor-not-allowed">
+                      Complet
+                    </span>
                   </>
                 ) : (
                   <>

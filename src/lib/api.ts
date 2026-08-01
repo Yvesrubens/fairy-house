@@ -30,6 +30,17 @@ export async function listPublishedEvents(): Promise<EventRow[]> {
   return unwrap(data, error)
 }
 
+/** Places déjà prises par événement (inscriptions non annulées). */
+export async function eventsSeatsTaken(): Promise<Record<string, number>> {
+  const { data, error } = await supabase.rpc('events_seats_taken')
+  if (error) throw new Error(error.message)
+  const map: Record<string, number> = {}
+  for (const r of (data ?? []) as { event_id: string; taken: number }[]) {
+    map[r.event_id] = r.taken
+  }
+  return map
+}
+
 export async function getEventBySlug(slug: string): Promise<EventRow | null> {
   const { data, error } = await supabase
     .from('events')

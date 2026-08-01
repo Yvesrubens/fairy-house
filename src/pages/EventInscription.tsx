@@ -5,6 +5,7 @@ import {
   getEventBySlug,
   createReservation,
   createCheckoutSession,
+  eventsSeatsTaken,
 } from '../lib/api'
 import { formatDate, formatEuro2 } from '../lib/format'
 import { canSplit, splitPlan } from '../lib/booking'
@@ -42,6 +43,7 @@ export default function EventInscription() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(false)
+  const [full, setFull] = useState(false)
 
   // Coordonnées
   const [firstName, setFirstName] = useState('')
@@ -79,6 +81,14 @@ export default function EventInscription() {
           return
         }
         setEvent(e)
+        // Quota : si le nombre max d'inscriptions est atteint, on bloque.
+        if (e.capacity != null) {
+          eventsSeatsTaken()
+            .then((m) => {
+              if ((m[e.id] ?? 0) >= (e.capacity ?? 0)) setFull(true)
+            })
+            .catch(() => {})
+        }
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
@@ -146,6 +156,15 @@ export default function EventInscription() {
     setBusy(true)
     setError('')
     try {
+      // Re-vérification du quota au dernier moment (anti-course).
+      if (event.capacity != null) {
+        const m = await eventsSeatsTaken()
+        if ((m[event.id] ?? 0) >= event.capacity) {
+          setFull(true)
+          setBusy(false)
+          return
+        }
+      }
       // Lignes stockées en HT (le devis PDF affiche des colonnes HT, puis la
       // TVA par taux via vat_breakdown, puis le Total TTC).
       const quoteLines = quote.lines.map((l) => ({
@@ -256,6 +275,25 @@ export default function EventInscription() {
     )
   }
 
+  if (full) {
+    return (
+      <main className="flex-1">
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
+          <h1 className="text-3xl font-bold text-gray-900">Événement complet</h1>
+          <p className="max-w-md text-gray-600">
+            Toutes les places pour « {event.title} » ont été réservées.
+          </p>
+          <Link
+            to="/evenements"
+            className="mt-4 px-8 py-4 bg-fairy-gold text-black hover:bg-black hover:text-fairy-gold rounded-full font-bold transition-all"
+          >
+            Retour à la programmation
+          </Link>
+        </div>
+      </main>
+    )
+  }
+
   const reglementTxt = event.reglement_texte || DEFAULT_REGLEMENT
   const droitsImageTxt = event.droits_image_texte || DEFAULT_DROITS_IMAGE
 
@@ -316,7 +354,15 @@ export default function EventInscription() {
               <div>
                 <p className="text-sm font-semibold text-gray-700 mb-2">Hébergement</p>
                 <div className="space-y-2">
-                  {(['tente', 'chambre', 'aucun'] as AccommodationChoice[]).map((opt) => {
+                  {(['tente', 'chambre', 'aucun'] as AccommodationChoice[])
+                    .filter(
+                      (opt) =>
+                        opt === 'aucun' ||
+                        (opt === 'tente'
+                          ? cfg!.tenteTtc > 0
+                          : cfg!.chambreTtc > 0),
+                    )
+                    .map((opt) => {
                     const price =
                       opt === 'tente' ? cfg!.tenteTtc : opt === 'chambre' ? cfg!.chambreTtc : 0
                     return (

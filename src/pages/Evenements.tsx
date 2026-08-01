@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { listPublishedEvents } from '../lib/api'
+import { listPublishedEvents, eventsSeatsTaken } from '../lib/api'
 import { formatDate, formatEuro2 } from '../lib/format'
 import { eventFromPrice } from '../lib/eventPricing'
 import type { EventRow } from '../types/db'
@@ -9,6 +9,7 @@ import NewsletterForm from '../components/NewsletterForm'
 
 export default function Evenements() {
   const [events, setEvents] = useState<EventRow[]>([])
+  const [seats, setSeats] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -16,7 +17,17 @@ export default function Evenements() {
       .then(setEvents)
       .catch(() => setEvents([]))
       .finally(() => setLoading(false))
+    eventsSeatsTaken()
+      .then(setSeats)
+      .catch(() => setSeats({}))
   }, [])
+
+  // Quota atteint (événements internes uniquement) : capacité renseignée et
+  // places prises >= capacité.
+  const isFull = (e: EventRow): boolean =>
+    e.reservation_type !== 'externe' &&
+    e.capacity != null &&
+    (seats[e.id] ?? 0) >= e.capacity
 
   // Séparation à venir / passés : un événement daté avant aujourd'hui sort de
   // la liste active et rejoint la galerie « Nos événements passés » (sans
@@ -152,6 +163,10 @@ export default function Evenements() {
                               ? `Réserver via ${e.partner_name}`
                               : 'Réserver'}
                           </a>
+                        ) : isFull(e) ? (
+                          <span className="text-center px-5 py-2.5 rounded-full font-bold bg-gray-200 text-gray-500 cursor-not-allowed">
+                            Complet
+                          </span>
                         ) : (
                           <Link
                             to={`/evenements/${e.slug}/inscription`}
