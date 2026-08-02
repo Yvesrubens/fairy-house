@@ -165,6 +165,9 @@ export interface FactureRow {
   total_ttc: number
   issued_at: string | null
   created_at: string
+  // event_id de la réservation liée (rempli par listFactures) : permet de
+  // dispatcher les factures d'événements et celles de séjours.
+  reservation_event_id?: string | null
 }
 
 export interface BedBlock {

@@ -22,6 +22,9 @@ export default function Factures() {
   const [error, setError] = useState('')
   const [editing, setEditing] = useState<FactureRow | null>(null)
   const [viewing, setViewing] = useState<string | null>(null)
+  // Dispatch séjour / événement : une facture d'événement pointe vers une
+  // réservation ayant un event_id.
+  const [scope, setScope] = useState<'all' | 'sejour' | 'event'>('all')
 
   async function load() {
     setLoading(true)
@@ -37,8 +40,21 @@ export default function Factures() {
     load()
   }, [])
 
+  const filtered = rows.filter((f) =>
+    scope === 'all'
+      ? true
+      : scope === 'event'
+        ? Boolean(f.reservation_event_id)
+        : !f.reservation_event_id,
+  )
+  const counts = {
+    all: rows.length,
+    event: rows.filter((f) => Boolean(f.reservation_event_id)).length,
+    sejour: rows.filter((f) => !f.reservation_event_id).length,
+  }
+
   function buildRows() {
-    return rows.map((f) => ({
+    return filtered.map((f) => ({
       reference: f.reference,
       client: f.client_name ?? '',
       email: f.client_email ?? '',
@@ -55,7 +71,7 @@ export default function Factures() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'factures.csv'
+    a.download = `factures-${scope}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -63,7 +79,7 @@ export default function Factures() {
     const ws = XLSX.utils.json_to_sheet(buildRows())
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Factures')
-    XLSX.writeFile(wb, 'factures.xlsx')
+    XLSX.writeFile(wb, `factures-${scope}.xlsx`)
   }
 
   async function viewPdf(f: FactureRow, win: Window | null) {
@@ -125,7 +141,29 @@ export default function Factures() {
         </div>
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-2xl border bg-white">
+      <div className="mt-6 inline-flex rounded-lg border bg-white p-1 text-sm">
+        {(
+          [
+            ['all', `Toutes (${counts.all})`],
+            ['sejour', `Séjours (${counts.sejour})`],
+            ['event', `Événements (${counts.event})`],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setScope(key)}
+            className={`rounded-md px-4 py-1.5 font-medium transition-colors ${
+              scope === key
+                ? 'bg-purple-600 text-white'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 overflow-x-auto rounded-2xl border bg-white">
         <table className="w-full text-left text-sm">
           <thead className="border-b text-xs uppercase tracking-wider text-gray-500">
             <tr>
@@ -137,14 +175,16 @@ export default function Factures() {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {rows.length === 0 && (
+            {filtered.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
-                  Aucune facture émise.
+                  {rows.length === 0
+                    ? 'Aucune facture émise.'
+                    : 'Aucune facture dans cette catégorie.'}
                 </td>
               </tr>
             )}
-            {rows.map((f) => (
+            {filtered.map((f) => (
               <tr key={f.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 font-medium text-gray-800">{f.reference}</td>
                 <td className="px-6 py-4">

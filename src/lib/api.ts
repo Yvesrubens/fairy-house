@@ -509,7 +509,31 @@ export async function listFactures(): Promise<FactureRow[]> {
     .from('factures')
     .select('*')
     .order('created_at', { ascending: false })
-  return unwrap(data, error)
+  const rows = unwrap(data, error) as FactureRow[]
+  // On rattache l'event_id de la réservation liée pour pouvoir dispatcher
+  // les factures d'événements et celles de séjours (le champ n'est pas
+  // stocké sur la facture elle-même).
+  const resIds = [
+    ...new Set(rows.map((f) => f.reservation_id).filter(Boolean)),
+  ] as string[]
+  if (resIds.length) {
+    const { data: resv } = await supabase
+      .from('reservations')
+      .select('id, event_id')
+      .in('id', resIds)
+    const eventOf = new Map(
+      ((resv ?? []) as { id: string; event_id: string | null }[]).map((r) => [
+        r.id,
+        r.event_id,
+      ]),
+    )
+    for (const f of rows) {
+      f.reservation_event_id = f.reservation_id
+        ? eventOf.get(f.reservation_id) ?? null
+        : null
+    }
+  }
+  return rows
 }
 
 export async function updateFacture(
