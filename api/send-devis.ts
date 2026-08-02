@@ -144,7 +144,7 @@ export default async function handler(req: any, res: any) {
     clientEmail: billTo,
     lines: cleanLines,
     totalHt,
-    vatRate,
+    vatBreakdown,
     totalTtc,
     validityDays,
     note,

@@ -12,6 +12,29 @@ const GOLD = rgb(0.78, 0.61, 0.21)
 const DARK = rgb(0.07, 0.09, 0.15)
 const GREY = rgb(0.4, 0.4, 0.4)
 
+// pdf-lib + police standard Helvetica = encodage WinAnsi (CP1252). Tout appel à
+// drawText avec un argument non-string (null/undefined/number) OU un caractère
+// hors WinAnsi (emoji, alphabets non latins…) lève une exception qui fait échouer
+// toute la génération. On sécurise chaque texte : coercition en chaîne + retrait
+// des caractères non encodables. Les ponctuations typographiques WinAnsi
+// (€ … — – ' ' " " • etc.) sont conservées.
+const WINANSI_EXTRA = new Set([
+  0x20ac, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021, 0x02c6, 0x2030,
+  0x0160, 0x2039, 0x0152, 0x017d, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022,
+  0x2013, 0x2014, 0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0x017e, 0x0178,
+])
+function safe(s: unknown): string {
+  let out = ''
+  for (const ch of String(s ?? '')) {
+    const cp = ch.codePointAt(0) as number
+    if (cp === 0x0a || cp === 0x0d || cp === 0x09) out += ' '
+    else if ((cp >= 0x20 && cp <= 0x7e) || (cp >= 0xa0 && cp <= 0xff)) out += ch
+    else if (WINANSI_EXTRA.has(cp)) out += ch
+    // sinon : caractère non encodable (emoji, etc.) → ignoré
+  }
+  return out
+}
+
 interface Line {
   designation: string
   qty: number
@@ -55,7 +78,7 @@ export async function buildDevisPdf(opts: {
   let y = 800
 
   const text = (s: string, x: number, yy: number, size = 10, f = font, color = DARK) =>
-    page.drawText(s, { x, y: yy, size, font: f, color })
+    page.drawText(safe(s), { x, y: yy, size, font: f, color })
 
   // En-tête
   page.drawRectangle({ x: 0, y: 802, width, height: 40, color: GOLD })
