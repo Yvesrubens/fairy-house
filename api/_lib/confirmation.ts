@@ -1,5 +1,5 @@
 const CONTACT = {
-  email: 'fairyhouse.collectif@gmail.com',
+  email: 'contact@fairyhousecollectif.com',
   phone: '+33 6 71 39 88 07',
   address: '2 Le Grand Leu, 45230 La Chapelle sur Aveyron',
 }

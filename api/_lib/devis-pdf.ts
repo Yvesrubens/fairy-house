@@ -3,7 +3,7 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 const ISSUER = {
   name: 'Fairy House',
   address: '2 Le Grand Leu, 45230 La Chapelle sur Aveyron',
-  email: 'fairyhouse.collectif@gmail.com',
+  email: 'contact@fairyhousecollectif.com',
   phone: '+33 6 71 39 88 07',
   siret: process.env.FH_SIRET || 'SIREN : transmis séparément',
   tva: process.env.FH_TVA || 'TVA en cours d’attribution',

@@ -7,7 +7,7 @@
  */
 import type { ReactNode } from 'react'
 
-const EMAIL = 'fairyhouse.collectif@gmail.com'
+const EMAIL = 'contact@fairyhousecollectif.com'
 const PHONE = '+33 6 71 39 88 07'
 const ADRESSE = '2 Le Grand Leu, 45230 La Chapelle sur Aveyron'
 

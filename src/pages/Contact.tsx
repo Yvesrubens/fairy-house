@@ -242,10 +242,10 @@ export default function Contact() {
                       <div>
                         <h4 className="font-semibold mb-1">Email</h4>
                         <a
-                          href="mailto:fairyhouse.collectif@gmail.com"
+                          href="mailto:contact@fairyhousecollectif.com"
                           className="text-gray-600 hover:text-fairy-gold transition-colors"
                         >
-                          fairyhouse.collectif@gmail.com
+                          contact@fairyhousecollectif.com
                         </a>
                         <p className="text-sm text-gray-500 mt-1">Réponse sous 48h</p>
                       </div>

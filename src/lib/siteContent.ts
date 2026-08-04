@@ -353,7 +353,7 @@ export const PAGES: PageDef[] = [
             default: ['Depuis Montargis : 25 min', 'Depuis Nogent : 15 min', '2 trajets/jour sur réservation'].join('\n'),
           },
           { key: 'lelieu.venir.phone', label: 'Téléphone', type: 'text', default: '+33 6 71 39 88 07' },
-          { key: 'lelieu.venir.email', label: 'E-mail', type: 'text', default: 'fairyhouse.collectif@gmail.com' },
+          { key: 'lelieu.venir.email', label: 'E-mail', type: 'text', default: 'contact@fairyhousecollectif.com' },
         ],
       },
     ],
