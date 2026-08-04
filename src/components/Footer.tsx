@@ -126,8 +126,14 @@ export default function Footer() {
                 <div>
                   <div className="text-gray-500 text-xs mb-1 font-semibold">Email</div>
                   <a
+                    href="mailto:contact@fairyhousecollectif.com"
+                    className="hover:text-fairy-gold transition-colors font-medium block"
+                  >
+                    contact@fairyhousecollectif.com
+                  </a>
+                  <a
                     href="mailto:fairyhouse.collectif@gmail.com"
-                    className="hover:text-fairy-gold transition-colors font-medium"
+                    className="hover:text-fairy-gold transition-colors font-medium block"
                   >
                     fairyhouse.collectif@gmail.com
                   </a>
