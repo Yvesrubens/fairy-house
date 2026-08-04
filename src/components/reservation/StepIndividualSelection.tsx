@@ -5,6 +5,7 @@ import {
   DOUBLE_BEDS,
   nights,
   computeQuote,
+  minIndividualDate,
   PRICE_PER_PERSON_NIGHT,
   LINGE_PER_PERSON,
   PENSION_PER_PERSON_NIGHT,
@@ -15,10 +16,6 @@ import AvailabilityCalendar from './AvailabilityCalendar'
 
 const fieldCls =
   'w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-fairy-gold focus:outline-none transition-colors'
-
-function today(): string {
-  return new Date().toISOString().slice(0, 10)
-}
 
 /**
  * Étape 3 (individuel) : choix des lits par type (simples / double), des dates
@@ -127,9 +124,16 @@ export default function StepIndividualSelection({
         </div>
       </div>
 
+      <p className="rounded-xl border border-fairy-gold/30 bg-fairy-gold/10 px-4 py-3 text-sm text-gray-700">
+        La réservation d'un lit seul est possible à partir de 2 mois à l'avance.
+        Les dates plus proches sont grisées ; pour un séjour plus tôt, optez pour
+        la privatisation (chambres ou maison complète).
+      </p>
+
       <AvailabilityCalendar
         arrival={state.arrival}
         departure={state.departure}
+        minDate={minIndividualDate()}
         onSelect={(arrival, departure) => setState({ arrival, departure })}
       />
 
@@ -142,7 +146,7 @@ export default function StepIndividualSelection({
           <input
             type="date"
             required
-            min={today()}
+            min={minIndividualDate()}
             value={state.arrival}
             onChange={(e) => setState({ arrival: e.target.value })}
             className={fieldCls}
@@ -156,7 +160,7 @@ export default function StepIndividualSelection({
           <input
             type="date"
             required
-            min={state.arrival || today()}
+            min={state.arrival || minIndividualDate()}
             value={state.departure}
             onChange={(e) => setState({ departure: e.target.value })}
             className={fieldCls}

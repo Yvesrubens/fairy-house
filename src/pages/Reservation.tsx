@@ -12,15 +12,14 @@ import {
   checkAvailability,
   createCheckoutSession,
 } from '../lib/api'
-import { HOUSE_CAPACITY, canSplit, computeQuote, nights, splitPlan } from '../lib/booking'
-
-// F2 : un lit seul (parcours individuel) ne peut être réservé plus de 2 mois à
-// l'avance. Renvoie la date maximale autorisée au format YYYY-MM-DD.
-function maxIndividualDate(): string {
-  const d = new Date()
-  d.setMonth(d.getMonth() + 2)
-  return d.toISOString().slice(0, 10)
-}
+import {
+  HOUSE_CAPACITY,
+  canSplit,
+  computeQuote,
+  minIndividualDate,
+  nights,
+  splitPlan,
+} from '../lib/booking'
 
 const INITIAL_STATE: BookingState = {
   mode: null,
@@ -112,11 +111,11 @@ export default function Reservation() {
       .filter(Boolean)
       .join(', ')
     // Règle : la réservation de lit(s) (parcours « Séjour Individuel ») n'est
-    // possible que dans un délai de 2 mois. La maison entière et les séjours de
-    // groupe restent réservables à toute date.
-    if (state.mode === 'individuel' && state.arrival > maxIndividualDate()) {
+    // possible qu'à partir de 2 mois à l'avance. La maison entière et les séjours
+    // de groupe restent réservables à toute date, y compris plus tôt.
+    if (state.mode === 'individuel' && state.arrival < minIndividualDate()) {
       setError(
-        'La réservation d’un lit n’est possible que dans un délai de 2 mois. Pour une date plus lointaine, optez pour la privatisation (chambres ou maison complète).',
+        'La réservation d’un lit (Séjour Individuel) n’est possible qu’à partir de 2 mois à l’avance. Pour une date plus proche, optez pour la privatisation (chambres ou maison complète).',
       )
       return
     }

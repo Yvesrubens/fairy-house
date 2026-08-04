@@ -85,6 +85,18 @@ function addDays(iso: string, days: number): string {
   return d.toISOString().slice(0, 10)
 }
 
+/**
+ * Date minimale d'arrivée pour une réservation « Séjour Individuel » (lit seul) :
+ * un lit ne peut être réservé qu'à partir de 2 mois à l'avance. Renvoie cette
+ * date (YYYY-MM-DD) — toute arrivée strictement antérieure est refusée. Les
+ * séjours de groupe / maison entière ne sont pas concernés.
+ */
+export function minIndividualDate(from: Date = new Date()): string {
+  const d = new Date(from)
+  d.setMonth(d.getMonth() + 2)
+  return d.toISOString().slice(0, 10)
+}
+
 /** Le paiement en 2 fois est-il possible ? (arrivée à plus de 30 j de `today`) */
 export function canSplit(arrival: string, today: string): boolean {
   return nights(today, arrival) > SPLIT_MIN_DAYS

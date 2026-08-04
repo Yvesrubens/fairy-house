@@ -23,15 +23,20 @@ export default function AvailabilityCalendar({
   arrival,
   departure,
   onSelect,
+  minDate,
 }: {
   arrival: string
   departure: string
   onSelect: (arrival: string, departure: string) => void
+  /** Date d'arrivée minimale (YYYY-MM-DD) ; les jours antérieurs sont désactivés. */
+  minDate?: string
 }) {
-  const now = new Date()
+  // Ouvre la vue sur le mois de la première date réservable (utile quand un
+  // délai minimum rend les premiers mois entièrement indisponibles).
+  const initial = new Date(minDate ? minDate + 'T00:00:00Z' : Date.now())
   const [view, setView] = useState({
-    year: now.getUTCFullYear(),
-    month: now.getUTCMonth(),
+    year: initial.getUTCFullYear(),
+    month: initial.getUTCMonth(),
   })
   const [remaining, setRemaining] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(false)
@@ -137,8 +142,9 @@ export default function AvailabilityCalendar({
           if (!day) return <div key={`e${i}`} />
           const rem = remaining[day]
           const past = day < todayIso
+          const beforeMin = minDate ? day < minDate : false
           const full = rem === 0
-          const disabled = past || full
+          const disabled = past || full || beforeMin
           const selected = inRange(day)
           const dayNum = Number(day.slice(8, 10))
           let cls =
