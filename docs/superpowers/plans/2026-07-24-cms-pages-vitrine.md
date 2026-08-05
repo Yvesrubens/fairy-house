@@ -470,7 +470,7 @@ git commit -m "feat(cms): Accueil piloté par le registre de contenu (repli sur 
 | lelieu.venir.adresse | Adresse | list | `2 Le Grand Leu` / `45230 La Chapelle sur Aveyron` / `France` |
 | lelieu.venir.navette | Navette | list | `Depuis Montargis : 25 min` / `Depuis Nogent : 15 min` / `2 trajets/jour sur réservation` |
 | lelieu.venir.phone | Téléphone | text | `+33 6 71 39 88 07` |
-| lelieu.venir.email | E-mail | text | `fairyhouse.collectif@gmail.com` |
+| lelieu.venir.email | E-mail | text | `contact@fairyhousecollectif.com` |
 
 > Note : le `href="tel:…"` et `mailto:` seront dérivés des valeurs `phone`/`email` (retirer les espaces pour le `tel:`). La carte Google Maps (iframe) reste en dur.
 
