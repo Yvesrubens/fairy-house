@@ -6,7 +6,8 @@ import { Users, Bed, Sparkles } from '../icons'
  */
 export default function StepStayType({ setState, onNext }: StepProps) {
   function choose(mode: NonNullable<BookingState['mode']>) {
-    setState({ mode })
+    // Un séjour groupe est toujours une privatisation de la maison complète.
+    setState({ mode, wholeHouse: mode === 'groupe', rooms: [] })
     onNext()
   }
 
@@ -20,8 +21,8 @@ export default function StepStayType({ setState, onNext }: StepProps) {
         <Users className="w-10 h-10 text-fairy-gold mb-4" />
         <h3 className="text-xl font-bold text-gray-900 mb-2">Séjour Groupe</h3>
         <p className="text-gray-600">
-          Privatisez une ou plusieurs chambres, ou la maison entière, pour votre
-          groupe, votre famille ou votre événement.
+          Privatisez la maison entière pour votre groupe, votre famille ou votre
+          événement (jusqu'à 14 personnes).
         </p>
       </button>
       <button

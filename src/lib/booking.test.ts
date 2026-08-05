@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  ROOMS, HOUSE_CAPACITY, TOTAL_BEDS,
+  ROOMS, HOUSE_CAPACITY, WHOLE_HOUSE_CAPACITY, WHOLE_HOUSE_NIGHT_HT, TOTAL_BEDS,
   nights, computeQuote, canSplit, splitPlan,
 } from './booking'
 
@@ -10,6 +10,10 @@ describe('booking constants', () => {
     expect(ROOMS.reduce((s, r) => s + r.capacity, 0)).toBe(HOUSE_CAPACITY)
     expect(HOUSE_CAPACITY).toBe(12)
     expect(TOTAL_BEDS).toBe(11)
+  })
+  it('privatisation complète : 14 personnes, forfait 600 €/nuit HT', () => {
+    expect(WHOLE_HOUSE_CAPACITY).toBe(14)
+    expect(WHOLE_HOUSE_NIGHT_HT).toBe(600)
   })
 })
 
@@ -46,6 +50,26 @@ describe('computeQuote', () => {
     expect(q.lines[2].label).toBe('Pension complète')
     expect(q.lines[2].unitPrice).toBe(20)
     expect(q.lines[2].qty).toBe(6) // 2 pers × 3 nuits
+  })
+  it('facture la maison complète au forfait (600 €/nuit HT), pas par personne', () => {
+    // 2 nuits × 600 = 1200 HT (indépendant du nombre de personnes)
+    const q = computeQuote(14, 2, { linge: false, pension: false }, true)
+    expect(q.lines).toHaveLength(1)
+    expect(q.lines[0].label).toBe('Maison complète (forfait)')
+    expect(q.lines[0].qty).toBe(2) // nuits
+    expect(q.lines[0].unitPrice).toBe(600)
+    expect(q.totalHt).toBe(1200)
+    expect(q.vat).toBe(120)
+    expect(q.totalTtc).toBe(1320)
+  })
+  it('maison complète : les options restent facturées par personne', () => {
+    // forfait 1×600=600 + linge 14×8=112 = 712 HT
+    const q = computeQuote(14, 1, { linge: true, pension: false }, true)
+    expect(q.lines).toHaveLength(2)
+    expect(q.lines[0].total).toBe(600)
+    expect(q.lines[1].label).toBe('Linge de maison')
+    expect(q.lines[1].qty).toBe(14)
+    expect(q.totalHt).toBe(712)
   })
 })
 

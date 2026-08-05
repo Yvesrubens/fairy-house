@@ -13,7 +13,7 @@ import {
   createCheckoutSession,
 } from '../lib/api'
 import {
-  HOUSE_CAPACITY,
+  WHOLE_HOUSE_CAPACITY,
   canSplit,
   computeQuote,
   minIndividualDate,
@@ -98,7 +98,7 @@ export default function Reservation() {
     }
 
     const pers = state.wholeHouse
-      ? HOUSE_CAPACITY
+      ? WHOLE_HOUSE_CAPACITY
       : state.mode === 'groupe'
         ? state.rooms.reduce((s, r) => s + r.guests, 0)
         : state.individualGuests
@@ -120,7 +120,7 @@ export default function Reservation() {
       return
     }
     const n = nights(state.arrival, state.departure)
-    const quote = computeQuote(pers, n, state.options)
+    const quote = computeQuote(pers, n, state.options, state.wholeHouse)
     const today = new Date().toISOString().slice(0, 10)
     const split =
       state.paymentPlan === 'split' && canSplit(state.arrival, today)

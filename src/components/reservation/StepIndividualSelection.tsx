@@ -113,12 +113,12 @@ export default function StepIndividualSelection({
             1 lit double = 2 pers.).
           </p>
           <p className="mt-1 text-gray-600">
-            Lit simple : <strong>{formatEuro2(PRICE_PER_PERSON_NIGHT)}</strong> / nuit
+            Lit simple : <strong>{formatEuro2(PRICE_PER_PERSON_NIGHT)}</strong> / nuit HT
             {' · '}
-            Lit double : <strong>{formatEuro2(PRICE_PER_PERSON_NIGHT * 2)}</strong> / nuit
+            Lit double : <strong>{formatEuro2(PRICE_PER_PERSON_NIGHT * 2)}</strong> / nuit HT
             {' '}
             <span className="text-gray-400">
-              ({formatEuro2(PRICE_PER_PERSON_NIGHT)} / personne / nuit)
+              ({formatEuro2(PRICE_PER_PERSON_NIGHT)} / personne / nuit HT)
             </span>
           </p>
         </div>
@@ -181,7 +181,7 @@ export default function StepIndividualSelection({
           <span className="text-gray-700">
             Linge de maison{' '}
             <span className="text-gray-500">
-              (+{formatEuro2(LINGE_PER_PERSON)} / personne)
+              (+{formatEuro2(LINGE_PER_PERSON)} / personne HT)
             </span>
           </span>
         </label>
@@ -199,7 +199,7 @@ export default function StepIndividualSelection({
           <span className="text-gray-700">
             Pension complète{' '}
             <span className="text-gray-500">
-              (+{formatEuro2(PENSION_PER_PERSON_NIGHT)} / personne / nuit)
+              (+{formatEuro2(PENSION_PER_PERSON_NIGHT)} / personne / nuit HT)
             </span>
           </span>
         </label>
@@ -211,8 +211,11 @@ export default function StepIndividualSelection({
             Total estimé ({bedCapacity} personne{bedCapacity > 1 ? 's' : ''} ·{' '}
             {nightsCount} nuit{nightsCount > 1 ? 's' : ''})
           </span>
-          <span className="text-xl font-bold text-gray-900">
-            {formatEuro2(liveQuote.totalTtc)}
+          <span className="text-right">
+            <span className="block text-xl font-bold text-gray-900">
+              {formatEuro2(liveQuote.totalTtc)}
+            </span>
+            <span className="block text-xs text-gray-500">TTC (TVA 10 %)</span>
           </span>
         </div>
       )}

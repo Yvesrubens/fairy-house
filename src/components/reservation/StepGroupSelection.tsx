@@ -1,11 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { StepProps } from './types'
 import {
-  ROOMS,
-  HOUSE_CAPACITY,
+  WHOLE_HOUSE_CAPACITY,
+  WHOLE_HOUSE_NIGHT_HT,
   nights,
   computeQuote,
-  PRICE_PER_PERSON_NIGHT,
   LINGE_PER_PERSON,
   PENSION_PER_PERSON_NIGHT,
 } from '../../lib/booking'
@@ -21,7 +20,9 @@ function today(): string {
 }
 
 /**
- * Étape 2 : sélection des chambres (ou maison complète) pour un séjour groupe.
+ * Étape 2 (groupe) : privatisation de la maison complète uniquement.
+ * Forfait maison entière (600 € / nuit HT, jusqu'à 14 personnes) — pas de
+ * sélection chambre par chambre ni de tarif par personne.
  */
 export default function StepGroupSelection({
   state,
@@ -31,38 +32,19 @@ export default function StepGroupSelection({
 }: StepProps) {
   const [error, setError] = useState('')
 
-  const pers = state.wholeHouse
-    ? HOUSE_CAPACITY
-    : state.rooms.reduce((s, r) => s + r.guests, 0)
-  const nightsCount = nights(state.arrival, state.departure)
-  const liveQuote = computeQuote(pers, nightsCount, state.options)
-
-  function toggleWholeHouse() {
-    const wholeHouse = !state.wholeHouse
-    setState({ wholeHouse, rooms: wholeHouse ? [] : state.rooms })
-  }
-
-  function toggleRoom(name: string) {
-    const exists = state.rooms.some((r) => r.room === name)
-    if (exists) {
-      setState({ rooms: state.rooms.filter((r) => r.room !== name) })
-    } else {
-      setState({ rooms: [...state.rooms, { room: name, guests: 1 }] })
+  // La réservation de groupe est toujours une privatisation complète.
+  useEffect(() => {
+    if (!state.wholeHouse || state.rooms.length > 0) {
+      setState({ wholeHouse: true, rooms: [] })
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  function setRoomGuests(name: string, guests: number) {
-    setState({
-      rooms: state.rooms.map((r) => (r.room === name ? { ...r, guests } : r)),
-    })
-  }
+  const pers = WHOLE_HOUSE_CAPACITY
+  const nightsCount = nights(state.arrival, state.departure)
+  const liveQuote = computeQuote(pers, nightsCount, state.options, true)
 
   function validateAndNext() {
-    const hasSelection = state.wholeHouse || state.rooms.length > 0
-    if (!hasSelection) {
-      setError('Veuillez choisir la maison complète ou au moins une chambre.')
-      return
-    }
     if (nights(state.arrival, state.departure) < 1) {
       setError('Veuillez choisir des dates valides (au moins une nuit).')
       return
@@ -79,70 +61,22 @@ export default function StepGroupSelection({
         </p>
       )}
 
-      <label className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-xl cursor-pointer">
-        <input
-          type="checkbox"
-          checked={state.wholeHouse}
-          onChange={toggleWholeHouse}
-          className="w-5 h-5 accent-fairy-gold"
-        />
-        <span className="font-semibold text-gray-900">
-          Maison complète ({HOUSE_CAPACITY} personnes)
-        </span>
-      </label>
-
-      {!state.wholeHouse && (
-        <div className="space-y-3">
-          {ROOMS.map((room) => {
-            const selected = state.rooms.find((r) => r.room === room.name)
-            return (
-              <div
-                key={room.name}
-                className="flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl"
-              >
-                <input
-                  type="checkbox"
-                  checked={Boolean(selected)}
-                  onChange={() => toggleRoom(room.name)}
-                  className="w-5 h-5 accent-fairy-gold"
-                />
-                <Bed className="w-5 h-5 text-fairy-gold" />
-                <span className="flex-1 font-semibold text-gray-900">
-                  {room.name} (max {room.capacity})
-                </span>
-                {selected && (
-                  <select
-                    value={selected.guests}
-                    onChange={(e) =>
-                      setRoomGuests(room.name, Number(e.target.value))
-                    }
-                    className={`${fieldCls} w-auto`}
-                  >
-                    {Array.from({ length: room.capacity }, (_, i) => i + 1).map(
-                      (n) => (
-                        <option key={n} value={n}>
-                          {n} {n === 1 ? 'personne' : 'personnes'}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                )}
-              </div>
-            )
-          })}
+      <div className="flex items-start gap-3 rounded-xl border-2 border-fairy-gold/30 bg-fairy-gold/5 p-4">
+        <Bed className="mt-0.5 w-6 h-6 flex-shrink-0 text-fairy-gold" />
+        <div>
+          <p className="font-semibold text-gray-900">
+            Privatisation de la maison complète
+          </p>
+          <p className="mt-1 text-sm text-gray-700">
+            Vous privatisez l'ensemble du lieu, jusqu'à {WHOLE_HOUSE_CAPACITY}{' '}
+            personnes.
+          </p>
+          <p className="mt-1 text-sm text-gray-700">
+            Tarif :{' '}
+            <strong>{formatEuro2(WHOLE_HOUSE_NIGHT_HT)} / nuit HT</strong> —
+            forfait (indépendant du nombre de personnes).
+          </p>
         </div>
-      )}
-
-      <div className="flex items-start gap-2 rounded-xl bg-fairy-gold/10 px-4 py-3">
-        <Bed className="mt-0.5 w-5 h-5 flex-shrink-0 text-fairy-gold" />
-        <p className="text-sm text-gray-700">
-          Tarif : <strong>{formatEuro2(PRICE_PER_PERSON_NIGHT)} / personne / nuit</strong>{' '}
-          — la réservation est facturée selon le nombre de personnes
-          {state.wholeHouse
-            ? ` (maison complète : ${HOUSE_CAPACITY} personnes)`
-            : ''}
-          .
-        </p>
       </div>
 
       <AvailabilityCalendar
@@ -195,7 +129,7 @@ export default function StepGroupSelection({
           <span className="text-gray-700">
             Linge de maison{' '}
             <span className="text-gray-500">
-              (+{formatEuro2(LINGE_PER_PERSON)} / personne)
+              (+{formatEuro2(LINGE_PER_PERSON)} / personne HT)
             </span>
           </span>
         </label>
@@ -213,20 +147,23 @@ export default function StepGroupSelection({
           <span className="text-gray-700">
             Pension complète{' '}
             <span className="text-gray-500">
-              (+{formatEuro2(PENSION_PER_PERSON_NIGHT)} / personne / nuit)
+              (+{formatEuro2(PENSION_PER_PERSON_NIGHT)} / personne / nuit HT)
             </span>
           </span>
         </label>
       </div>
 
-      {pers > 0 && nightsCount >= 1 && (
+      {nightsCount >= 1 && (
         <div className="flex items-center justify-between rounded-xl bg-fairy-gold/10 px-4 py-3">
           <span className="text-sm text-gray-700">
-            Total estimé ({pers} personne{pers > 1 ? 's' : ''} · {nightsCount} nuit
+            Total estimé (maison complète · {nightsCount} nuit
             {nightsCount > 1 ? 's' : ''})
           </span>
-          <span className="text-xl font-bold text-gray-900">
-            {formatEuro2(liveQuote.totalTtc)}
+          <span className="text-right">
+            <span className="block text-xl font-bold text-gray-900">
+              {formatEuro2(liveQuote.totalTtc)}
+            </span>
+            <span className="block text-xs text-gray-500">TTC (TVA 10 %)</span>
           </span>
         </div>
       )}

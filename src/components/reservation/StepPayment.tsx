@@ -1,6 +1,6 @@
 import type { StepProps } from './types'
 import {
-  HOUSE_CAPACITY,
+  WHOLE_HOUSE_CAPACITY,
   canSplit,
   computeQuote,
   nights,
@@ -30,15 +30,16 @@ export default function StepPayment({
   onSubmit,
   busy,
 }: StepPaymentProps) {
+  const wholeHouse = state.mode === 'groupe' && state.wholeHouse
   const pers =
     state.mode === 'groupe'
       ? state.wholeHouse
-        ? HOUSE_CAPACITY
+        ? WHOLE_HOUSE_CAPACITY
         : state.rooms.reduce((sum, r) => sum + r.guests, 0)
       : state.individualGuests
 
   const nightsCount = nights(state.arrival, state.departure)
-  const quote = computeQuote(pers, nightsCount, state.options)
+  const quote = computeQuote(pers, nightsCount, state.options, wholeHouse)
   const today = new Date().toISOString().slice(0, 10)
   const plan =
     state.paymentPlan === 'split' && canSplit(state.arrival, today)

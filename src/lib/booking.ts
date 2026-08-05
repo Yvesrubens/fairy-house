@@ -7,13 +7,19 @@ export const ROOMS = [
   { name: 'Imbolc', capacity: 4 },
 ] as const
 
+// Somme des capacités des 3 chambres nommées (invariant, cf. booking.test.ts).
 export const HOUSE_CAPACITY = 12
+// Capacité d'accueil en privatisation complète (forfait maison entière).
+export const WHOLE_HOUSE_CAPACITY = 14
 export const TOTAL_BEDS = 11
 // Inventaire de lits pour le parcours individuel.
 export const SIMPLE_BEDS = 10
 export const DOUBLE_BEDS = 1
 
 export const PRICE_PER_PERSON_NIGHT = 45
+// Forfait « maison complète » : prix par nuit, HT, indépendant du nombre de
+// personnes (ce n'est pas un tarif par personne).
+export const WHOLE_HOUSE_NIGHT_HT = 600
 export const LINGE_PER_PERSON = 8 // forfait par personne (pas par nuit)
 export const PENSION_PER_PERSON_NIGHT = 20
 export const VAT_RATE = 10
@@ -50,20 +56,36 @@ export function nights(arrival: string, departure: string): number {
   return Math.round((d - a) / 86_400_000)
 }
 
-/** Devis chiffré pour `pers` personnes, `nightsCount` nuits et les options. */
+/**
+ * Devis chiffré pour `pers` personnes, `nightsCount` nuits et les options.
+ * Si `wholeHouse` est vrai, le séjour est facturé au forfait maison complète
+ * (600 € / nuit HT, indépendant du nombre de personnes) ; sinon au tarif par
+ * personne. Les options (linge, pension) restent facturées par personne.
+ */
 export function computeQuote(
   pers: number,
   nightsCount: number,
   opts: Options,
+  wholeHouse = false,
 ): Quote {
   const lines: QuoteLine[] = []
-  const stay = PRICE_PER_PERSON_NIGHT * pers * nightsCount
-  lines.push({
-    label: 'Séjour (nuitées)',
-    qty: pers * nightsCount,
-    unitPrice: PRICE_PER_PERSON_NIGHT,
-    total: stay,
-  })
+  if (wholeHouse) {
+    const stay = WHOLE_HOUSE_NIGHT_HT * nightsCount
+    lines.push({
+      label: 'Maison complète (forfait)',
+      qty: nightsCount,
+      unitPrice: WHOLE_HOUSE_NIGHT_HT,
+      total: stay,
+    })
+  } else {
+    const stay = PRICE_PER_PERSON_NIGHT * pers * nightsCount
+    lines.push({
+      label: 'Séjour (nuitées)',
+      qty: pers * nightsCount,
+      unitPrice: PRICE_PER_PERSON_NIGHT,
+      total: stay,
+    })
+  }
   if (opts.linge) {
     // Forfait linge : facturé par personne, une seule fois (pas par nuit).
     const t = LINGE_PER_PERSON * pers
