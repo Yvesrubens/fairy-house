@@ -4,6 +4,7 @@ import type {
   BedBlock,
   EventRow,
   EventCategory,
+  Faq,
   FactureRow,
   Intervenant,
   IntervenantDomain,
@@ -482,6 +483,36 @@ export async function upsertIntervenant(
 
 export async function deleteIntervenant(id: string): Promise<void> {
   const { error } = await supabase.from('intervenants').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+// ------------------------------------------------ FAQ
+export async function listPublishedFaq(): Promise<Faq[]> {
+  const { data, error } = await supabase
+    .from('faq')
+    .select('*')
+    .eq('published', true)
+    .order('position', { ascending: true })
+    .order('created_at', { ascending: true })
+  return unwrap(data, error)
+}
+
+export async function listAllFaq(): Promise<Faq[]> {
+  const { data, error } = await supabase
+    .from('faq')
+    .select('*')
+    .order('position', { ascending: true })
+    .order('created_at', { ascending: true })
+  return unwrap(data, error)
+}
+
+export async function upsertFaq(row: Partial<Faq>): Promise<void> {
+  const { error } = await supabase.from('faq').upsert(row)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteFaq(id: string): Promise<void> {
+  const { error } = await supabase.from('faq').delete().eq('id', id)
   if (error) throw new Error(error.message)
 }
 

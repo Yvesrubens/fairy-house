@@ -132,6 +132,15 @@ export interface IntervenantDomain {
   created_at: string
 }
 
+export interface Faq {
+  id: string
+  question: string
+  answer: string
+  position: number
+  published: boolean
+  created_at: string
+}
+
 export interface OrgSettings {
   id: string
   contact_email: string | null
