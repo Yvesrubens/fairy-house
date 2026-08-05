@@ -13,7 +13,6 @@ import {
   createCheckoutSession,
 } from '../lib/api'
 import {
-  WHOLE_HOUSE_CAPACITY,
   canSplit,
   computeQuote,
   minIndividualDate,
@@ -25,6 +24,7 @@ const INITIAL_STATE: BookingState = {
   mode: null,
   rooms: [],
   wholeHouse: false,
+  wholeHouseGuests: 2,
   simpleBeds: 1,
   doubleBeds: 0,
   individualGuests: 1,
@@ -98,7 +98,7 @@ export default function Reservation() {
     }
 
     const pers = state.wholeHouse
-      ? WHOLE_HOUSE_CAPACITY
+      ? state.wholeHouseGuests
       : state.mode === 'groupe'
         ? state.rooms.reduce((s, r) => s + r.guests, 0)
         : state.individualGuests

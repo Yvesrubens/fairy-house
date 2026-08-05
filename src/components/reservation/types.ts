@@ -5,6 +5,7 @@ export interface BookingState {
   mode: 'groupe' | 'individuel' | 'sur-mesure' | null
   rooms: { room: string; guests: number }[] // groupe (vide si maison complète)
   wholeHouse: boolean // groupe
+  wholeHouseGuests: number // groupe maison complète : nb réel de convives (1..14)
   simpleBeds: number // individuel (0..10)
   doubleBeds: number // individuel (0..1)
   individualGuests: number // individuel (nombre de personnes)

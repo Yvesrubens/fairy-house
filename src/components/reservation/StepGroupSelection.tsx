@@ -9,7 +9,7 @@ import {
   PENSION_PER_PERSON_NIGHT,
 } from '../../lib/booking'
 import { formatEuro2 } from '../../lib/format'
-import { Calendar, Bed } from '../icons'
+import { Calendar, Bed, Users } from '../icons'
 import AvailabilityCalendar from './AvailabilityCalendar'
 
 const fieldCls =
@@ -40,7 +40,7 @@ export default function StepGroupSelection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const pers = WHOLE_HOUSE_CAPACITY
+  const pers = state.wholeHouseGuests
   const nightsCount = nights(state.arrival, state.departure)
   const liveQuote = computeQuote(pers, nightsCount, state.options, true)
 
@@ -77,6 +77,32 @@ export default function StepGroupSelection({
             forfait (indépendant du nombre de personnes).
           </p>
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <Users className="w-4 h-4 inline mr-1" />
+          Nombre de personnes *
+        </label>
+        <select
+          value={state.wholeHouseGuests}
+          onChange={(e) =>
+            setState({ wholeHouseGuests: Number(e.target.value) })
+          }
+          className={fieldCls}
+        >
+          {Array.from({ length: WHOLE_HOUSE_CAPACITY }, (_, i) => i + 1).map(
+            (n) => (
+              <option key={n} value={n}>
+                {n} {n === 1 ? 'personne' : 'personnes'}
+              </option>
+            ),
+          )}
+        </select>
+        <p className="mt-1 text-xs text-gray-500">
+          Le séjour est au forfait maison complète ; ce nombre sert uniquement au
+          calcul du linge et de la pension.
+        </p>
       </div>
 
       <AvailabilityCalendar

@@ -117,7 +117,7 @@ export const PAGES: PageDef[] = [
             label: 'Projet 1 — points',
             type: 'list',
             default: [
-              'Jusqu’à 12 personnes',
+              'Jusqu’à 14 personnes',
               'Maison privatisée',
               'Jardin arboré et bassin à carpes pour se détendre',
             ].join('\n'),
@@ -131,7 +131,7 @@ export const PAGES: PageDef[] = [
             label: 'Projet 2 — points',
             type: 'list',
             default: [
-              'Jusqu’à 12 personnes',
+              'Jusqu’à 14 personnes',
               'Possibilité de faire venir des accompagnant·es',
               'Accompagnement dans l’organisation et proposition de programmes thématiques',
             ].join('\n'),
@@ -283,10 +283,10 @@ export const PAGES: PageDef[] = [
             type: 'list',
             default: [
               'Chambres partagées (de 3 à 5 personnes)',
-              '45€ / nuit / personne',
-              'Privatisation à partir de 1200€',
+              '45€ / nuit / personne (HT)',
+              'Privatisation de la maison complète : 600€ / nuit (HT), jusqu’à 14 personnes',
               'Salles de bain communes',
-              'Linge de maison en option : 5€ / personne',
+              'Linge de maison en option : 8€ / personne (HT)',
             ].join('\n'),
           },
           { key: 'lelieu.confort.repas_title', label: 'Bloc Repas — titre', type: 'text', default: 'Repas' },
