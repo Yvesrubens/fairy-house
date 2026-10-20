@@ -18,6 +18,7 @@ import { MentionsLegales, CGV, Confidentialite, Cookies } from './pages/Legal'
 import { ReservationProvider } from './components/Reservation'
 import { ConsentProvider } from './components/consent/ConsentContext'
 import CookieBanner from './components/consent/CookieBanner'
+import Analytics from './components/consent/Analytics'
 import { AuthProvider } from './admin/AuthProvider'
 import RequireAdmin from './admin/RequireAdmin'
 import AdminLayout from './admin/AdminLayout'
@@ -62,6 +63,7 @@ function PublicSite() {
       </Routes>
         <Footer />
         <CookieBanner />
+        <Analytics />
       </div>
     </ReservationProvider>
     </ConsentProvider>

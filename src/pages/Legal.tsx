@@ -674,8 +674,11 @@ export function Cookies() {
                   consentement.
                 </li>
                 <li>
-                  <strong>Mesure d'audience</strong> : aucun outil de mesure
-                  d'audience n'est utilisé à ce jour.
+                  <strong>Mesure d'audience</strong> : le site utilise Google
+                  Analytics 4 pour analyser la fréquentation de manière
+                  anonymisée (cookies <code>_ga</code> et <code>_ga_*</code>,
+                  durée de conservation d'environ 13 mois). Ces cookies ne sont
+                  déposés qu'après votre consentement et peuvent être refusés.
                 </li>
                 <li>
                   <strong>Services externes</strong> : la carte Google Maps

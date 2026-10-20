@@ -22,7 +22,7 @@ export default function MapEmbed({
         </p>
         <button
           type="button"
-          onClick={() => save({ external: true })}
+          onClick={() => save({ analytics: consent.analytics, external: true })}
           className="rounded-full bg-fairy-gold px-6 py-2.5 text-sm font-bold text-black transition-colors hover:bg-black hover:text-fairy-gold"
         >
           Afficher la carte

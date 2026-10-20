@@ -8,16 +8,17 @@ import {
 // Gestion du consentement aux traceurs (RGPD / recommandations CNIL).
 // Catégories :
 //  - « necessary » : toujours actif (fonctionnement, réservation, paiement,
-//    session admin) — non soumis à consentement.
-//  - « external »  : services tiers qui déposent des cookies (actuellement la
-//    carte Google Maps). Désactivé par défaut tant que la personne n'a pas
-//    donné son accord : aucun traceur tiers n'est chargé avant le consentement.
+//    session admin) — non soumis à consentement, non représenté ici.
+//  - « analytics » : mesure d'audience (Google Analytics 4). Désactivé par
+//    défaut ; GA4 n'est chargé qu'après accord.
+//  - « external »  : services tiers (carte Google Maps). Désactivé par défaut.
+// Aucun traceur soumis à consentement n'est chargé avant l'accord.
 
-export type ConsentCategories = { external: boolean }
+export type ConsentCategories = { analytics: boolean; external: boolean }
 
-const STORAGE_KEY = 'fh-cookie-consent-v1'
+const STORAGE_KEY = 'fh-cookie-consent-v2'
 
-type Stored = { external: boolean; decidedAt: string }
+type Stored = ConsentCategories & { decidedAt: string }
 
 interface ConsentValue {
   decided: boolean
@@ -37,7 +38,9 @@ function read(): Stored | null {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const v = JSON.parse(raw)
-    if (v && typeof v.external === 'boolean') return v as Stored
+    if (v && typeof v.analytics === 'boolean' && typeof v.external === 'boolean') {
+      return v as Stored
+    }
   } catch {
     /* localStorage indisponible (navigation privée, etc.) */
   }
@@ -48,8 +51,8 @@ export function ConsentProvider({ children }: { children: ReactNode }) {
   const [stored, setStored] = useState<Stored | null>(() => read())
   const [prefsOpen, setPrefsOpen] = useState(false)
 
-  function persist(external: boolean) {
-    const v: Stored = { external, decidedAt: new Date().toISOString() }
+  function persist(cats: ConsentCategories) {
+    const v: Stored = { ...cats, decidedAt: new Date().toISOString() }
     setStored(v)
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(v))
@@ -60,17 +63,20 @@ export function ConsentProvider({ children }: { children: ReactNode }) {
 
   const value: ConsentValue = {
     decided: stored !== null,
-    consent: { external: stored?.external ?? false },
+    consent: {
+      analytics: stored?.analytics ?? false,
+      external: stored?.external ?? false,
+    },
     acceptAll: () => {
-      persist(true)
+      persist({ analytics: true, external: true })
       setPrefsOpen(false)
     },
     refuseAll: () => {
-      persist(false)
+      persist({ analytics: false, external: false })
       setPrefsOpen(false)
     },
     save: (c) => {
-      persist(c.external)
+      persist(c)
       setPrefsOpen(false)
     },
     prefsOpen,
