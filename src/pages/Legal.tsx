@@ -299,13 +299,35 @@ export function CGV() {
               <p>
                 Lorsque la personne ayant réservé est un consommateur et que le
                 différend n'a pas pu être résolu directement, elle peut, sous les
-                conditions prévues par la loi, saisir le médiateur de la
-                consommation dont relève Fairy House Collectif.
+                conditions prévues par la loi, saisir gratuitement le médiateur de
+                la consommation dont relève Fairy House Collectif :
               </p>
-              <p className="rounded bg-gray-50 px-3 py-2 text-gray-500">
-                Les coordonnées du médiateur compétent seront indiquées ici après
-                sa désignation : [nom, adresse et site internet du médiateur — à
-                compléter].
+              <p>
+                <strong>Société de la Médiation Professionnelle (SMP)</strong>
+                <br />
+                Alteritae, 5 rue Salvaing, 12000 Rodez
+                <br />
+                <a
+                  href="https://www.mediateur-consommation-smp.fr"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={link}
+                >
+                  www.mediateur-consommation-smp.fr
+                </a>
+              </p>
+              <p>
+                La demande de médiation peut être déposée en ligne via le
+                formulaire{' '}
+                <a
+                  href="https://www.mediateur-consommation-smp.fr/demander-une-mediation/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={link}
+                >
+                  « Demander une médiation »
+                </a>
+                .
               </p>
               <p>Les présentes CGV sont soumises au droit français.</p>
             </>
