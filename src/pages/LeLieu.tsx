@@ -10,6 +10,7 @@ import {
   Phone,
 } from '../components/icons'
 import { useSiteContent } from '../lib/useSiteContent'
+import MapEmbed from '../components/consent/MapEmbed'
 
 function FlipCard({ space }: { space: { name: string; img: string; text: string } }) {
   const [flipped, setFlipped] = useState(false)
@@ -293,14 +294,8 @@ export default function LeLieu() {
                   </div>
                 </div>
                 <div className="bg-gray-200 rounded-2xl h-96 overflow-hidden">
-                  <iframe
-                    src="https://www.google.com/maps?q=Le+Grand+Leu,+45230+La+Chapelle-sur-Aveyron&output=embed"
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
+                  <MapEmbed
+                    query="Le Grand Leu, 45230 La Chapelle-sur-Aveyron"
                     title="Localisation Fairy House"
                   />
                 </div>

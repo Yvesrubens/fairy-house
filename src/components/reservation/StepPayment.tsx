@@ -5,6 +5,7 @@ import {
   nights,
   splitPlan,
 } from '../../lib/booking'
+import { Link } from 'react-router-dom'
 import { CreditCard } from '../icons'
 
 export interface StepPaymentProps extends StepProps {
@@ -149,6 +150,20 @@ export default function StepPayment({
           (Stripe) pour régler par carte ou PayPal.
         </p>
       )}
+
+      <p className="text-xs text-gray-500">
+        En validant votre réservation, vous reconnaissez avoir pris connaissance
+        et accepté nos{' '}
+        <Link
+          to="/cgv"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-fairy-gold hover:underline"
+        >
+          conditions générales de vente
+        </Link>
+        .
+      </p>
 
       <div className="flex gap-4 pt-4">
         <button

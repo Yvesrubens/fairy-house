@@ -14,8 +14,10 @@ import Faq from './pages/Faq'
 import BlogArticle from './pages/BlogArticle'
 import Reservation from './pages/Reservation'
 import Placeholder from './pages/Placeholder'
-import { MentionsLegales, CGV, Confidentialite } from './pages/Legal'
+import { MentionsLegales, CGV, Confidentialite, Cookies } from './pages/Legal'
 import { ReservationProvider } from './components/Reservation'
+import { ConsentProvider } from './components/consent/ConsentContext'
+import CookieBanner from './components/consent/CookieBanner'
 import { AuthProvider } from './admin/AuthProvider'
 import RequireAdmin from './admin/RequireAdmin'
 import AdminLayout from './admin/AdminLayout'
@@ -35,6 +37,7 @@ import Factures from './admin/pages/Factures'
 
 function PublicSite() {
   return (
+    <ConsentProvider>
     <ReservationProvider>
       <div className="min-h-screen bg-white">
         <ScrollToTop />
@@ -54,11 +57,14 @@ function PublicSite() {
         <Route path="/mentions-legales" element={<MentionsLegales />} />
         <Route path="/cgv" element={<CGV />} />
         <Route path="/confidentialite" element={<Confidentialite />} />
+        <Route path="/cookies" element={<Cookies />} />
         <Route path="*" element={<Placeholder title="Page introuvable" />} />
       </Routes>
         <Footer />
+        <CookieBanner />
       </div>
     </ReservationProvider>
+    </ConsentProvider>
   )
 }
 

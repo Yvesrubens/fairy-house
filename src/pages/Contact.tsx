@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { createMessage, listPublishedIntervenants } from '../lib/api'
 import type { Intervenant } from '../types/db'
 import { Mail, MapPin, Send, Facebook, Instagram } from '../components/icons'
+import MapEmbed from '../components/consent/MapEmbed'
 
 const SUBJECT_ACCOMPAGNANT = 'Accompagnant·e'
 
@@ -297,14 +298,8 @@ export default function Contact() {
 
         {/* CARTE */}
         <section className="h-96 bg-gray-200">
-          <iframe
-            src="https://www.google.com/maps?q=Le+Grand+Leu,+45230+La+Chapelle-sur-Aveyron&output=embed"
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
+          <MapEmbed
+            query="Le Grand Leu, 45230 La Chapelle-sur-Aveyron"
             title="Localisation Fairy House"
           />
         </section>

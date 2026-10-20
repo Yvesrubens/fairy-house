@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Facebook, Instagram, Mail, Phone, MapPin, Heart } from './icons'
+import { useConsent } from './consent/ConsentContext'
 
 const FACEBOOK = 'https://www.facebook.com/profile.php?id=61590986093696'
 const INSTAGRAM = 'https://www.instagram.com/fairyhouse.collectif/'
@@ -9,6 +10,7 @@ function Bar() {
 }
 
 export default function Footer() {
+  const { openPrefs } = useConsent()
   return (
     <footer className="bg-gradient-to-b from-gray-100 to-gray-50 border-t-2 border-fairy-gold/30">
       <div className="container mx-auto px-4 py-16">
@@ -101,6 +103,7 @@ export default function Footer() {
                 { label: 'Mentions légales', to: '/mentions-legales' },
                 { label: 'CGV', to: '/cgv' },
                 { label: 'Confidentialité', to: '/confidentialite' },
+                { label: 'Cookies', to: '/cookies' },
               ].map((l) => (
                 <li key={l.to}>
                   <Link
@@ -111,6 +114,15 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <button
+                  type="button"
+                  onClick={openPrefs}
+                  className="hover:text-fairy-gold transition-colors hover:translate-x-1 inline-block font-medium text-left"
+                >
+                  Gérer mes cookies
+                </button>
+              </li>
             </ul>
           </div>
 
