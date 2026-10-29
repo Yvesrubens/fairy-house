@@ -96,6 +96,8 @@ describe('stats', () => {
       split_payment_enabled: null,
       reglement_texte: null,
       droits_image_texte: null,
+      intervenants: null,
+      email_consignes: null,
       created_at: '',
     }
     expect(activeEvents([ev, { ...ev, id: 'e2', published: false }], now)).toBe(1)

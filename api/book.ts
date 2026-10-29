@@ -80,15 +80,25 @@ async function run(req: any, res: any) {
     return
   }
 
-  // 1) Mail de confirmation (toujours)
-  const { html, text } = confirmationEmail(r, {
-    email: org.contactEmail,
-    phone: org.contactPhone,
-    address: org.address,
-  })
+  // 1) Mail de confirmation (toujours). Pour un événement, on joint ses infos
+  //    (titre, dates, intervenant·es, consignes) au template.
+  let event = null
+  if (r.event_id) {
+    const { data: ev } = await supabase
+      .from('events')
+      .select('title,event_date,event_end_date,intervenants,email_consignes')
+      .eq('id', r.event_id)
+      .maybeSingle()
+    event = ev
+  }
+  const { subject, html, text } = confirmationEmail(
+    r,
+    { email: org.contactEmail, phone: org.contactPhone, address: org.address },
+    event,
+  )
   const okConfirm = await sendEmail({
     to: [r.client_email],
-    subject: `Confirmation de votre demande — Fairy House (${r.reference})`,
+    subject,
     html,
     text,
   })

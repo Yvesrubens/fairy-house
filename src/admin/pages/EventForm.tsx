@@ -121,6 +121,17 @@ export default function EventForm({
         value={row.description ?? ''}
         onChange={(v) => set('description', v)}
       />
+      <Field
+        label="Intervenant·e(s) — affiché dans le mail de confirmation"
+        value={row.intervenants ?? ''}
+        onChange={(v) => set('intervenants', v || null)}
+      />
+      <Field
+        label="Consignes / matériel à apporter — mails de confirmation et J-2"
+        textarea
+        value={row.email_consignes ?? ''}
+        onChange={(v) => set('email_consignes', v || null)}
+      />
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">
           Contenu (mise en forme : gras, italique, souligné, listes)

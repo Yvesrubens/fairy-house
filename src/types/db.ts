@@ -78,6 +78,9 @@ export interface EventRow {
   split_payment_enabled: boolean | null
   reglement_texte: string | null
   droits_image_texte: string | null
+  // Pour les mails de confirmation / préparation (événements)
+  intervenants: string | null
+  email_consignes: string | null
   created_at: string
 }
 

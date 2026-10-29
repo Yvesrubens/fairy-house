@@ -66,11 +66,20 @@ export default async function handler(req: any, res: any) {
   }
 
   const org = await fetchOrgSettings(supabase)
-  const { html, text } = confirmationEmail(r, {
-    email: org.contactEmail,
-    phone: org.contactPhone,
-    address: org.address,
-  })
+  let event = null
+  if (r.event_id) {
+    const { data: ev } = await supabase
+      .from('events')
+      .select('title,event_date,event_end_date,intervenants,email_consignes')
+      .eq('id', r.event_id)
+      .maybeSingle()
+    event = ev
+  }
+  const { subject, html, text } = confirmationEmail(
+    r,
+    { email: org.contactEmail, phone: org.contactPhone, address: org.address },
+    event,
+  )
 
   // Envoi via Resend
   const send = await fetch('https://api.resend.com/emails', {
@@ -82,7 +91,7 @@ export default async function handler(req: any, res: any) {
     body: JSON.stringify({
       from: RESEND_FROM,
       to: [r.client_email],
-      subject: `Confirmation de votre réservation — Fairy House (${r.reference})`,
+      subject,
       html,
       text,
     }),
