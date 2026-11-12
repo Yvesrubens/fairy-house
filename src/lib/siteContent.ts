@@ -284,7 +284,7 @@ export const PAGES: PageDef[] = [
             default: [
               'Chambres partagées (de 3 à 5 personnes)',
               '50€ / nuit / personne',
-              'Privatisation à partir de 600€ et accueille jusqu’à 14 personnes',
+              'Privatisation à partir de 700€ et accueille jusqu’à 14 personnes',
               'Salles de bain communes',
               'Linge de maison en option : 8€ / personne - qui comprend drap housse, housse de couette, taie d’oreiller et serviette de bain',
             ].join('\n'),

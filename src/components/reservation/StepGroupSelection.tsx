@@ -21,7 +21,7 @@ function today(): string {
 
 /**
  * Étape 2 (groupe) : privatisation de la maison complète uniquement.
- * Forfait maison entière (600 € / nuit HT, jusqu'à 14 personnes) — pas de
+ * Forfait maison entière (700 € / nuit TTC, jusqu'à 14 personnes) — pas de
  * sélection chambre par chambre ni de tarif par personne.
  */
 export default function StepGroupSelection({

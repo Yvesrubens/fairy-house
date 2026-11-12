@@ -21,7 +21,7 @@ export const DOUBLE_BEDS = 1
 export const PRICE_PER_PERSON_NIGHT_TTC = 50
 // Forfait « maison complète » : prix TTC par nuit, indépendant du nombre de
 // personnes (ce n'est pas un tarif par personne).
-export const WHOLE_HOUSE_NIGHT_TTC = 600
+export const WHOLE_HOUSE_NIGHT_TTC = 700
 export const LINGE_PER_PERSON_TTC = 8 // forfait par personne (pas par nuit)
 export const PENSION_PER_PERSON_NIGHT_TTC = 20
 export const VAT_RATE = 10
@@ -67,7 +67,7 @@ function htFromTtc(ttc: number): number {
  * Devis chiffré pour `pers` personnes, `nightsCount` nuits et les options.
  * Les tarifs sont définis en TTC : le total TTC est donc toujours « rond »,
  * et le HT / la TVA sont recalculés à partir du TTC. Si `wholeHouse` est vrai,
- * le séjour est facturé au forfait maison complète (600 € TTC / nuit) ; sinon
+ * le séjour est facturé au forfait maison complète (700 € TTC / nuit) ; sinon
  * au tarif par personne. Les options (linge, pension) restent par personne.
  * Les lignes exposent un prix unitaire et un total HT (pour le devis/la facture).
  */
