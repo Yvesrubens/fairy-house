@@ -28,12 +28,25 @@ async function sendConfirmation(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   r: any,
   org: { contactEmail: string; contactPhone: string; address: string },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
 ): Promise<void> {
-  const { html, text } = confirmationEmail(r, {
-    email: org.contactEmail,
-    phone: org.contactPhone,
-    address: org.address,
-  })
+  // Inscription événement : infos de l'événement pour le mail (titre, dates,
+  // intervenant·es, consignes).
+  let event = null
+  if (r.event_id) {
+    const { data: ev } = await supabase
+      .from('events')
+      .select('title,event_date,event_end_date,intervenants,email_consignes')
+      .eq('id', r.event_id)
+      .maybeSingle()
+    event = ev
+  }
+  const { subject, html, text } = confirmationEmail(
+    r,
+    { email: org.contactEmail, phone: org.contactPhone, address: org.address },
+    event,
+  )
   await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -43,7 +56,7 @@ async function sendConfirmation(
     body: JSON.stringify({
       from: RESEND_FROM,
       to: [r.client_email],
-      subject: `Confirmation de votre réservation — Fairy House (${r.reference})`,
+      subject,
       html,
       text,
     }),
@@ -90,7 +103,7 @@ export default async function handler(req: any, res: any) {
         if (!r.confirmation_sent_at) {
           try {
             const org = await fetchOrgSettings(supabase)
-            await sendConfirmation(r, org)
+            await sendConfirmation(r, org, supabase)
             await supabase
               .from('reservations')
               .update({ confirmation_sent_at: new Date().toISOString() })
