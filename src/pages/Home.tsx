@@ -275,6 +275,33 @@ export default function Home() {
           </div>
         </section>
 
+        {/* BON CADEAU */}
+        <section className="py-16 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <div className="max-w-6xl mx-auto">
+              <Link to="/bons-cadeaux" className="block overflow-hidden rounded-3xl shadow-lg">
+                <img
+                  src="/photo/bon-cadeau-bandeau.webp"
+                  alt="Offrir un bon cadeau Fairy House — séjours, stages et création"
+                  loading="lazy"
+                  width={1920}
+                  height={819}
+                  className="w-full h-auto"
+                />
+              </Link>
+              <div className="-mt-7 text-center relative">
+                <Link
+                  to="/bons-cadeaux"
+                  className="inline-flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-fairy-gold to-fairy-gold-light text-black hover:from-black hover:to-black hover:text-fairy-gold rounded-full font-bold text-lg transition-all shadow-xl"
+                >
+                  Offrir un bon cadeau
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* HÉBERGEMENTS */}
         <section
           id="hebergements"

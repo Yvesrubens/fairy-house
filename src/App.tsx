@@ -11,6 +11,7 @@ import Blog from './pages/Blog'
 import Intervenants from './pages/Intervenants'
 import Contact from './pages/Contact'
 import Faq from './pages/Faq'
+import BonsCadeaux from './pages/BonsCadeaux'
 import BlogArticle from './pages/BlogArticle'
 import Reservation from './pages/Reservation'
 import Placeholder from './pages/Placeholder'
@@ -30,6 +31,7 @@ import Articles from './admin/pages/Articles'
 import IntervenantsAdmin from './admin/pages/Intervenants'
 import FaqAdmin from './admin/pages/Faq'
 import TarifsAdmin from './admin/pages/Tarifs'
+import GiftVouchersAdmin from './admin/pages/GiftVouchers'
 import Messages from './admin/pages/Messages'
 import BedBlocks from './admin/pages/BedBlocks'
 import Newsletter from './admin/pages/Newsletter'
@@ -56,6 +58,7 @@ function PublicSite() {
         <Route path="/reserver" element={<Reservation />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/faq" element={<Faq />} />
+        <Route path="/bons-cadeaux" element={<BonsCadeaux />} />
         <Route path="/mentions-legales" element={<MentionsLegales />} />
         <Route path="/cgv" element={<CGV />} />
         <Route path="/confidentialite" element={<Confidentialite />} />
@@ -96,6 +99,7 @@ export default function App() {
           <Route path="intervenants" element={<IntervenantsAdmin />} />
           <Route path="faq" element={<FaqAdmin />} />
           <Route path="tarifs" element={<TarifsAdmin />} />
+          <Route path="bons-cadeaux" element={<GiftVouchersAdmin />} />
           <Route path="messages" element={<Messages />} />
           <Route path="blocage-lits" element={<BedBlocks />} />
           <Route path="newsletter" element={<Newsletter />} />

@@ -196,4 +196,4 @@ export async function buildDevisPdf(opts: {
   return doc.save()
 }
 
-export { eur, fmtDate }
+export { eur, fmtDate, safe }

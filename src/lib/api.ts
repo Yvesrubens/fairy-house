@@ -7,6 +7,8 @@ import type {
   Faq,
   FacturePayment,
   FactureRow,
+  GiftVoucher,
+  GiftVoucherUse,
   Intervenant,
   IntervenantDomain,
   MessageRow,
@@ -133,6 +135,26 @@ export async function createReservation(
     .insert({ ...input, id, reference: ref, amount: input.total_ttc ?? 0 })
   if (error) throw new Error(error.message)
   return { id, reference: ref as string }
+}
+
+/** Achat d'un bon cadeau : crée le bon et la session Stripe, renvoie l'URL. */
+export async function createGiftCheckout(input: {
+  amount: number
+  buyerName: string
+  buyerEmail: string
+  recipientName?: string
+  message?: string
+  successUrl: string
+  cancelUrl: string
+}): Promise<{ url: string }> {
+  const res = await fetch('/api/gift-checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok || !body.url) throw new Error(body.error || 'Paiement indisponible')
+  return { url: body.url as string }
 }
 
 /** Crée une session Stripe Checkout pour une réservation et renvoie l'URL. */
@@ -579,6 +601,50 @@ export async function listFactures(): Promise<FactureRow[]> {
     for (const f of rows) f.paid_amount = paidOf.get(f.id) ?? 0
   }
   return rows
+}
+
+// ------------------------------------------------------- Bons cadeaux (admin)
+export async function listGiftVouchers(): Promise<GiftVoucher[]> {
+  const { data, error } = await supabase
+    .from('gift_vouchers')
+    .select('*')
+    .order('created_at', { ascending: false })
+  return unwrap(data, error) as GiftVoucher[]
+}
+
+export async function listGiftVoucherUses(voucherId: string): Promise<GiftVoucherUse[]> {
+  const { data, error } = await supabase
+    .from('gift_voucher_uses')
+    .select('*')
+    .eq('voucher_id', voucherId)
+    .order('used_at', { ascending: true })
+  return unwrap(data, error) as GiftVoucherUse[]
+}
+
+export async function addGiftVoucherUse(
+  u: Pick<GiftVoucherUse, 'voucher_id' | 'amount' | 'used_at' | 'reservation_ref' | 'note'>,
+): Promise<void> {
+  const { error } = await supabase.from('gift_voucher_uses').insert(u)
+  if (error) {
+    // Contrainte « solde >= 0 » : utilisation supérieure au solde restant.
+    if (/balance|check/i.test(error.message)) {
+      throw new Error('Montant supérieur au solde restant du bon.')
+    }
+    throw new Error(error.message)
+  }
+}
+
+export async function deleteGiftVoucherUse(id: string): Promise<void> {
+  const { error } = await supabase.from('gift_voucher_uses').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function setGiftVoucherStatus(
+  id: string,
+  status: GiftVoucher['status'],
+): Promise<void> {
+  const { error } = await supabase.from('gift_vouchers').update({ status }).eq('id', id)
+  if (error) throw new Error(error.message)
 }
 
 // ------------------------------------------------------- Tarifs (admin)

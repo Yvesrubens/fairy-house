@@ -32,6 +32,7 @@ const LINKS: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/admin/faq', label: 'FAQ', icon: <DocIcon /> },
   { to: '/admin/factures', label: 'Factures', icon: <DocIcon /> },
   { to: '/admin/tarifs', label: 'Tarifs', icon: <EuroIcon /> },
+  { to: '/admin/bons-cadeaux', label: 'Bons cadeaux', icon: <EuroIcon /> },
   { to: '/admin/settings', label: 'Paramètres', icon: <GearIcon /> },
   { to: '/admin/contenu', label: 'Contenu du site', icon: <DocIcon /> },
 ]

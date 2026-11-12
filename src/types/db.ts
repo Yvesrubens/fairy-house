@@ -184,6 +184,32 @@ export interface FactureRow {
   paid_amount?: number
 }
 
+export interface GiftVoucher {
+  id: string
+  code: string
+  amount: number
+  balance: number
+  buyer_name: string
+  buyer_email: string
+  recipient_name: string | null
+  message: string | null
+  status: 'pending' | 'active' | 'cancelled'
+  paid_at: string | null
+  expires_at: string | null
+  sent_at: string | null
+  created_at: string
+}
+
+export interface GiftVoucherUse {
+  id: string
+  voucher_id: string
+  amount: number
+  used_at: string
+  reservation_ref: string | null
+  note: string | null
+  created_at: string
+}
+
 export interface TarifsRow {
   id: number
   lit_nuit_ttc: number

@@ -63,6 +63,7 @@ export default function Footer() {
                 { label: 'Événements', to: '/evenements' },
                 { label: 'Blog', to: '/blog' },
                 { label: 'Accompagnant·es', to: '/intervenants' },
+                { label: 'Bons cadeaux', to: '/bons-cadeaux' },
               ].map((l) => (
                 <li key={l.to}>
                   <Link
