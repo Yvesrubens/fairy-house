@@ -31,10 +31,18 @@ const GOLD = rgb(0.78, 0.61, 0.21)
 const BROWN = rgb(0.33, 0.18, 0.1)
 const GREY = rgb(0.4, 0.36, 0.32)
 
-/** PDF du bon cadeau (A4 paysage). */
-export async function buildGiftPdf(v: GiftVoucherData): Promise<Uint8Array> {
+/**
+ * PDF du bon cadeau (A4 portrait). En-tête : le visuel officiel « Offrir un
+ * Bon Cadeau » (public/photo/bon-cadeau-pdf.jpg) ; en dessous, sur fond crème
+ * à double cadre doré, les informations du bon. `headerJpg` permet de fournir
+ * le visuel directement (sinon il est récupéré sur le site ; repli texte).
+ */
+export async function buildGiftPdf(
+  v: GiftVoucherData,
+  opts: { headerJpg?: Uint8Array } = {},
+): Promise<Uint8Array> {
   const doc = await PDFDocument.create()
-  const page = doc.addPage([842, 595])
+  const page = doc.addPage([595, 842])
   const { width, height } = page.getSize()
   const sans = await doc.embedFont(StandardFonts.Helvetica)
   const sansBold = await doc.embedFont(StandardFonts.HelveticaBold)
@@ -66,76 +74,79 @@ export async function buildGiftPdf(v: GiftVoucherData): Promise<Uint8Array> {
     return lines
   }
 
-  // Fond crème + double cadre doré
+  // Fond crème
   page.drawRectangle({ x: 0, y: 0, width, height, color: CREAM })
-  page.drawRectangle({ x: 24, y: 24, width: width - 48, height: height - 48, borderColor: GOLD, borderWidth: 2 })
-  page.drawRectangle({ x: 34, y: 34, width: width - 68, height: height - 68, borderColor: GOLD, borderWidth: 0.7 })
 
-  // Logo (récupéré sur le site ; il contient déjà « Le Sanctuaire de vos
-  // Inspirations »). Repli texte s'il est indisponible.
-  let top = height - 70
-  let logoOk = false
+  // En-tête : visuel officiel pleine largeur (ratio 1920 × 819)
+  const headerH = Math.round((width * 819) / 1920)
+  let headerOk = false
   try {
-    const res = await fetch(`${SITE_URL}/logo-clair-bg.png`)
-    if (res.ok) {
-      const img = await doc.embedPng(new Uint8Array(await res.arrayBuffer()))
-      const h = 62
-      const w = (img.width / img.height) * h
-      page.drawImage(img, { x: (width - w) / 2, y: height - 52 - h, width: w, height: h })
-      top = height - 52 - h - 22
-      logoOk = true
+    let bytes = opts.headerJpg
+    if (!bytes) {
+      const res = await fetch(`${SITE_URL}/photo/bon-cadeau-pdf.jpg`)
+      if (res.ok) bytes = new Uint8Array(await res.arrayBuffer())
+    }
+    if (bytes) {
+      const img = await doc.embedJpg(bytes)
+      page.drawImage(img, { x: 0, y: height - headerH, width, height: headerH })
+      headerOk = true
     }
   } catch {
     /* repli ci-dessous */
   }
-  if (!logoOk) {
-    center('FAIRY HOUSE', top, 22, sansBold, BROWN)
-    top -= 24
-    center('Le Sanctuaire de vos Inspirations', top, 11, serif, GREY)
+  if (!headerOk) {
+    center('FAIRY HOUSE', height - 110, 30, sansBold, BROWN)
+    center('Le Sanctuaire de vos Inspirations', height - 135, 12, serif, GREY)
   }
+
+  // Double cadre doré autour de la partie « bon »
+  const frameTop = height - headerH - 14
+  page.drawRectangle({ x: 24, y: 24, width: width - 48, height: frameTop - 24, borderColor: GOLD, borderWidth: 2 })
+  page.drawRectangle({ x: 32, y: 32, width: width - 64, height: frameTop - 40, borderColor: GOLD, borderWidth: 0.7 })
 
   // Titre
-  center('Bon Cadeau', top - 64, 54, serifItalic, BROWN)
-  page.drawLine({ start: { x: width / 2 - 120, y: top - 82 }, end: { x: width / 2 + 120, y: top - 82 }, thickness: 1, color: GOLD })
+  let y = frameTop - 72
+  center('Bon Cadeau', y, 44, serifItalic, BROWN)
+  y -= 16
+  page.drawLine({ start: { x: width / 2 - 110, y }, end: { x: width / 2 + 110, y }, thickness: 1, color: GOLD })
+  y -= 36
 
   // Bénéficiaire / acheteur
-  let y = top - 114
   if (v.recipient_name) {
-    center(`Offert à ${v.recipient_name}`, y, 18, serifItalic, BROWN)
-    y -= 24
+    center(`Offert à ${v.recipient_name}`, y, 20, serifItalic, BROWN)
+    y -= 26
   }
   center(`De la part de ${v.buyer_name}`, y, 13, serif, GREY)
-  y -= 26
+  y -= 30
 
-  // Message
+  // Message (4 lignes max)
   if (v.message && v.message.trim()) {
-    for (const l of wrap(`« ${v.message.trim()} »`, serif, 12, width - 260, 3)) {
-      center(l, y, 12, serif, BROWN)
-      y -= 16
+    for (const l of wrap(`« ${v.message.trim()} »`, serif, 13, width - 170, 4)) {
+      center(l, y, 13, serif, BROWN)
+      y -= 17
     }
-    y -= 6
+    y -= 8
   }
 
-  // Montant
-  // Juste sous le message, sans descendre sur le numéro du bon.
-  center(euros(v.amount), Math.max(190, y - 40), 40, sansBold, GOLD)
+  // Montant : juste sous le message, sans descendre sur le numéro du bon.
+  center(euros(v.amount), Math.max(240, y - 46), 48, sansBold, GOLD)
 
   // Numéro + validité
-  const infoY = 150
-  center(`N° du bon : ${v.code}`, infoY, 13, sansBold, BROWN)
-  center(`Valable jusqu'au ${fmtDateFr(v.expires_at)}`, infoY - 18, 11, sans, GREY)
+  center(`N° du bon : ${v.code}`, 200, 14, sansBold, BROWN)
+  center(`Valable jusqu'au ${fmtDateFr(v.expires_at)}`, 181, 12, sans, GREY)
+  page.drawLine({ start: { x: width / 2 - 40, y: 162 }, end: { x: width / 2 + 40, y: 162 }, thickness: 0.8, color: GOLD })
 
   // Conditions
   const cond =
     "Valable sur les séjours, stages et événements de la Fairy House, en une ou plusieurs fois, " +
     "jusqu'à la date indiquée. Non remboursable, non échangeable contre des espèces. " +
     'Pour réserver, communiquez ce numéro à contact@fairyhousecollectif.com · 06 71 39 88 07.'
-  let cy = 96
-  for (const l of wrap(cond, sans, 8.5, width - 200, 3)) {
-    center(l, cy, 8.5, sans, GREY)
-    cy -= 11
+  let cy = 138
+  for (const l of wrap(cond, sans, 9, width - 150, 4)) {
+    center(l, cy, 9, sans, GREY)
+    cy -= 12
   }
-  center('Fairy House Collectif — 2 Le Grand Leu, 45230 La Chapelle-sur-Aveyron', 50, 8, sans, GREY)
+  center('Fairy House Collectif — 2 Le Grand Leu, 45230 La Chapelle-sur-Aveyron', 48, 8, sans, GREY)
 
   return doc.save()
 }
