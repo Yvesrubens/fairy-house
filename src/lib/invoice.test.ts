@@ -1,5 +1,18 @@
 import { describe, it, expect } from 'vitest'
-import { computeInvoice, lineTtc } from './invoice'
+import { computeInvoice, lineTtc, paymentStatus } from './invoice'
+
+describe('paymentStatus', () => {
+  it('à régler sans paiement', () => {
+    expect(paymentStatus(300, 0)).toEqual({ state: 'a_regler', paid: 0, remaining: 300 })
+  })
+  it('partielle avec un acompte', () => {
+    expect(paymentStatus(300, 150)).toEqual({ state: 'partielle', paid: 150, remaining: 150 })
+  })
+  it('payée quand la somme couvre le total (y compris trop-perçu)', () => {
+    expect(paymentStatus(300, 300).state).toBe('payee')
+    expect(paymentStatus(300, 320)).toEqual({ state: 'payee', paid: 320, remaining: 0 })
+  })
+})
 
 describe('computeInvoice (saisie en TTC)', () => {
   it('le prix saisi en TTC reste le total TTC (pas de TVA ajoutée en plus)', () => {

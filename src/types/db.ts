@@ -180,6 +180,20 @@ export interface FactureRow {
   // event_id de la réservation liée (rempli par listFactures) : permet de
   // dispatcher les factures d'événements et celles de séjours.
   reservation_event_id?: string | null
+  // Somme des paiements enregistrés (rempli par listFactures).
+  paid_amount?: number
+}
+
+export type PaymentMethod = 'especes' | 'virement' | 'cb' | 'cheque' | 'autre'
+
+export interface FacturePayment {
+  id: string
+  facture_id: string
+  amount: number
+  method: PaymentMethod
+  paid_at: string
+  note: string | null
+  created_at: string
 }
 
 export interface BedBlock {

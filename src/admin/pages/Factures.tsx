@@ -4,7 +4,8 @@ import { supabase } from '../../lib/supabase'
 import { listFactures, updateFacture } from '../../lib/api'
 import { formatDate, formatEuro2, toCSV } from '../../lib/format'
 import { openPdfBase64 } from '../../lib/pdf'
-import { computeInvoice, lineTtc } from '../../lib/invoice'
+import { computeInvoice, lineTtc, paymentStatus } from '../../lib/invoice'
+import FacturePayments from './FacturePayments'
 import type { TtcLine } from '../../lib/invoice'
 import type { FactureRow } from '../../types/db'
 
@@ -18,6 +19,8 @@ export default function Factures() {
   const [error, setError] = useState('')
   const [editing, setEditing] = useState<FactureRow | null>(null)
   const [viewing, setViewing] = useState<string | null>(null)
+  const [paying, setPaying] = useState<FactureRow | null>(null)
+  const [payFilter, setPayFilter] = useState<'all' | 'a_regler' | 'payee'>('all')
   // Dispatch séjour / événement : une facture d'événement pointe vers une
   // réservation ayant un event_id.
   const [scope, setScope] = useState<'all' | 'sejour' | 'event'>('all')
@@ -36,13 +39,22 @@ export default function Factures() {
     load()
   }, [])
 
-  const filtered = rows.filter((f) =>
-    scope === 'all'
-      ? true
-      : scope === 'event'
-        ? Boolean(f.reservation_event_id)
-        : !f.reservation_event_id,
-  )
+  const stateOf = (f: FactureRow) => paymentStatus(f.total_ttc, f.paid_amount ?? 0).state
+  const filtered = rows
+    .filter((f) =>
+      scope === 'all'
+        ? true
+        : scope === 'event'
+          ? Boolean(f.reservation_event_id)
+          : !f.reservation_event_id,
+    )
+    .filter((f) =>
+      payFilter === 'all'
+        ? true
+        : payFilter === 'payee'
+          ? stateOf(f) === 'payee'
+          : stateOf(f) !== 'payee',
+    )
   const counts = {
     all: rows.length,
     event: rows.filter((f) => Boolean(f.reservation_event_id)).length,
@@ -56,6 +68,8 @@ export default function Factures() {
       email: f.client_email ?? '',
       total_ht: f.total_ht,
       total_ttc: f.total_ttc,
+      regle: f.paid_amount ?? 0,
+      reste_a_regler: paymentStatus(f.total_ttc, f.paid_amount ?? 0).remaining,
       emise_le: f.issued_at ? formatDate(f.issued_at) : formatDate(f.created_at),
     }))
   }
@@ -108,6 +122,16 @@ export default function Factures() {
 
   return (
     <div>
+      {paying && (
+        <FacturePayments
+          facture={paying}
+          onClose={async (changed) => {
+            setPaying(null)
+            if (changed) await load()
+          }}
+        />
+      )}
+
       {editing && (
         <FactureEdit
           facture={editing}
@@ -158,6 +182,25 @@ export default function Factures() {
           </button>
         ))}
       </div>
+      <div className="mt-6 ml-3 inline-flex rounded-lg border bg-white p-1 text-sm">
+        {(
+          [
+            ['all', 'Tous règlements'],
+            ['a_regler', 'À régler / partielles'],
+            ['payee', 'Payées'],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setPayFilter(key)}
+            className={`rounded-md px-4 py-1.5 font-medium transition-colors ${
+              payFilter === key ? 'bg-purple-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       <div className="mt-4 overflow-x-auto rounded-2xl border bg-white">
         <table className="w-full text-left text-sm">
@@ -167,13 +210,14 @@ export default function Factures() {
               <th className="px-6 py-4">Client</th>
               <th className="px-6 py-4">Émise le</th>
               <th className="px-6 py-4">Total TTC</th>
+              <th className="px-6 py-4">Règlement</th>
               <th className="px-6 py-4">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
                   {rows.length === 0
                     ? 'Aucune facture émise.'
                     : 'Aucune facture dans cette catégorie.'}
@@ -192,6 +236,9 @@ export default function Factures() {
                 </td>
                 <td className="px-6 py-4 text-gray-700">{formatEuro2(f.total_ttc)}</td>
                 <td className="px-6 py-4">
+                  <PayBadge facture={f} />
+                </td>
+                <td className="px-6 py-4">
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => viewPdf(f, window.open('', '_blank'))}
@@ -199,6 +246,12 @@ export default function Factures() {
                       className="text-sm font-medium text-purple-600 hover:text-purple-700 disabled:opacity-50"
                     >
                       {viewing === f.id ? 'Génération…' : 'Voir le PDF'}
+                    </button>
+                    <button
+                      onClick={() => setPaying(f)}
+                      className="text-sm font-medium text-green-600 hover:text-green-700"
+                    >
+                      Paiements
                     </button>
                     <button
                       onClick={() => setEditing(f)}
@@ -215,6 +268,20 @@ export default function Factures() {
       </div>
     </div>
   )
+}
+
+// Statut de règlement d'une facture (payée / partielle / à régler).
+function PayBadge({ facture }: { facture: FactureRow }) {
+  const st = paymentStatus(facture.total_ttc, facture.paid_amount ?? 0)
+  if (st.state === 'payee')
+    return <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">Payée</span>
+  if (st.state === 'partielle')
+    return (
+      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+        Reste {formatEuro2(st.remaining)}
+      </span>
+    )
+  return <span className="rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-700">À régler</span>
 }
 
 // Modification a posteriori des lignes d'une facture (recalcule les totaux).

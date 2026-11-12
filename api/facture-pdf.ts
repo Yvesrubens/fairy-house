@@ -6,6 +6,21 @@ import { buildDevisPdf } from './_lib/devis-pdf.js'
 import { fetchOrgSettings } from './_lib/org-settings.js'
 import { totalsFromStored } from './_lib/invoice-lines.js'
 
+const METHOD_LABELS: Record<string, string> = {
+  especes: 'espèces',
+  virement: 'virement',
+  cb: 'carte bancaire',
+  cheque: 'chèque',
+  autre: 'autre',
+}
+function fmtDate(iso: string): string {
+  const [y, m, d] = iso.slice(0, 10).split('-')
+  return `${d}/${m}/${y}`
+}
+function eurFr(n: number): string {
+  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+}
+
 const SUPABASE_URL = process.env.SUPABASE_URL as string
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY as string
 
@@ -72,6 +87,26 @@ export default async function handler(req: any, res: any) {
   // HT (anciennes factures).
   const { vatBreakdown } = totalsFromStored(lines)
 
+  // Mention de règlement (paiements enregistrés au back-office).
+  const { data: pays } = await supabase
+    .from('facture_payments')
+    .select('amount, method, paid_at')
+    .eq('facture_id', factureId)
+    .order('paid_at', { ascending: true })
+  const payments = (pays ?? []) as { amount: number; method: string; paid_at: string }[]
+  const totalTtc = Number(f.total_ttc) || 0
+  const paid = Math.round(payments.reduce((s, p) => s + Number(p.amount), 0) * 100) / 100
+  const remaining = Math.round(Math.max(0, totalTtc - paid) * 100) / 100
+  const isPaid = paid > 0 && remaining <= 0
+  let note: string | undefined
+  if (isPaid) {
+    const last = payments[payments.length - 1]
+    const modes = [...new Set(payments.map((p) => METHOD_LABELS[p.method] ?? p.method))].join(', ')
+    note = `Facture acquittée le ${fmtDate(last.paid_at)} (${modes}).`
+  } else if (paid > 0) {
+    note = `Déjà réglé : ${eurFr(paid)} — reste à régler : ${eurFr(remaining)}.`
+  }
+
   const pdf = await buildDevisPdf({
     reference: f.reference,
     reservationRef: f.reference,
@@ -85,10 +120,12 @@ export default async function handler(req: any, res: any) {
     })),
     totalHt: Number(f.total_ht) || 0,
     vatBreakdown,
-    totalTtc: Number(f.total_ttc) || 0,
+    totalTtc,
     validityDays: 30,
+    note,
     docType: 'facture',
-    rib: org.rib,
+    // Coordonnées bancaires inutiles sur une facture déjà acquittée.
+    rib: isPaid ? undefined : org.rib,
     issuer: {
       email: org.contactEmail,
       phone: org.contactPhone,

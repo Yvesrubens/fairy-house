@@ -69,6 +69,28 @@ export function computeInvoice(input: TtcLine[]): InvoiceTotals {
   }
 }
 
+// ------------------------------------------------------------ Règlements
+
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  especes: 'Espèces',
+  virement: 'Virement',
+  cb: 'Carte bancaire',
+  cheque: 'Chèque',
+  autre: 'Autre',
+}
+
+export type PaymentState = 'payee' | 'partielle' | 'a_regler'
+
+/** Statut de règlement d'une facture à partir du total TTC et des paiements. */
+export function paymentStatus(totalTtc: number, paid: number) {
+  const total = round2(Number(totalTtc) || 0)
+  const p = round2(Number(paid) || 0)
+  const remaining = round2(Math.max(0, total - p))
+  const state: PaymentState =
+    p <= 0 ? 'a_regler' : remaining <= 0 ? 'payee' : 'partielle'
+  return { state, paid: p, remaining }
+}
+
 /** Prix unitaire TTC d'une ligne déjà enregistrée (anciennes factures saisies en HT incluses). */
 export function lineTtc(l: { unitPrice: number; vatRate?: number; unitPriceTtc?: number }): number {
   if (typeof l.unitPriceTtc === 'number') return l.unitPriceTtc

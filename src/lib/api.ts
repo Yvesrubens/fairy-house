@@ -5,6 +5,7 @@ import type {
   EventRow,
   EventCategory,
   Faq,
+  FacturePayment,
   FactureRow,
   Intervenant,
   IntervenantDomain,
@@ -564,7 +565,42 @@ export async function listFactures(): Promise<FactureRow[]> {
         : null
     }
   }
+  // Somme des paiements enregistrés par facture (statut payée / partielle).
+  if (rows.length) {
+    const { data: pays } = await supabase
+      .from('facture_payments')
+      .select('facture_id, amount')
+      .in('facture_id', rows.map((f) => f.id))
+    const paidOf = new Map<string, number>()
+    for (const p of (pays ?? []) as { facture_id: string; amount: number }[]) {
+      paidOf.set(p.facture_id, (paidOf.get(p.facture_id) ?? 0) + Number(p.amount))
+    }
+    for (const f of rows) f.paid_amount = paidOf.get(f.id) ?? 0
+  }
   return rows
+}
+
+export async function listFacturePayments(
+  factureId: string,
+): Promise<FacturePayment[]> {
+  const { data, error } = await supabase
+    .from('facture_payments')
+    .select('*')
+    .eq('facture_id', factureId)
+    .order('paid_at', { ascending: true })
+  return unwrap(data, error) as FacturePayment[]
+}
+
+export async function addFacturePayment(
+  p: Pick<FacturePayment, 'facture_id' | 'amount' | 'method' | 'paid_at' | 'note'>,
+): Promise<void> {
+  const { error } = await supabase.from('facture_payments').insert(p)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteFacturePayment(id: string): Promise<void> {
+  const { error } = await supabase.from('facture_payments').delete().eq('id', id)
+  if (error) throw new Error(error.message)
 }
 
 export async function updateFacture(
