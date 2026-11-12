@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import type { StepProps } from './types'
 import {
   WHOLE_HOUSE_CAPACITY,
-  WHOLE_HOUSE_NIGHT_HT,
+  WHOLE_HOUSE_NIGHT_TTC,
   nights,
   computeQuote,
-  LINGE_PER_PERSON,
-  PENSION_PER_PERSON_NIGHT,
+  LINGE_PER_PERSON_TTC,
+  PENSION_PER_PERSON_NIGHT_TTC,
 } from '../../lib/booking'
 import { formatEuro2 } from '../../lib/format'
 import { Calendar, Bed, Users } from '../icons'
@@ -73,7 +73,7 @@ export default function StepGroupSelection({
           </p>
           <p className="mt-1 text-sm text-gray-700">
             Tarif :{' '}
-            <strong>{formatEuro2(WHOLE_HOUSE_NIGHT_HT)} / nuit HT</strong> —
+            <strong>{formatEuro2(WHOLE_HOUSE_NIGHT_TTC)} / nuit TTC</strong> —
             forfait (indépendant du nombre de personnes).
           </p>
         </div>
@@ -155,7 +155,7 @@ export default function StepGroupSelection({
           <span className="text-gray-700">
             Linge de maison{' '}
             <span className="text-gray-500">
-              (+{formatEuro2(LINGE_PER_PERSON)} / personne HT)
+              (+{formatEuro2(LINGE_PER_PERSON_TTC)} / personne TTC)
             </span>
           </span>
         </label>
@@ -173,7 +173,7 @@ export default function StepGroupSelection({
           <span className="text-gray-700">
             Pension complète{' '}
             <span className="text-gray-500">
-              (+{formatEuro2(PENSION_PER_PERSON_NIGHT)} / personne / nuit HT)
+              (+{formatEuro2(PENSION_PER_PERSON_NIGHT_TTC)} / personne / nuit TTC)
             </span>
           </span>
         </label>

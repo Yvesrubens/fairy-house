@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
-  ROOMS, HOUSE_CAPACITY, WHOLE_HOUSE_CAPACITY, WHOLE_HOUSE_NIGHT_HT, TOTAL_BEDS,
-  nights, computeQuote, canSplit, splitPlan,
+  ROOMS, HOUSE_CAPACITY, WHOLE_HOUSE_CAPACITY, WHOLE_HOUSE_NIGHT_TTC,
+  PRICE_PER_PERSON_NIGHT_TTC, LINGE_PER_PERSON_TTC, PENSION_PER_PERSON_NIGHT_TTC,
+  TOTAL_BEDS, nights, computeQuote, canSplit, splitPlan,
 } from './booking'
 
 describe('booking constants', () => {
@@ -11,9 +12,12 @@ describe('booking constants', () => {
     expect(HOUSE_CAPACITY).toBe(12)
     expect(TOTAL_BEDS).toBe(11)
   })
-  it('privatisation complète : 14 personnes, forfait 600 €/nuit HT', () => {
+  it('tarifs TTC ronds (lit 50, linge 8, pension 20) et maison complète 600 €/nuit TTC, 14 pers', () => {
+    expect(PRICE_PER_PERSON_NIGHT_TTC).toBe(50)
+    expect(LINGE_PER_PERSON_TTC).toBe(8)
+    expect(PENSION_PER_PERSON_NIGHT_TTC).toBe(20)
     expect(WHOLE_HOUSE_CAPACITY).toBe(14)
-    expect(WHOLE_HOUSE_NIGHT_HT).toBe(600)
+    expect(WHOLE_HOUSE_NIGHT_TTC).toBe(600)
   })
 })
 
@@ -28,48 +32,43 @@ describe('nights', () => {
 })
 
 describe('computeQuote', () => {
-  it('computes stay only with 10% VAT', () => {
-    // 2 pers × 3 nuits × 45 = 270 HT
+  it('tarifs en TTC : total TTC rond, HT recalculé', () => {
+    // 2 pers × 3 nuits × 50 € TTC = 300 € TTC → HT 272,73 ; TVA 27,27
     const q = computeQuote(2, 3, { linge: false, pension: false })
-    expect(q.totalHt).toBe(270)
-    expect(q.vat).toBe(27)
-    expect(q.totalTtc).toBe(297)
+    expect(q.totalTtc).toBe(300)
+    expect(q.totalHt).toBe(272.73)
+    expect(q.vat).toBe(27.27)
     expect(q.lines).toHaveLength(1)
   })
-  it('adds linge (par personne) and pension (par nuitée) lines', () => {
-    // séjour 2×3×45=270 + linge 2×8=16 (par personne) + pension 2×3×20=120 = 406 HT
+  it('ajoute linge (par personne) et pension (par nuitée) en TTC', () => {
+    // séjour 300 + linge 2×8=16 + pension 2×3×20=120 = 436 € TTC
     const q = computeQuote(2, 3, { linge: true, pension: true })
-    expect(q.totalHt).toBe(406)
-    expect(q.vat).toBeCloseTo(40.6, 2)
-    expect(q.totalTtc).toBeCloseTo(446.6, 2)
+    expect(q.totalTtc).toBe(436)
+    expect(q.totalHt).toBe(396.37)
+    expect(q.vat).toBe(39.63)
     expect(q.lines).toHaveLength(3)
     expect(q.lines[1].label).toBe('Linge de maison')
-    expect(q.lines[1].unitPrice).toBe(8)
     expect(q.lines[1].qty).toBe(2) // par personne, indépendant des nuits
-    expect(q.lines[1].total).toBe(16)
     expect(q.lines[2].label).toBe('Pension complète')
-    expect(q.lines[2].unitPrice).toBe(20)
     expect(q.lines[2].qty).toBe(6) // 2 pers × 3 nuits
   })
-  it('facture la maison complète au forfait (600 €/nuit HT), pas par personne', () => {
-    // 2 nuits × 600 = 1200 HT (indépendant du nombre de personnes)
+  it('facture la maison complète au forfait (600 € TTC/nuit), pas par personne', () => {
+    // 2 nuits × 600 € TTC = 1200 € TTC (indépendant du nombre de personnes)
     const q = computeQuote(14, 2, { linge: false, pension: false }, true)
     expect(q.lines).toHaveLength(1)
     expect(q.lines[0].label).toBe('Maison complète (forfait)')
     expect(q.lines[0].qty).toBe(2) // nuits
-    expect(q.lines[0].unitPrice).toBe(600)
-    expect(q.totalHt).toBe(1200)
-    expect(q.vat).toBe(120)
-    expect(q.totalTtc).toBe(1320)
+    expect(q.totalTtc).toBe(1200)
+    expect(q.totalHt).toBe(1090.91)
+    expect(q.vat).toBe(109.09)
   })
   it('maison complète : les options restent facturées par personne', () => {
-    // forfait 1×600=600 + linge 14×8=112 = 712 HT
+    // forfait 600 + linge 14×8=112 = 712 € TTC
     const q = computeQuote(14, 1, { linge: true, pension: false }, true)
     expect(q.lines).toHaveLength(2)
-    expect(q.lines[0].total).toBe(600)
     expect(q.lines[1].label).toBe('Linge de maison')
     expect(q.lines[1].qty).toBe(14)
-    expect(q.totalHt).toBe(712)
+    expect(q.totalTtc).toBe(712)
   })
 })
 

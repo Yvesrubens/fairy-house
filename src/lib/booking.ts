@@ -16,12 +16,14 @@ export const TOTAL_BEDS = 11
 export const SIMPLE_BEDS = 10
 export const DOUBLE_BEDS = 1
 
-export const PRICE_PER_PERSON_NIGHT = 45
-// Forfait « maison complète » : prix par nuit, HT, indépendant du nombre de
+// Tarifs définis en TTC (ronds, pour éviter les factures à virgules). Le HT est
+// recalculé à l'envers (TTC / 1 + TVA). TVA 10 %.
+export const PRICE_PER_PERSON_NIGHT_TTC = 50
+// Forfait « maison complète » : prix TTC par nuit, indépendant du nombre de
 // personnes (ce n'est pas un tarif par personne).
-export const WHOLE_HOUSE_NIGHT_HT = 600
-export const LINGE_PER_PERSON = 8 // forfait par personne (pas par nuit)
-export const PENSION_PER_PERSON_NIGHT = 20
+export const WHOLE_HOUSE_NIGHT_TTC = 600
+export const LINGE_PER_PERSON_TTC = 8 // forfait par personne (pas par nuit)
+export const PENSION_PER_PERSON_NIGHT_TTC = 20
 export const VAT_RATE = 10
 export const SPLIT_MIN_DAYS = 30
 
@@ -56,11 +58,18 @@ export function nights(arrival: string, departure: string): number {
   return Math.round((d - a) / 86_400_000)
 }
 
+/** HT correspondant à un montant TTC (TVA incluse), arrondi au centime. */
+function htFromTtc(ttc: number): number {
+  return round2(ttc / (1 + VAT_RATE / 100))
+}
+
 /**
  * Devis chiffré pour `pers` personnes, `nightsCount` nuits et les options.
- * Si `wholeHouse` est vrai, le séjour est facturé au forfait maison complète
- * (600 € / nuit HT, indépendant du nombre de personnes) ; sinon au tarif par
- * personne. Les options (linge, pension) restent facturées par personne.
+ * Les tarifs sont définis en TTC : le total TTC est donc toujours « rond »,
+ * et le HT / la TVA sont recalculés à partir du TTC. Si `wholeHouse` est vrai,
+ * le séjour est facturé au forfait maison complète (600 € TTC / nuit) ; sinon
+ * au tarif par personne. Les options (linge, pension) restent par personne.
+ * Les lignes exposent un prix unitaire et un total HT (pour le devis/la facture).
  */
 export function computeQuote(
   pers: number,
@@ -69,35 +78,34 @@ export function computeQuote(
   wholeHouse = false,
 ): Quote {
   const lines: QuoteLine[] = []
+  let totalTtc = 0
+
+  function addLine(label: string, qty: number, unitTtc: number) {
+    const lineTtc = round2(unitTtc * qty)
+    totalTtc = round2(totalTtc + lineTtc)
+    lines.push({
+      label,
+      qty,
+      unitPrice: htFromTtc(unitTtc),
+      total: htFromTtc(lineTtc),
+    })
+  }
+
   if (wholeHouse) {
-    const stay = WHOLE_HOUSE_NIGHT_HT * nightsCount
-    lines.push({
-      label: 'Maison complète (forfait)',
-      qty: nightsCount,
-      unitPrice: WHOLE_HOUSE_NIGHT_HT,
-      total: stay,
-    })
+    addLine('Maison complète (forfait)', nightsCount, WHOLE_HOUSE_NIGHT_TTC)
   } else {
-    const stay = PRICE_PER_PERSON_NIGHT * pers * nightsCount
-    lines.push({
-      label: 'Séjour (nuitées)',
-      qty: pers * nightsCount,
-      unitPrice: PRICE_PER_PERSON_NIGHT,
-      total: stay,
-    })
+    addLine('Séjour (nuitées)', pers * nightsCount, PRICE_PER_PERSON_NIGHT_TTC)
   }
   if (opts.linge) {
     // Forfait linge : facturé par personne, une seule fois (pas par nuit).
-    const t = LINGE_PER_PERSON * pers
-    lines.push({ label: 'Linge de maison', qty: pers, unitPrice: LINGE_PER_PERSON, total: t })
+    addLine('Linge de maison', pers, LINGE_PER_PERSON_TTC)
   }
   if (opts.pension) {
-    const t = PENSION_PER_PERSON_NIGHT * pers * nightsCount
-    lines.push({ label: 'Pension complète', qty: pers * nightsCount, unitPrice: PENSION_PER_PERSON_NIGHT, total: t })
+    addLine('Pension complète', pers * nightsCount, PENSION_PER_PERSON_NIGHT_TTC)
   }
+
   const totalHt = round2(lines.reduce((s, l) => s + l.total, 0))
-  const vat = round2((totalHt * VAT_RATE) / 100)
-  const totalTtc = round2(totalHt + vat)
+  const vat = round2(totalTtc - totalHt)
   return { lines, totalHt, vat, totalTtc }
 }
 
