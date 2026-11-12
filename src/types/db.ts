@@ -184,6 +184,15 @@ export interface FactureRow {
   paid_amount?: number
 }
 
+export interface TarifsRow {
+  id: number
+  lit_nuit_ttc: number
+  linge_ttc: number
+  pension_nuit_ttc: number
+  maison_nuit_ttc: number
+  updated_at: string
+}
+
 export type PaymentMethod = 'especes' | 'virement' | 'cb' | 'cheque' | 'autre'
 
 export interface FacturePayment {

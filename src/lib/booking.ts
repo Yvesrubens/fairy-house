@@ -27,6 +27,43 @@ export const PENSION_PER_PERSON_NIGHT_TTC = 20
 export const VAT_RATE = 10
 export const SPLIT_MIN_DAYS = 30
 
+/**
+ * Tarifs TTC utilisés par le tunnel. Modifiables par l'admin (table `tarifs`,
+ * cf. usePrices) ; les constantes ci-dessus servent de valeurs par défaut.
+ */
+export interface Prices {
+  litNuit: number // par personne et par nuit (lit double = 2 ×)
+  linge: number // par personne (forfait séjour)
+  pensionNuit: number // par personne et par nuit
+  maisonNuit: number // forfait maison complète, par nuit
+}
+
+export const DEFAULT_PRICES: Prices = {
+  litNuit: PRICE_PER_PERSON_NIGHT_TTC,
+  linge: LINGE_PER_PERSON_TTC,
+  pensionNuit: PENSION_PER_PERSON_NIGHT_TTC,
+  maisonNuit: WHOLE_HOUSE_NIGHT_TTC,
+}
+
+/**
+ * Convertit la ligne `tarifs` (base) en Prices. Toute valeur absente ou
+ * invalide retombe sur le tarif par défaut (le tunnel reste toujours chiffrable).
+ */
+export function pricesFromRow(
+  row: Partial<Record<'lit_nuit_ttc' | 'linge_ttc' | 'pension_nuit_ttc' | 'maison_nuit_ttc', unknown>> | null | undefined,
+): Prices {
+  const pick = (v: unknown, d: number) => {
+    const n = Number(v)
+    return v != null && v !== '' && Number.isFinite(n) && n >= 0 ? n : d
+  }
+  return {
+    litNuit: pick(row?.lit_nuit_ttc, DEFAULT_PRICES.litNuit),
+    linge: pick(row?.linge_ttc, DEFAULT_PRICES.linge),
+    pensionNuit: pick(row?.pension_nuit_ttc, DEFAULT_PRICES.pensionNuit),
+    maisonNuit: pick(row?.maison_nuit_ttc, DEFAULT_PRICES.maisonNuit),
+  }
+}
+
 export interface Options {
   linge: boolean
   pension: boolean
@@ -67,8 +104,9 @@ function htFromTtc(ttc: number): number {
  * Devis chiffré pour `pers` personnes, `nightsCount` nuits et les options.
  * Les tarifs sont définis en TTC : le total TTC est donc toujours « rond »,
  * et le HT / la TVA sont recalculés à partir du TTC. Si `wholeHouse` est vrai,
- * le séjour est facturé au forfait maison complète (700 € TTC / nuit) ; sinon
- * au tarif par personne. Les options (linge, pension) restent par personne.
+ * le séjour est facturé au forfait maison complète ; sinon au tarif par
+ * personne. Les options (linge, pension) restent par personne. `prices` :
+ * tarifs en vigueur (par défaut DEFAULT_PRICES).
  * Les lignes exposent un prix unitaire et un total HT (pour le devis/la facture).
  */
 export function computeQuote(
@@ -76,6 +114,7 @@ export function computeQuote(
   nightsCount: number,
   opts: Options,
   wholeHouse = false,
+  prices: Prices = DEFAULT_PRICES,
 ): Quote {
   const lines: QuoteLine[] = []
   let totalTtc = 0
@@ -92,16 +131,16 @@ export function computeQuote(
   }
 
   if (wholeHouse) {
-    addLine('Maison complète (forfait)', nightsCount, WHOLE_HOUSE_NIGHT_TTC)
+    addLine('Maison complète (forfait)', nightsCount, prices.maisonNuit)
   } else {
-    addLine('Séjour (nuitées)', pers * nightsCount, PRICE_PER_PERSON_NIGHT_TTC)
+    addLine('Séjour (nuitées)', pers * nightsCount, prices.litNuit)
   }
   if (opts.linge) {
     // Forfait linge : facturé par personne, une seule fois (pas par nuit).
-    addLine('Linge de maison', pers, LINGE_PER_PERSON_TTC)
+    addLine('Linge de maison', pers, prices.linge)
   }
   if (opts.pension) {
-    addLine('Pension complète', pers * nightsCount, PENSION_PER_PERSON_NIGHT_TTC)
+    addLine('Pension complète', pers * nightsCount, prices.pensionNuit)
   }
 
   const totalHt = round2(lines.reduce((s, l) => s + l.total, 0))

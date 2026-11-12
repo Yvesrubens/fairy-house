@@ -29,6 +29,7 @@ import Events from './admin/pages/Events'
 import Articles from './admin/pages/Articles'
 import IntervenantsAdmin from './admin/pages/Intervenants'
 import FaqAdmin from './admin/pages/Faq'
+import TarifsAdmin from './admin/pages/Tarifs'
 import Messages from './admin/pages/Messages'
 import BedBlocks from './admin/pages/BedBlocks'
 import Newsletter from './admin/pages/Newsletter'
@@ -94,6 +95,7 @@ export default function App() {
           <Route path="articles" element={<Articles />} />
           <Route path="intervenants" element={<IntervenantsAdmin />} />
           <Route path="faq" element={<FaqAdmin />} />
+          <Route path="tarifs" element={<TarifsAdmin />} />
           <Route path="messages" element={<Messages />} />
           <Route path="blocage-lits" element={<BedBlocks />} />
           <Route path="newsletter" element={<Newsletter />} />

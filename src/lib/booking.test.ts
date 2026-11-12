@@ -3,6 +3,7 @@ import {
   ROOMS, HOUSE_CAPACITY, WHOLE_HOUSE_CAPACITY, WHOLE_HOUSE_NIGHT_TTC,
   PRICE_PER_PERSON_NIGHT_TTC, LINGE_PER_PERSON_TTC, PENSION_PER_PERSON_NIGHT_TTC,
   TOTAL_BEDS, nights, computeQuote, canSplit, splitPlan,
+  DEFAULT_PRICES, pricesFromRow,
 } from './booking'
 
 describe('booking constants', () => {
@@ -61,6 +62,20 @@ describe('computeQuote', () => {
     expect(q.totalTtc).toBe(1400)
     expect(q.totalHt).toBe(1272.73)
     expect(q.vat).toBe(127.27)
+  })
+  it('pricesFromRow : valeurs de la base, repli sur les défauts si absent/invalide', () => {
+    expect(pricesFromRow({ lit_nuit_ttc: 55, linge_ttc: '10', pension_nuit_ttc: 25, maison_nuit_ttc: 800 }))
+      .toEqual({ litNuit: 55, linge: 10, pensionNuit: 25, maisonNuit: 800 })
+    expect(pricesFromRow(null)).toEqual(DEFAULT_PRICES)
+    expect(pricesFromRow({ lit_nuit_ttc: 'abc', linge_ttc: -3 }).litNuit).toBe(50)
+    expect(pricesFromRow({ linge_ttc: -3 }).linge).toBe(8)
+  })
+  it('utilise les tarifs modifiés par l\'admin quand ils sont fournis', () => {
+    const prices = { litNuit: 55, linge: 10, pensionNuit: 25, maisonNuit: 800 }
+    // 2 pers × 3 nuits × 55 = 330 + linge 2×10 = 20 + pension 6×25 = 150 → 500
+    expect(computeQuote(2, 3, { linge: true, pension: true }, false, prices).totalTtc).toBe(500)
+    // maison complète 2 nuits × 800 = 1600
+    expect(computeQuote(14, 2, { linge: false, pension: false }, true, prices).totalTtc).toBe(1600)
   })
   it('maison complète : les options restent facturées par personne', () => {
     // forfait 700 + linge 14×8=112 = 812 € TTC

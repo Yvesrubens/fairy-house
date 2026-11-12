@@ -15,6 +15,7 @@ import type {
   Reservation,
   ReservationStatus,
   SiteContentRow,
+  TarifsRow,
 } from '../types/db'
 
 function unwrap<T>(data: T | null, error: { message: string } | null): T {
@@ -578,6 +579,26 @@ export async function listFactures(): Promise<FactureRow[]> {
     for (const f of rows) f.paid_amount = paidOf.get(f.id) ?? 0
   }
   return rows
+}
+
+// ------------------------------------------------------- Tarifs (admin)
+export async function getTarifs(): Promise<TarifsRow | null> {
+  const { data, error } = await supabase
+    .from('tarifs')
+    .select('*')
+    .eq('id', 1)
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  return (data as TarifsRow | null) ?? null
+}
+
+export async function updateTarifs(
+  patch: Pick<TarifsRow, 'lit_nuit_ttc' | 'linge_ttc' | 'pension_nuit_ttc' | 'maison_nuit_ttc'>,
+): Promise<void> {
+  const { error } = await supabase
+    .from('tarifs')
+    .upsert({ id: 1, ...patch, updated_at: new Date().toISOString() })
+  if (error) throw new Error(error.message)
 }
 
 export async function listFacturePayments(

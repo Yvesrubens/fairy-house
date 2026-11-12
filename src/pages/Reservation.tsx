@@ -19,6 +19,7 @@ import {
   nights,
   splitPlan,
 } from '../lib/booking'
+import { usePrices } from '../lib/usePrices'
 
 const INITIAL_STATE: BookingState = {
   mode: null,
@@ -51,6 +52,8 @@ export default function Reservation() {
   const [state, setStateRaw] = useState<BookingState>(INITIAL_STATE)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+  // Tarifs en vigueur (Admin → Tarifs) : mêmes prix que ceux affichés.
+  const prices = usePrices()
   const [busy, setBusy] = useState(false)
 
   // Retour depuis Stripe Checkout (paiement carte réussi).
@@ -120,7 +123,7 @@ export default function Reservation() {
       return
     }
     const n = nights(state.arrival, state.departure)
-    const quote = computeQuote(pers, n, state.options, state.wholeHouse)
+    const quote = computeQuote(pers, n, state.options, state.wholeHouse, prices)
     const today = new Date().toISOString().slice(0, 10)
     const split =
       state.paymentPlan === 'split' && canSplit(state.arrival, today)

@@ -12,6 +12,7 @@ import {
   BellIcon,
   SearchIcon,
   LogoutIcon,
+  EuroIcon,
 } from './icons'
 
 const LINKS: { to: string; label: string; icon: ReactNode }[] = [
@@ -30,6 +31,7 @@ const LINKS: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/admin/intervenants', label: 'Intervenants', icon: <UsersIcon /> },
   { to: '/admin/faq', label: 'FAQ', icon: <DocIcon /> },
   { to: '/admin/factures', label: 'Factures', icon: <DocIcon /> },
+  { to: '/admin/tarifs', label: 'Tarifs', icon: <EuroIcon /> },
   { to: '/admin/settings', label: 'Paramètres', icon: <GearIcon /> },
   { to: '/admin/contenu', label: 'Contenu du site', icon: <DocIcon /> },
 ]

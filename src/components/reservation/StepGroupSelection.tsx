@@ -2,12 +2,10 @@ import { useEffect, useState } from 'react'
 import type { StepProps } from './types'
 import {
   WHOLE_HOUSE_CAPACITY,
-  WHOLE_HOUSE_NIGHT_TTC,
   nights,
   computeQuote,
-  LINGE_PER_PERSON_TTC,
-  PENSION_PER_PERSON_NIGHT_TTC,
 } from '../../lib/booking'
+import { usePrices } from '../../lib/usePrices'
 import { formatEuro2 } from '../../lib/format'
 import { Calendar, Bed, Users } from '../icons'
 import AvailabilityCalendar from './AvailabilityCalendar'
@@ -31,6 +29,7 @@ export default function StepGroupSelection({
   onBack,
 }: StepProps) {
   const [error, setError] = useState('')
+  const prices = usePrices()
 
   // La réservation de groupe est toujours une privatisation complète.
   useEffect(() => {
@@ -42,7 +41,7 @@ export default function StepGroupSelection({
 
   const pers = state.wholeHouseGuests
   const nightsCount = nights(state.arrival, state.departure)
-  const liveQuote = computeQuote(pers, nightsCount, state.options, true)
+  const liveQuote = computeQuote(pers, nightsCount, state.options, true, prices)
 
   function validateAndNext() {
     if (nights(state.arrival, state.departure) < 1) {
@@ -73,7 +72,7 @@ export default function StepGroupSelection({
           </p>
           <p className="mt-1 text-sm text-gray-700">
             Tarif :{' '}
-            <strong>{formatEuro2(WHOLE_HOUSE_NIGHT_TTC)} / nuit TTC</strong> —
+            <strong>{formatEuro2(prices.maisonNuit)} / nuit TTC</strong> —
             forfait (indépendant du nombre de personnes).
           </p>
         </div>
@@ -155,7 +154,7 @@ export default function StepGroupSelection({
           <span className="text-gray-700">
             Linge de maison{' '}
             <span className="text-gray-500">
-              (+{formatEuro2(LINGE_PER_PERSON_TTC)} / personne TTC)
+              (+{formatEuro2(prices.linge)} / personne TTC)
             </span>
           </span>
         </label>
@@ -173,7 +172,7 @@ export default function StepGroupSelection({
           <span className="text-gray-700">
             Pension complète{' '}
             <span className="text-gray-500">
-              (+{formatEuro2(PENSION_PER_PERSON_NIGHT_TTC)} / personne / nuit TTC)
+              (+{formatEuro2(prices.pensionNuit)} / personne / nuit TTC)
             </span>
           </span>
         </label>

@@ -5,6 +5,7 @@ import {
   nights,
   splitPlan,
 } from '../../lib/booking'
+import { usePrices } from '../../lib/usePrices'
 import { Link } from 'react-router-dom'
 import { CreditCard } from '../icons'
 
@@ -39,7 +40,8 @@ export default function StepPayment({
       : state.individualGuests
 
   const nightsCount = nights(state.arrival, state.departure)
-  const quote = computeQuote(pers, nightsCount, state.options, wholeHouse)
+  const prices = usePrices()
+  const quote = computeQuote(pers, nightsCount, state.options, wholeHouse, prices)
   const today = new Date().toISOString().slice(0, 10)
   const plan =
     state.paymentPlan === 'split' && canSplit(state.arrival, today)

@@ -6,10 +6,8 @@ import {
   nights,
   computeQuote,
   minIndividualDate,
-  PRICE_PER_PERSON_NIGHT_TTC,
-  LINGE_PER_PERSON_TTC,
-  PENSION_PER_PERSON_NIGHT_TTC,
 } from '../../lib/booking'
+import { usePrices } from '../../lib/usePrices'
 import { formatEuro2 } from '../../lib/format'
 import { Calendar, Bed, Users } from '../icons'
 import AvailabilityCalendar from './AvailabilityCalendar'
@@ -30,10 +28,11 @@ export default function StepIndividualSelection({
   onBack,
 }: StepProps) {
   const [error, setError] = useState('')
+  const prices = usePrices()
 
   const bedCapacity = state.simpleBeds + state.doubleBeds * 2
   const nightsCount = nights(state.arrival, state.departure)
-  const liveQuote = computeQuote(bedCapacity, nightsCount, state.options)
+  const liveQuote = computeQuote(bedCapacity, nightsCount, state.options, false, prices)
 
   // Les lits pilotent le nombre de personnes facturées (= capacité). On garde
   // `individualGuests` synchronisé pour le devis et l'enregistrement.
@@ -113,12 +112,12 @@ export default function StepIndividualSelection({
             1 lit double = 2 pers.).
           </p>
           <p className="mt-1 text-gray-600">
-            Lit simple : <strong>{formatEuro2(PRICE_PER_PERSON_NIGHT_TTC)}</strong> / nuit TTC
+            Lit simple : <strong>{formatEuro2(prices.litNuit)}</strong> / nuit TTC
             {' · '}
-            Lit double : <strong>{formatEuro2(PRICE_PER_PERSON_NIGHT_TTC * 2)}</strong> / nuit TTC
+            Lit double : <strong>{formatEuro2(prices.litNuit * 2)}</strong> / nuit TTC
             {' '}
             <span className="text-gray-400">
-              ({formatEuro2(PRICE_PER_PERSON_NIGHT_TTC)} / personne / nuit TTC)
+              ({formatEuro2(prices.litNuit)} / personne / nuit TTC)
             </span>
           </p>
         </div>
@@ -181,7 +180,7 @@ export default function StepIndividualSelection({
           <span className="text-gray-700">
             Linge de maison{' '}
             <span className="text-gray-500">
-              (+{formatEuro2(LINGE_PER_PERSON_TTC)} / personne TTC)
+              (+{formatEuro2(prices.linge)} / personne TTC)
             </span>
           </span>
         </label>
@@ -199,7 +198,7 @@ export default function StepIndividualSelection({
           <span className="text-gray-700">
             Pension complète{' '}
             <span className="text-gray-500">
-              (+{formatEuro2(PENSION_PER_PERSON_NIGHT_TTC)} / personne / nuit TTC)
+              (+{formatEuro2(prices.pensionNuit)} / personne / nuit TTC)
             </span>
           </span>
         </label>
