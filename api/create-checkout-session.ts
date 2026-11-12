@@ -6,14 +6,7 @@
 // tel quel. En cas d'écart, la réservation est corrigée avant le paiement.
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
-import {
-  eventTotals,
-  nights,
-  pricesFromRow,
-  splitPlan,
-  stayTotals,
-} from './_lib/server-pricing.js'
-import type { Totals } from './_lib/server-pricing.js'
+import { repriceReservation } from './_lib/reprice.js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL as string
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string
@@ -61,63 +54,20 @@ export default async function handler(req: any, res: any) {
     return
   }
 
-  // --- Recalcul serveur du prix ---
-  let expected: Totals | null = null
-  if (r.event_id) {
-    const { data: ev } = await supabase
-      .from('events')
-      .select(
-        'event_price_ttc,accommodation_tente_ttc,accommodation_chambre_ttc,shuttle_enabled,shuttle_price_ttc',
-      )
-      .eq('id', r.event_id)
-      .maybeSingle()
-    if (ev) {
-      expected = eventTotals(ev, { accommodation: r.accommodation_choice, shuttle: r.shuttle })
-    }
-  } else if (r.mode === 'individuel' || r.mode === 'groupe') {
-    const { data: tarifs } = await supabase.from('tarifs').select('*').eq('id', 1).maybeSingle()
-    const prices = pricesFromRow(tarifs)
-    const wholeHouse = Boolean(r.rooms && !Array.isArray(r.rooms) && r.rooms.wholeHouse)
-    const n = nights(r.arrival_date, r.departure_date)
-    const pers = Number(r.guests) || 0
-    if (n >= 1 && (wholeHouse || pers >= 1)) {
-      expected = stayTotals(pers, n, r.options, wholeHouse, prices)
-    }
-  }
-  if (!expected) {
+  // --- Recalcul serveur du prix (corrige la réservation en cas d'écart) ---
+  const priced = await repriceReservation(supabase, r)
+  if (priced.status === 'unpriceable') {
     res.status(400).json({ error: 'Cette réservation ne peut pas être payée en ligne.' })
     return
   }
-
-  const amount = expected.totalTtc
+  if (priced.status === 'error') {
+    res.status(500).json({ error: 'Impossible de mettre à jour le montant de la réservation.' })
+    return
+  }
+  const amount = Number(priced.r.total_ttc) || 0
   if (amount <= 0) {
     res.status(400).json({ error: 'Montant invalide pour un paiement.' })
     return
-  }
-
-  // Écart avec le montant enregistré par le navigateur : on corrige la
-  // réservation (montant, totaux et échéancier) avant de facturer.
-  if (Math.abs((Number(r.amount) || 0) - amount) > 0.01) {
-    console.warn(
-      `create-checkout-session: montant corrigé pour ${r.reference} ` +
-        `(${r.amount} → ${amount})`,
-    )
-    const patch: Record<string, unknown> = {
-      amount,
-      total_ttc: amount,
-      total_ht: expected.totalHt,
-    }
-    if (r.payment_plan === 'split' && r.arrival_date) {
-      const plan = splitPlan(amount, r.arrival_date)
-      patch.deposit_amount = plan.deposit
-      patch.balance_amount = plan.balance
-      patch.balance_due_date = plan.balanceDueDate
-    }
-    const { error: fixErr } = await supabase.from('reservations').update(patch).eq('id', reservationId)
-    if (fixErr) {
-      res.status(500).json({ error: 'Impossible de mettre à jour le montant de la réservation.' })
-      return
-    }
   }
 
   const stripe = new Stripe(STRIPE_SECRET_KEY)

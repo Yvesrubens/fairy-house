@@ -61,6 +61,12 @@ describe('recalcul serveur = calcul du site', () => {
         )
         const srv = server.eventTotals(ev, { accommodation, shuttle })
         expect(srv).toEqual({ totalHt: site.totalHt, totalTtc: site.totalTtc })
+        // Lignes et TVA par taux = ce que EventInscription enregistre.
+        const q = server.eventQuote(ev, { accommodation, shuttle })
+        expect(q.quoteLines).toEqual(
+          site.lines.map((l) => ({ designation: l.label, qty: 1, unitPrice: l.ht, vatRate: l.vatRate })),
+        )
+        expect(q.vatBreakdown).toEqual(site.byRate)
       }
     }
   })

@@ -83,29 +83,64 @@ export interface EventPriceRow {
 
 const DEFAULT_SHUTTLE_TTC = 15
 
+// Doit rester identique à ACCOMMODATION_LABELS (src/lib/eventPricing.ts).
+const ACCOMMODATION_LABELS: Record<string, string> = {
+  tente: 'Hébergement — en tente',
+  chambre: 'Hébergement — chambre mixte partagée',
+}
+
+export interface EventQuote extends Totals {
+  // Lignes stockées sur la réservation (quote_lines) : PU HT, 1 unité.
+  quoteLines: { designation: string; qty: number; unitPrice: number; vatRate: number }[]
+  // TVA par taux (vat_breakdown), taux décroissant.
+  vatBreakdown: { rate: number; ht: number; vat: number; ttc: number }[]
+}
+
 /** Miroir de computeEventQuote (animation 20 %, hébergement/navette 10 %). */
+export function eventQuote(
+  ev: EventPriceRow,
+  choices: { accommodation: string | null | undefined; shuttle: boolean | null | undefined },
+): EventQuote {
+  const lines: { label: string; ttc: number; rate: number; ht: number; vat: number }[] = []
+  const push = (label: string, ttc: number, rate: number) => {
+    const t = round2(ttc)
+    const ht = round2(t / (1 + rate / 100))
+    lines.push({ label, ttc: t, rate, ht, vat: round2(t - ht) })
+  }
+  const eventPrice = ev.event_price_ttc ?? 0
+  if (eventPrice > 0) push('Inscription événement', eventPrice, 20)
+  const acc = choices.accommodation
+  const accTtc =
+    acc === 'tente' ? ev.accommodation_tente_ttc ?? 0 : acc === 'chambre' ? ev.accommodation_chambre_ttc ?? 0 : 0
+  if (accTtc > 0 && (acc === 'tente' || acc === 'chambre')) push(ACCOMMODATION_LABELS[acc], accTtc, 10)
+  const shuttlePrice = ev.shuttle_price_ttc ?? DEFAULT_SHUTTLE_TTC
+  if (choices.shuttle && (ev.shuttle_enabled ?? false) && shuttlePrice > 0) {
+    push('Navette gare de Nogent-sur-Vernisson (A/R)', shuttlePrice, 10)
+  }
+
+  const byRate = new Map<number, { rate: number; ht: number; vat: number; ttc: number }>()
+  for (const l of lines) {
+    const g = byRate.get(l.rate) ?? { rate: l.rate, ht: 0, vat: 0, ttc: 0 }
+    g.ht = round2(g.ht + l.ht)
+    g.vat = round2(g.vat + l.vat)
+    g.ttc = round2(g.ttc + l.ttc)
+    byRate.set(l.rate, g)
+  }
+  const vatBreakdown = [...byRate.values()].sort((a, b) => b.rate - a.rate)
+  return {
+    totalTtc: round2(lines.reduce((s, l) => s + l.ttc, 0)),
+    totalHt: round2(vatBreakdown.reduce((s, g) => s + g.ht, 0)),
+    quoteLines: lines.map((l) => ({ designation: l.label, qty: 1, unitPrice: l.ht, vatRate: l.rate })),
+    vatBreakdown,
+  }
+}
+
 export function eventTotals(
   ev: EventPriceRow,
   choices: { accommodation: string | null | undefined; shuttle: boolean | null | undefined },
 ): Totals {
-  const lines: { ttc: number; rate: number }[] = []
-  const eventPrice = ev.event_price_ttc ?? 0
-  if (eventPrice > 0) lines.push({ ttc: round2(eventPrice), rate: 20 })
-  const acc = choices.accommodation
-  const accTtc =
-    acc === 'tente' ? ev.accommodation_tente_ttc ?? 0 : acc === 'chambre' ? ev.accommodation_chambre_ttc ?? 0 : 0
-  if (accTtc > 0 && (acc === 'tente' || acc === 'chambre')) lines.push({ ttc: round2(accTtc), rate: 10 })
-  const shuttlePrice = ev.shuttle_price_ttc ?? DEFAULT_SHUTTLE_TTC
-  if (choices.shuttle && (ev.shuttle_enabled ?? false) && shuttlePrice > 0) {
-    lines.push({ ttc: round2(shuttlePrice), rate: 10 })
-  }
-  let totalTtc = 0
-  let totalHt = 0
-  for (const l of lines) {
-    totalTtc = round2(totalTtc + l.ttc)
-    totalHt = round2(totalHt + round2(l.ttc / (1 + l.rate / 100)))
-  }
-  return { totalHt, totalTtc }
+  const q = eventQuote(ev, choices)
+  return { totalHt: q.totalHt, totalTtc: q.totalTtc }
 }
 
 /** Miroir de splitPlan : 50/50, solde dû 30 jours avant l'arrivée. */

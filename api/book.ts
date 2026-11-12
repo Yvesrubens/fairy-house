@@ -1,11 +1,13 @@
 // Fonction serverless Vercel PUBLIQUE : à la validation d'une réservation du
 // tunnel, envoie le mail de confirmation et, si paiement par virement, un mail
-// devis + RIB. Les montants sont relus/recalculés depuis la base (source de
-// vérité), jamais fournis par le client.
+// devis + RIB. Le prix est RECALCULÉ CÔTÉ SERVEUR (tarifs en base / config de
+// l'événement) avant tout envoi : la réservation est corrigée si le montant
+// enregistré par le navigateur diffère, et le devis reprend le prix recalculé.
 import { createClient } from '@supabase/supabase-js'
 import { buildDevisPdf, eur } from './_lib/devis-pdf.js'
 import { confirmationEmail } from './_lib/confirmation.js'
 import { fetchOrgSettings } from './_lib/org-settings.js'
+import { repriceReservation } from './_lib/reprice.js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL as string
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string
@@ -65,20 +67,33 @@ async function run(req: any, res: any) {
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
   const org = await fetchOrgSettings(supabase)
-  const { data: r, error } = await supabase
+  const { data: loaded, error } = await supabase
     .from('reservations')
     .select('*')
     .eq('id', reservationId)
     .maybeSingle()
-  if (error || !r) {
+  if (error || !loaded) {
     res.status(404).json({ error: 'Réservation introuvable' })
     return
   }
 
-  if (r.confirmation_sent_at) {
+  if (loaded.confirmation_sent_at) {
     res.status(200).json({ ok: true, alreadySent: true })
     return
   }
+
+  // Recalcul serveur du prix avant confirmation et devis. Un séjour sur mesure
+  // (sans tarif) est laissé tel quel. Si la correction ne peut pas être
+  // enregistrée, on n'envoie pas de devis à un prix non vérifié.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let r: any = loaded
+  const priced = await repriceReservation(supabase, loaded)
+  if (priced.status === 'error') {
+    console.error('api/book reprice error', priced.message)
+    res.status(500).json({ error: 'reprice_failed', detail: priced.message })
+    return
+  }
+  if (priced.status === 'ok') r = priced.r
 
   // 1) Mail de confirmation (toujours). Pour un événement, on joint ses infos
   //    (titre, dates, intervenant·es, consignes) au template.
