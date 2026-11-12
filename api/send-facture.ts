@@ -4,17 +4,13 @@
 import { createClient } from '@supabase/supabase-js'
 import { buildDevisPdf, eur } from './_lib/devis-pdf.js'
 import { fetchOrgSettings } from './_lib/org-settings.js'
+import { computeInvoice } from './_lib/invoice-lines.js'
+import type { TtcLine } from './_lib/invoice-lines.js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL as string
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY as string
 const RESEND_API_KEY = process.env.RESEND_API_KEY as string
 const RESEND_FROM = process.env.RESEND_FROM as string
-
-interface Line {
-  designation: string
-  qty: number
-  unitPrice: number
-}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
@@ -64,14 +60,15 @@ export default async function handler(req: any, res: any) {
     return
   }
 
-  const cleanLines: Line[] = lines.map((l: Line) => ({
-    designation: String(l.designation || ''),
-    qty: Number(l.qty) || 0,
-    unitPrice: Number(l.unitPrice) || 0,
+  // Prix saisis EN TTC (avec taux par ligne) → HT recalculé pour le PDF.
+  const inv = computeInvoice(lines as TtcLine[])
+  const cleanLines = inv.lines
+  const pdfLines = cleanLines.map((l) => ({
+    designation: l.designation,
+    qty: l.qty,
+    unitPrice: l.unitPrice,
   }))
-  const vatRate = 20
-  const totalHt = cleanLines.reduce((s, l) => s + l.qty * l.unitPrice, 0)
-  const totalTtc = Math.round(totalHt * (1 + vatRate / 100) * 100) / 100
+  const { totalHt, totalTtc, vatBreakdown, mainRate: vatRate } = inv
 
   const org = await fetchOrgSettings(supabase)
   // Point 9 : contact de facturation distinct si renseigné.
@@ -92,9 +89,9 @@ export default async function handler(req: any, res: any) {
       reservationRef: r.reference,
       clientName: billName,
       clientEmail: billTo,
-      lines: cleanLines,
+      lines: pdfLines,
       totalHt,
-      vatRate,
+      vatBreakdown,
       totalTtc,
       validityDays: dueDays,
       note,
@@ -128,9 +125,9 @@ export default async function handler(req: any, res: any) {
     reservationRef: r.reference,
     clientName: billName,
     clientEmail: billTo,
-    lines: cleanLines,
+    lines: pdfLines,
     totalHt,
-    vatRate,
+    vatBreakdown,
     totalTtc,
     validityDays: dueDays,
     note,

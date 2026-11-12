@@ -3,18 +3,15 @@ import type { FormEvent } from 'react'
 import { supabase } from '../../lib/supabase'
 import { formatDate } from '../../lib/format'
 import { openPdfBase64 } from '../../lib/pdf'
+import { computeInvoice } from '../../lib/invoice'
+import type { TtcLine } from '../../lib/invoice'
 import type { Reservation } from '../../types/db'
 
-// Émission d'une facture (Q2). Calqué sur DevisForm : lignes éditables, TVA 20 %,
-// envoi au client via /api/send-facture (PDF « FACTURE » en pièce jointe).
+// Émission d'une facture (Q2). Lignes éditables SAISIES EN TTC, avec un taux de
+// TVA par ligne (10 % hébergement / 20 % animation) ; le HT est recalculé pour
+// le PDF. Envoi au client via /api/send-facture (PDF « FACTURE » en pièce jointe).
 
-interface Line {
-  designation: string
-  qty: number
-  unitPrice: number
-}
-
-const VAT = 20
+type Line = TtcLine
 
 function nights(r: Reservation): number {
   if (!r.departure_date) return 1
@@ -33,13 +30,17 @@ export default function FactureForm({
   onCancel: () => void
 }) {
   const n = nights(reservation)
+  // Taux par défaut : 20 % pour un événement (animation), 10 % pour un séjour.
+  const defaultRate = reservation.event_id ? 20 : 10
+  const totalTtcResa = Number(reservation.total_ttc ?? reservation.amount) || 0
   const [lines, setLines] = useState<Line[]>([
     {
       designation: `${reservation.type} — séjour du ${formatDate(
         reservation.arrival_date,
       )}${reservation.departure_date ? ' au ' + formatDate(reservation.departure_date) : ''}`,
       qty: n,
-      unitPrice: reservation.amount > 0 ? Math.round((reservation.amount / n) * 100) / 100 : 0,
+      unitPriceTtc: totalTtcResa > 0 ? Math.round((totalTtcResa / n) * 100) / 100 : 0,
+      vatRate: defaultRate,
     },
   ])
   const [dueDays, setDueDays] = useState(30)
@@ -52,15 +53,16 @@ export default function FactureForm({
     setLines((prev) => prev.map((l, idx) => (idx === i ? { ...l, ...patch } : l)))
   }
   function addLine() {
-    setLines((prev) => [...prev, { designation: '', qty: 1, unitPrice: 0 }])
+    setLines((prev) => [
+      ...prev,
+      { designation: '', qty: 1, unitPriceTtc: 0, vatRate: defaultRate },
+    ])
   }
   function removeLine(i: number) {
     setLines((prev) => prev.filter((_, idx) => idx !== i))
   }
 
-  const totalHt = lines.reduce((s, l) => s + l.qty * l.unitPrice, 0)
-  const tva = Math.round(totalHt * (VAT / 100) * 100) / 100
-  const totalTtc = Math.round((totalHt + tva) * 100) / 100
+  const inv = computeInvoice(lines)
   const eur = (v: number) =>
     v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
 
@@ -134,17 +136,18 @@ export default function FactureForm({
 
         {/* Lignes */}
         <div className="mt-6 space-y-3">
-          <div className="grid grid-cols-[1fr_70px_100px_100px_32px] gap-2 text-xs font-medium uppercase text-gray-400">
+          <div className="grid grid-cols-[1fr_70px_100px_70px_100px_32px] gap-2 text-xs font-medium uppercase text-gray-400">
             <span>Désignation</span>
             <span>Qté</span>
-            <span>PU HT</span>
-            <span className="text-right">Total HT</span>
+            <span>PU TTC</span>
+            <span>TVA</span>
+            <span className="text-right">Total TTC</span>
             <span />
           </div>
           {lines.map((l, i) => (
             <div
               key={i}
-              className="grid grid-cols-[1fr_70px_100px_100px_32px] items-center gap-2"
+              className="grid grid-cols-[1fr_70px_100px_70px_100px_32px] items-center gap-2"
             >
               <input
                 value={l.designation}
@@ -164,12 +167,20 @@ export default function FactureForm({
                 type="number"
                 min={0}
                 step="0.01"
-                value={l.unitPrice}
-                onChange={(e) => setLine(i, { unitPrice: Number(e.target.value) })}
+                value={l.unitPriceTtc}
+                onChange={(e) => setLine(i, { unitPriceTtc: Number(e.target.value) })}
                 className="rounded-lg border px-2 py-2 text-sm outline-none focus:border-purple-500"
               />
+              <select
+                value={l.vatRate}
+                onChange={(e) => setLine(i, { vatRate: Number(e.target.value) })}
+                className="rounded-lg border px-1 py-2 text-sm outline-none focus:border-purple-500"
+              >
+                <option value={10}>10 %</option>
+                <option value={20}>20 %</option>
+              </select>
               <span className="text-right text-sm font-medium">
-                {eur(l.qty * l.unitPrice)}
+                {eur(l.qty * l.unitPriceTtc)}
               </span>
               <button
                 type="button"
@@ -194,15 +205,17 @@ export default function FactureForm({
         <div className="mt-6 ml-auto w-64 space-y-1 text-sm">
           <div className="flex justify-between text-gray-600">
             <span>Total HT</span>
-            <span>{eur(totalHt)}</span>
+            <span>{eur(inv.totalHt)}</span>
           </div>
-          <div className="flex justify-between text-gray-600">
-            <span>TVA {VAT} %</span>
-            <span>{eur(tva)}</span>
-          </div>
+          {inv.vatBreakdown.map((g) => (
+            <div key={g.rate} className="flex justify-between text-gray-600">
+              <span>TVA {g.rate} %</span>
+              <span>{eur(g.vat)}</span>
+            </div>
+          ))}
           <div className="flex justify-between rounded-lg bg-purple-50 px-3 py-2 font-bold text-purple-700">
             <span>Total TTC</span>
-            <span>{eur(totalTtc)}</span>
+            <span>{eur(inv.totalTtc)}</span>
           </div>
         </div>
 

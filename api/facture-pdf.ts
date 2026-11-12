@@ -4,6 +4,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { buildDevisPdf } from './_lib/devis-pdf.js'
 import { fetchOrgSettings } from './_lib/org-settings.js'
+import { totalsFromStored } from './_lib/invoice-lines.js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL as string
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY as string
@@ -13,9 +14,9 @@ interface Line {
   qty: number
   unitPrice: number
   vatRate?: number
+  unitPriceTtc?: number
 }
 
-const round2 = (v: number) => Math.round(v * 100) / 100
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
@@ -67,15 +68,9 @@ export default async function handler(req: any, res: any) {
 
   const org = await fetchOrgSettings(supabase)
   const lines: Line[] = Array.isArray(f.lines) ? f.lines : []
-  const rates = [...new Set(lines.map((l) => l.vatRate || 20))]
-  const vatBreakdown = rates
-    .map((rate) => {
-      const ht = lines
-        .filter((l) => (l.vatRate || 20) === rate)
-        .reduce((s, l) => s + l.qty * l.unitPrice, 0)
-      return { rate, ht: round2(ht), vat: round2((ht * rate) / 100) }
-    })
-    .filter((g) => g.ht > 0)
+  // Ventilation TVA recalculée à partir du TTC saisi (factures récentes) ou du
+  // HT (anciennes factures).
+  const { vatBreakdown } = totalsFromStored(lines)
 
   const pdf = await buildDevisPdf({
     reference: f.reference,

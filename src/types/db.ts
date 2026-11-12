@@ -171,7 +171,7 @@ export interface FactureRow {
   client_name: string | null
   client_email: string | null
   client_address: string | null
-  lines: { designation: string; qty: number; unitPrice: number; vatRate?: number }[]
+  lines: { designation: string; qty: number; unitPrice: number; vatRate?: number; unitPriceTtc?: number }[]
   total_ht: number
   vat_rate: number
   total_ttc: number

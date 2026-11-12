@@ -4,15 +4,11 @@ import { supabase } from '../../lib/supabase'
 import { listFactures, updateFacture } from '../../lib/api'
 import { formatDate, formatEuro2, toCSV } from '../../lib/format'
 import { openPdfBase64 } from '../../lib/pdf'
+import { computeInvoice, lineTtc } from '../../lib/invoice'
+import type { TtcLine } from '../../lib/invoice'
 import type { FactureRow } from '../../types/db'
 
-interface Line {
-  designation: string
-  qty: number
-  unitPrice: number
-  vatRate: number
-}
-const round2 = (v: number) => Math.round(v * 100) / 100
+type Line = TtcLine
 
 // Écran de gestion des factures émises (point 12) : liste, export, visualisation
 // du PDF et modification a posteriori des lignes.
@@ -222,6 +218,7 @@ export default function Factures() {
 }
 
 // Modification a posteriori des lignes d'une facture (recalcule les totaux).
+// Les prix se saisissent EN TTC ; le HT est recalculé pour le PDF.
 function FactureEdit({
   facture,
   onSaved,
@@ -235,7 +232,7 @@ function FactureEdit({
     facture.lines.map((l) => ({
       designation: l.designation,
       qty: l.qty,
-      unitPrice: l.unitPrice,
+      unitPriceTtc: lineTtc(l),
       vatRate: l.vatRate ?? 20,
     })),
   )
@@ -249,23 +246,17 @@ function FactureEdit({
     setLines((prev) => prev.map((l, idx) => (idx === i ? { ...l, ...patch } : l)))
   }
 
-  const totalHt = round2(lines.reduce((s, l) => s + l.qty * l.unitPrice, 0))
-  const totalTva = round2(
-    lines.reduce((s, l) => s + (l.qty * l.unitPrice * l.vatRate) / 100, 0),
-  )
-  const totalTtc = round2(totalHt + totalTva)
-  const mainRate =
-    [...lines].sort((a, b) => b.qty * b.unitPrice - a.qty * a.unitPrice)[0]?.vatRate ?? 20
+  const inv = computeInvoice(lines)
 
   async function save() {
     setBusy(true)
     setError('')
     try {
       await updateFacture(facture.id, {
-        lines,
-        total_ht: totalHt,
-        total_ttc: totalTtc,
-        vat_rate: mainRate,
+        lines: inv.lines,
+        total_ht: inv.totalHt,
+        total_ttc: inv.totalTtc,
+        vat_rate: inv.mainRate,
         client_name: clientName,
         client_email: clientEmail,
         client_address: clientAddress || null,
@@ -328,7 +319,9 @@ function FactureEdit({
           </label>
         </div>
 
-        <p className="mt-5 text-sm font-semibold text-gray-700">Lignes</p>
+        <p className="mt-5 text-sm font-semibold text-gray-700">
+          Lignes <span className="font-normal text-gray-400">— désignation · qté · prix unitaire TTC · TVA</span>
+        </p>
         <div className="mt-2 space-y-3">
           {lines.map((l, i) => (
             <div
@@ -348,8 +341,9 @@ function FactureEdit({
               />
               <input
                 type="number"
-                value={l.unitPrice}
-                onChange={(e) => setLine(i, { unitPrice: Number(e.target.value) })}
+                step="0.01"
+                value={l.unitPriceTtc}
+                onChange={(e) => setLine(i, { unitPriceTtc: Number(e.target.value) })}
                 className="rounded-lg border px-2 py-2 text-sm outline-none focus:border-purple-500"
               />
               <select
@@ -366,11 +360,17 @@ function FactureEdit({
         <div className="mt-6 ml-auto w-56 space-y-1 text-sm">
           <div className="flex justify-between text-gray-600">
             <span>Total HT</span>
-            <span>{formatEuro2(totalHt)}</span>
+            <span>{formatEuro2(inv.totalHt)}</span>
           </div>
+          {inv.vatBreakdown.map((g) => (
+            <div key={g.rate} className="flex justify-between text-gray-600">
+              <span>TVA {g.rate} %</span>
+              <span>{formatEuro2(g.vat)}</span>
+            </div>
+          ))}
           <div className="flex justify-between rounded-lg bg-purple-50 px-3 py-2 font-bold text-purple-700">
             <span>Total TTC</span>
-            <span>{formatEuro2(totalTtc)}</span>
+            <span>{formatEuro2(inv.totalTtc)}</span>
           </div>
         </div>
         <div className="mt-6 flex gap-3">
