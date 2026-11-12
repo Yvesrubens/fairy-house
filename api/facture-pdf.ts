@@ -107,9 +107,21 @@ export default async function handler(req: any, res: any) {
     note = `Déjà réglé : ${eurFr(paid)} — reste à régler : ${eurFr(remaining)}.`
   }
 
+  // Référence de la réservation liée (aucune pour une facture saisie à la main).
+  let reservationRef = ''
+  if (f.reservation_id) {
+    const { data: resa } = await supabase
+      .from('reservations')
+      .select('reference')
+      .eq('id', f.reservation_id)
+      .maybeSingle()
+    reservationRef = resa?.reference ?? ''
+  }
+
   const pdf = await buildDevisPdf({
     reference: f.reference,
-    reservationRef: f.reference,
+    reservationRef,
+    issueDate: f.issued_at || f.created_at,
     clientName: f.client_name || '',
     clientEmail: f.client_email || '',
     clientAddress: f.client_address || undefined,

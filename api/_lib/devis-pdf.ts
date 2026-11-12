@@ -66,6 +66,8 @@ export async function buildDevisPdf(opts: {
   rib?: { iban: string; bic: string; titulaire: string }
   docType?: 'devis' | 'facture'
   issuer?: { email: string; phone: string; address: string; siret: string; tva: string }
+  // Date d'émission du document (ISO). Par défaut : aujourd'hui.
+  issueDate?: string | null
 }): Promise<Uint8Array> {
   const isFacture = opts.docType === 'facture'
   const issuer = { ...ISSUER, ...(opts.issuer ?? {}) }
@@ -95,8 +97,8 @@ export async function buildDevisPdf(opts: {
   // Bloc document (droite) : DEVIS ou FACTURE
   text(isFacture ? 'FACTURE' : 'DEVIS', width - M - 140, y, 16, bold, GOLD)
   text('N° ' + opts.reference, width - M - 140, y - 20, 10, bold)
-  const today = new Date()
-  text('Date : ' + fmtDate(today.toISOString()), width - M - 140, y - 34, 9, font, GREY)
+  const docDate = opts.issueDate || new Date().toISOString()
+  text('Date : ' + fmtDate(docDate), width - M - 140, y - 34, 9, font, GREY)
   text(
     isFacture ? `À régler sous ${opts.validityDays} jours` : `Valable ${opts.validityDays} jours`,
     width - M - 140,
@@ -117,7 +119,9 @@ export async function buildDevisPdf(opts: {
     text(addr.length > 70 ? addr.slice(0, 69) + '…' : addr, M, cy, 9, font, GREY)
     cy -= 14
   }
-  text('Réservation : ' + opts.reservationRef, M, cy, 9, font, GREY)
+  if (opts.reservationRef) {
+    text('Réservation : ' + opts.reservationRef, M, cy, 9, font, GREY)
+  }
 
   // Tableau en-tête
   y = 620

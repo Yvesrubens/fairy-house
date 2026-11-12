@@ -6,6 +6,7 @@ import { formatDate, formatEuro2, toCSV } from '../../lib/format'
 import { openPdfBase64 } from '../../lib/pdf'
 import { computeInvoice, lineTtc, paymentStatus } from '../../lib/invoice'
 import FacturePayments from './FacturePayments'
+import ManualFactureForm from './ManualFactureForm'
 import type { TtcLine } from '../../lib/invoice'
 import type { FactureRow } from '../../types/db'
 
@@ -20,10 +21,12 @@ export default function Factures() {
   const [editing, setEditing] = useState<FactureRow | null>(null)
   const [viewing, setViewing] = useState<string | null>(null)
   const [paying, setPaying] = useState<FactureRow | null>(null)
+  const [creating, setCreating] = useState(false)
+  const [notice, setNotice] = useState('')
   const [payFilter, setPayFilter] = useState<'all' | 'a_regler' | 'payee'>('all')
   // Dispatch séjour / événement : une facture d'événement pointe vers une
   // réservation ayant un event_id.
-  const [scope, setScope] = useState<'all' | 'sejour' | 'event'>('all')
+  const [scope, setScope] = useState<'all' | 'sejour' | 'event' | 'manuelle'>('all')
 
   async function load() {
     setLoading(true)
@@ -44,9 +47,11 @@ export default function Factures() {
     .filter((f) =>
       scope === 'all'
         ? true
-        : scope === 'event'
-          ? Boolean(f.reservation_event_id)
-          : !f.reservation_event_id,
+        : scope === 'manuelle'
+          ? !f.reservation_id
+          : scope === 'event'
+            ? Boolean(f.reservation_event_id)
+            : Boolean(f.reservation_id) && !f.reservation_event_id,
     )
     .filter((f) =>
       payFilter === 'all'
@@ -58,7 +63,8 @@ export default function Factures() {
   const counts = {
     all: rows.length,
     event: rows.filter((f) => Boolean(f.reservation_event_id)).length,
-    sejour: rows.filter((f) => !f.reservation_event_id).length,
+    sejour: rows.filter((f) => Boolean(f.reservation_id) && !f.reservation_event_id).length,
+    manuelle: rows.filter((f) => !f.reservation_id).length,
   }
 
   function buildRows() {
@@ -122,6 +128,17 @@ export default function Factures() {
 
   return (
     <div>
+      {creating && (
+        <ManualFactureForm
+          onCancel={() => setCreating(false)}
+          onCreated={async (ref, warning) => {
+            setCreating(false)
+            setNotice(warning ? `Facture ${ref} créée. ${warning}` : `Facture ${ref} créée.`)
+            await load()
+          }}
+        />
+      )}
+
       {paying && (
         <FacturePayments
           facture={paying}
@@ -147,6 +164,12 @@ export default function Factures() {
         <h1 className="text-3xl font-bold text-gray-900">Factures</h1>
         <div className="flex gap-3">
           <button
+            onClick={() => setCreating(true)}
+            className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700"
+          >
+            Nouvelle facture
+          </button>
+          <button
             onClick={exportCSV}
             className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
           >
@@ -161,12 +184,17 @@ export default function Factures() {
         </div>
       </div>
 
+      {notice && (
+        <p className="mt-4 rounded bg-green-50 px-3 py-2 text-sm text-green-700">{notice}</p>
+      )}
+
       <div className="mt-6 inline-flex rounded-lg border bg-white p-1 text-sm">
         {(
           [
             ['all', `Toutes (${counts.all})`],
             ['sejour', `Séjours (${counts.sejour})`],
             ['event', `Événements (${counts.event})`],
+            ['manuelle', `Saisies manuelles (${counts.manuelle})`],
           ] as const
         ).map(([key, label]) => (
           <button
